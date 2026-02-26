@@ -262,10 +262,13 @@
                 // Cargar datos de Firestore al Estado
                 const userData = await loadUserData(user.uid);
                 if (userData) {
-                    if (userData.maxWeights) State.profile.maxWeights = userData.maxWeights;
-                    if (userData.rmRecords) State.profile.rmRecords = userData.rmRecords;
-                    if (userData.machineNotes) State.profile.machineNotes = userData.machineNotes;
-                    // Mapear otros campos si es necesario
+                    State.profile.maxWeights = userData.maxWeights || {};
+                    State.profile.rmRecords = userData.rmRecords || {};
+                    State.profile.machineNotes = userData.machineNotes || {};
+                } else {
+                    State.profile.maxWeights = {};
+                    State.profile.rmRecords = {};
+                    State.profile.machineNotes = {};
                 }
                 State.profile.id = user.uid.substring(0, 4).toUpperCase();
                 State.profile.uid = user.uid;

@@ -1,12 +1,12 @@
 const CACHE_NAME = 'fitdatapro-shell-v1';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/js/app.js',
-  '/js/firebase.js',
-  '/js/auth.js',
-  '/manifest.json'
+  './',
+  './index.html',
+  './style.css',
+  './js/app.js',
+  './js/firebase.js',
+  './js/auth.js',
+  './manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -34,7 +34,7 @@ self.addEventListener('fetch', (event) => {
   if (event.request.url.includes('firestore.googleapis.com') || event.request.url.startsWith('chrome-extension')) {
     return;
   }
-  
+
   event.respondWith(
     fetch(event.request).catch(() => caches.match(event.request))
   );

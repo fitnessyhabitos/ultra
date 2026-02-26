@@ -2,7 +2,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, enableIndexedDbPersistence, collection, addDoc, updateDoc, doc, getDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeFirestore, persistentLocalCache, collection, addDoc, updateDoc, doc, getDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCOYWxr9kBdN3kQLG_34Z5Lr4z8RKvZjn0",
@@ -15,14 +15,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
-
-// Activar caché offline para entornos de baja conexión (Gimnasios)
-try {
-    enableIndexedDbPersistence(db);
-} catch (err) {
-    console.warn("FitDataPro: Persistencia Offline no disponible.", err.code);
-}
+const db = initializeFirestore(app, {
+    localCache: persistentLocalCache()
+});
 
 // -----------------------------------------
 // DATABASE HELPERS
