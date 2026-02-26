@@ -235,6 +235,7 @@
 
     <script type="module">
         import { auth, db, loadUserData, loadHistory, updateProfile, saveWorkout, uploadComparativaImage } from './js/firebase.js';
+        import { AdminController } from './js/admin.js';
         import { EXERCISES } from './js/data.js';
         import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -309,7 +310,7 @@
         }
 
         // CONTROLADOR DE PESTAÑAS DEL ADMIN
-        window.loadAdminTab = function (tabName) {
+        window.loadAdminTab = async function (tabName) {
             const tabs = document.querySelectorAll('.admin-tabs button');
             tabs.forEach(t => t.classList.remove('active'));
             const activeBtn = Array.from(tabs).find(t => t.textContent.toLowerCase().includes(tabName.toLowerCase()));
@@ -320,10 +321,29 @@
 
             contentArea.innerHTML = `<p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-top:40px;">Cargando módulo ${tabName}...</p>`;
 
-            // Aquí irán las llamadas a Firebase (admin.js) más adelante
-            setTimeout(() => {
+            try {
                 if (tabName === 'solicitudes') {
-                    contentArea.innerHTML = `<h3 style="color:#ffcc00; margin-bottom:15px;">Atletas Pendientes</h3><p style="font-size:12px; color:#aaa;">No hay solicitudes pendientes.</p>`;
+                    const pendingUsers = await AdminController.getClients('pending');
+                    let html = `<h3 style="color:#ffcc00; margin-bottom:15px;">Atletas Pendientes</h3>`;
+
+                    if (pendingUsers.length === 0) {
+                        html += `<p style="font-size:12px; color:#aaa;">No hay solicitudes pendientes.</p>`;
+                    } else {
+                        pendingUsers.forEach(u => {
+                            html += `
+                            <div class="liquid-glass card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:10px; border-left:3px solid #ffcc00;">
+                                <div>
+                                    <strong style="color:white; display:block;">${u.fullName || 'Atleta Sin Nombre'}</strong>
+                                    <span style="font-size:11px; color:#aaa;">${u.email}</span>
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    <button onclick="approveAthlete('${u.id}')" class="cyber-button" style="padding:5px 10px; font-size:11px; min-width:auto; border-color:#00ff88; color:#00ff88;">✓ Aprobar</button>
+                                    <button onclick="rejectAthlete('${u.id}')" class="cyber-button secondary" style="padding:5px 10px; font-size:11px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;">✕ Rechazar</button>
+                                </div>
+                            </div>`;
+                        });
+                    }
+                    contentArea.innerHTML = html;
                 } else if (tabName === 'atletas') {
                     contentArea.innerHTML = `<h3 style="color:#00ff88; margin-bottom:15px;">Directorio de Atletas</h3><p style="font-size:12px; color:#aaa;">No tienes atletas activos.</p>`;
                 } else if (tabName === 'rutinas') {
@@ -331,7 +351,26 @@
                 } else if (tabName === 'chat') {
                     contentArea.innerHTML = `<h3 style="color:white; margin-bottom:15px;">Comunicaciones Globales</h3><p style="font-size:12px; color:#aaa;">Bandeja de entrada vacía.</p>`;
                 }
-            }, 300);
+            } catch (error) {
+                console.error(error);
+                contentArea.innerHTML = `<p style="color:red; font-size:12px;">Error al cargar datos del servidor.</p>`;
+            }
+        };
+
+        window.approveAthlete = async (uid) => {
+            if (!confirm("¿Aprobar a este atleta? Podrá acceder a la app.")) return;
+            showToast("Aprobando...");
+            const res = await AdminController.approveUser(uid);
+            if (res) { showToast("¡Atleta Aprobado!"); window.loadAdminTab('solicitudes'); }
+            else { alert("Error al aprobar."); }
+        };
+
+        window.rejectAthlete = async (uid) => {
+            if (!confirm("¿Rechazar a este atleta? Se le denegará el acceso permanentemente.")) return;
+            showToast("Rechazando...");
+            const res = await AdminController.rejectUser(uid);
+            if (res) { showToast("Solicitud rechazada"); window.loadAdminTab('solicitudes'); }
+            else { alert("Error al rechazar."); }
         };
 
         function showToast(msg) {

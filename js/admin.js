@@ -1,7 +1,7 @@
 import { db, auth } from './firebase.js';
-import { 
-    collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc, 
-    query, where, orderBy, limit, serverTimestamp, runTransaction 
+import {
+    collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc,
+    query, where, orderBy, limit, serverTimestamp, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 /**
@@ -9,7 +9,7 @@ import {
  * Filosofía: Zero-Defect. Consultas paginadas y transacciones atómicas para métricas.
  */
 export const AdminController = {
-    
+
     /**
      * Obtiene la lista de clientes aprobados o pendientes.
      * @param {string} status - 'approved' | 'pending'
@@ -18,12 +18,12 @@ export const AdminController = {
     async getClients(status = 'approved') {
         try {
             const q = query(
-                collection(db, "users"), 
+                collection(db, "users"),
                 where("status", "==", status),
                 // Solo traemos los que tú gestionas (si hubiera varios coaches en el futuro)
                 // where("coachId", "==", auth.currentUser.uid) 
             );
-            
+
             const snapshot = await getDocs(q);
             const clients = [];
             snapshot.forEach(doc => clients.push({ id: doc.id, ...doc.data() }));
@@ -32,6 +32,39 @@ export const AdminController = {
             console.error("Admin: Error al obtener clientes.", error);
             alert("Fallo de red al cargar clientes.");
             return [];
+        }
+    },
+
+    /**
+     * Aprueba a un usuario pendiente, dándole acceso a la app.
+     */
+    async approveUser(uid) {
+        try {
+            const userRef = doc(db, "users", uid);
+            await updateDoc(userRef, {
+                status: 'approved',
+                role: 'user' // Por defecto se le asigna rol normal para que acceda al Plan
+            });
+            return true;
+        } catch (error) {
+            console.error("Admin: Error al aprobar usuario.", error);
+            return false;
+        }
+    },
+
+    /**
+     * Rechaza a un usuario pendiente.
+     */
+    async rejectUser(uid) {
+        try {
+            const userRef = doc(db, "users", uid);
+            await updateDoc(userRef, {
+                status: 'rejected'
+            });
+            return true;
+        } catch (error) {
+            console.error("Admin: Error al rechazar usuario.", error);
+            return false;
         }
     },
 
@@ -77,7 +110,7 @@ export const AdminController = {
             // Usamos runTransaction para asegurar que si falla la actualización del 1RM, 
             // no se guarde un entreno corrupto (ACID compliance).
             await runTransaction(db, async (transaction) => {
-                
+
                 // 1. Guardar el entreno general (Proxy Flag activado)
                 transaction.set(workoutRef, {
                     ...workoutData,
@@ -104,11 +137,11 @@ export const AdminController = {
                     } else {
                         // Ya existe, comprobamos si superó el 1RM
                         const currentData = statsDoc.data();
-                        
+
                         // Solo actualizamos el histórico de 1RM si levantó más peso
                         if (newWeight > currentData.current1RM) {
                             const updatedHistory = [...currentData.history1RM, { date: new Date().toISOString(), weight: newWeight }];
-                            
+
                             // Programación defensiva: Evitar arrays infinitos en Firebase (Max 50 hitos de RM)
                             if (updatedHistory.length > 50) updatedHistory.shift();
 
@@ -144,10 +177,10 @@ export const AdminController = {
         try {
             const statsRef = doc(db, `users/${clientId}/exercise_stats/${exerciseId}`);
             const docSnap = await getDoc(statsRef);
-            
+
             if (docSnap.exists()) {
                 // Retorna un array pequeño con las fechas y pesos, ideal para inyectar directo a Chart.js
-                return docSnap.data().history1RM; 
+                return docSnap.data().history1RM;
             }
             return [];
         } catch (error) {
