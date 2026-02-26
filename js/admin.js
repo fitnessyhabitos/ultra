@@ -187,5 +187,67 @@ export const AdminController = {
             console.error("Admin: Error leyendo progresión.", error);
             return [];
         }
+    },
+
+    /**
+     * Bandeja de entrada Global: Obtiene los últimos mensajes de todos los atletas
+     */
+    async getGlobalMessages() {
+        try {
+            // Requiere un Composite Index en Firestore: status == 'approved' && order by lastMessageAt
+            const q = query(collection(db, "users"), where("status", "==", "approved"));
+            const snapshot = await getDocs(q);
+            let inbox = [];
+
+            for (const docSnap of snapshot.docs) {
+                const u = docSnap.data();
+                if (u.messages && u.messages.length > 0) {
+                    const lastMsg = u.messages[u.messages.length - 1];
+                    inbox.push({
+                        clientId: docSnap.id,
+                        clientName: u.fullName || 'Atleta',
+                        lastMessage: lastMsg.text,
+                        time: lastMsg.time,
+                        sender: lastMsg.sender,
+                        unreadCount: u.messages.filter(m => m.sender === 'user' && !m.read).length
+                    });
+                }
+            }
+            // Sort by most recent conceptually (if we had real timestamps it would be better, but time string is HH:MM)
+            return inbox.sort((a, b) => b.time.localeCompare(a.time));
+        } catch (error) {
+            console.error("Admin: Error cargando buzón global", error);
+            return [];
+        }
+    },
+
+    /**
+     * Responde a un atleta específico
+     */
+    async replyToMessage(clientId, text) {
+        try {
+            const userRef = doc(db, "users", clientId);
+            const userSnap = await getDoc(userRef);
+            if (!userSnap.exists()) return false;
+
+            const userData = userSnap.data();
+            const msgs = userData.messages || [];
+            const d = new Date();
+            msgs.push({
+                sender: 'coach',
+                text: text,
+                time: `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`,
+                read: false // pending for user to read
+            });
+
+            // Mark all previous user messages as read by coach
+            msgs.forEach(m => { if (m.sender === 'user') m.read = true; });
+
+            await updateDoc(userRef, { messages: msgs });
+            return true;
+        } catch (error) {
+            console.error("Admin: Error al enviar mensaje", error);
+            return false;
+        }
     }
 };

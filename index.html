@@ -366,7 +366,29 @@
                 } else if (tabName === 'rutinas') {
                     contentArea.innerHTML = `<h3 style="color:#00d4ff; margin-bottom:15px;">Gestor de Rutinas</h3><button class="cyber-button" style="font-size:12px; padding:10px;">+ Crear Nueva Rutina Base</button>`;
                 } else if (tabName === 'chat') {
-                    contentArea.innerHTML = `<h3 style="color:white; margin-bottom:15px;">Comunicaciones Globales</h3><p style="font-size:12px; color:#aaa;">Bandeja de entrada vacía.</p>`;
+                    const messages = await AdminController.getGlobalMessages();
+                    let html = `<h3 style="color:white; margin-bottom:15px;">Comunicaciones Globales</h3>`;
+
+                    if (messages.length === 0) {
+                        html += `<p style="font-size:12px; color:#aaa;">Bandeja de entrada vacía.</p>`;
+                    } else {
+                        messages.forEach(m => {
+                            const unreadBadge = m.unreadCount > 0 ? `<span style="background:#ff3333; color:white; padding:2px 6px; border-radius:10px; font-size:10px; margin-left:10px;">${m.unreadCount} Nuevos</span>` : '';
+                            html += `
+                            <div class="liquid-glass card" style="margin-bottom:10px; padding:15px; border-left:3px solid ${m.sender === 'user' ? '#00d4ff' : '#444'};">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                    <strong style="color:white; font-size:14px;">${m.clientName} ${unreadBadge}</strong>
+                                    <span style="font-size:10px; color:#aaa;">${m.time}</span>
+                                </div>
+                                <p style="font-size:12px; color:#ccc; background:rgba(0,0,0,0.3); padding:10px; border-radius:4px; margin-bottom:10px;">"${m.lastMessage}"</p>
+                                <div style="display:flex; gap:10px;">
+                                    <input type="text" id="reply-input-${m.clientId}" placeholder="Respuesta rápida..." style="flex:1; background:rgba(0,0,0,0.5); border:1px solid #444; color:white; padding:5px; border-radius:4px; font-size:12px;">
+                                    <button onclick="replyToClient('${m.clientId}')" class="cyber-button" style="padding:5px 15px; font-size:11px; min-width:auto;">Enviar</button>
+                                </div>
+                            </div>`;
+                        });
+                    }
+                    contentArea.innerHTML = html;
                 }
             } catch (error) {
                 console.error(error);
@@ -393,6 +415,26 @@
         window.viewAthleteProfile = (uid) => {
             alert("Esta función abrirá el historial y radar map del atleta " + uid + " en breve.");
             // To be implemented: Fetch athlete's stats and overwrite State temporarily to view their history.
+        };
+
+        window.replyToClient = async (clientId) => {
+            const input = document.getElementById(`reply-input-${clientId}`);
+            if (!input || input.value.trim() === "") return;
+
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = "Enviando...";
+
+            const res = await AdminController.replyToMessage(clientId, input.value.trim());
+            if (res) {
+                showToast("Mensaje enviado");
+                input.value = "";
+                window.loadAdminTab('chat');
+            } else {
+                alert("Error al enviar mensaje");
+            }
+            btn.disabled = false;
+            btn.textContent = "Enviar";
         };
 
         function showToast(msg) {
