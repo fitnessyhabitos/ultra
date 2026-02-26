@@ -364,7 +364,26 @@
                     }
                     contentArea.innerHTML = html;
                 } else if (tabName === 'rutinas') {
-                    contentArea.innerHTML = `<h3 style="color:#00d4ff; margin-bottom:15px;">Gestor de Rutinas</h3><button class="cyber-button" style="font-size:12px; padding:10px;">+ Crear Nueva Rutina Base</button>`;
+                    const activeUsers = await AdminController.getClients('approved');
+                    let userOptions = activeUsers.map(u => `<option value="${u.id}">${u.fullName || u.email}</option>`).join('');
+
+                    contentArea.innerHTML = `
+                        <h3 style="color:#00d4ff; margin-bottom:15px;">Asignar Rutina a Atleta</h3>
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <label style="font-size:11px; color:#aaa;">Seleccionar Atleta:</label>
+                            <select id="admin-routine-user" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444;">
+                                ${userOptions}
+                            </select>
+                            
+                            <label style="font-size:11px; color:#aaa; margin-top:10px;">Nombre de la Rutina:</label>
+                            <input type="text" id="admin-routine-name" placeholder="Ej: Hipertrofia Fase 1" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444;">
+                            
+                            <label style="font-size:11px; color:#aaa; margin-top:10px;">Ejercicios (Separados por coma):</label>
+                            <textarea id="admin-routine-exs" placeholder="Sentadilla, Press Banca, Peso Muerto" rows="3" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444;"></textarea>
+                            
+                            <button onclick="window.submitCustomRoutine()" class="cyber-button" style="margin-top:15px;">Asignar Rutina</button>
+                        </div>
+                    `;
                 } else if (tabName === 'chat') {
                     const messages = await AdminController.getGlobalMessages();
                     let html = `<h3 style="color:white; margin-bottom:15px;">Comunicaciones Globales</h3>`;
@@ -435,6 +454,40 @@
             }
             btn.disabled = false;
             btn.textContent = "Enviar";
+        };
+
+        window.submitCustomRoutine = async () => {
+            const uid = document.getElementById('admin-routine-user').value;
+            const rName = document.getElementById('admin-routine-name').value.trim();
+            const rawExs = document.getElementById('admin-routine-exs').value;
+
+            if (!uid || !rName || !rawExs) {
+                alert("Rellena todos los campos.");
+                return;
+            }
+
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = "Generando...";
+
+            const exArray = rawExs.split(',').map(e => e.trim()).filter(e => e.length > 0);
+
+            // Map strings back to exercise format
+            const routineData = exArray.map(n => {
+                const found = EXERCISES.find(ex => ex.n.toLowerCase() === n.toLowerCase());
+                return found || { id: "custom_" + n.replace(/\s+/g, ''), n: n, m: "Varios", eq: "Libre" };
+            });
+
+            const res = await AdminController.assignRoutineToUser(uid, rName, routineData);
+            if (res) {
+                showToast("Rutina asignada exitosamente.");
+                document.getElementById('admin-routine-name').value = '';
+                document.getElementById('admin-routine-exs').value = '';
+            } else {
+                alert("Error asignando rutina.");
+            }
+            btn.disabled = false;
+            btn.textContent = "Asignar Rutina";
         };
 
         function showToast(msg) {

@@ -249,5 +249,44 @@ export const AdminController = {
             console.error("Admin: Error al enviar mensaje", error);
             return false;
         }
+    },
+
+    /**
+     * Guarda una rutina plantilla a nivel global para el coach
+     */
+    async saveGlobalRoutine(routineName, exercisesArray) {
+        try {
+            const routineRef = doc(db, "global_routines", routineName.toLowerCase().replace(/\s+/g, '_'));
+            await setDoc(routineRef, {
+                name: routineName,
+                exercises: exercisesArray,
+                coachId: auth.currentUser.uid,
+                createdAt: serverTimestamp()
+            });
+            return true;
+        } catch (error) {
+            console.error("Admin: Error al guardar rutina global", error);
+            return false;
+        }
+    },
+
+    /**
+     * Asigna una rutina directamente a un atleta
+     */
+    async assignRoutineToUser(clientId, routineName, exercisesArray) {
+        try {
+            const userRef = doc(db, "users", clientId);
+            await updateDoc(userRef, {
+                assignedRoutine: {
+                    name: routineName,
+                    exercises: exercisesArray,
+                    assignedAt: new Date().toISOString()
+                }
+            });
+            return true;
+        } catch (error) {
+            console.error("Admin: Error al asignar rutina al atleta", error);
+            return false;
+        }
     }
 };
