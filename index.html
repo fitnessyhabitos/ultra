@@ -234,7 +234,7 @@
     </section>
 
     <script type="module">
-        import { auth, db, loadUserData, loadHistory, updateProfile, saveWorkout } from './js/firebase.js';
+        import { auth, db, loadUserData, loadHistory, updateProfile, saveWorkout, uploadComparativaImage } from './js/firebase.js';
         import { EXERCISES } from './js/data.js';
         import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -265,6 +265,7 @@
                     State.profile.maxWeights = userData.maxWeights || {};
                     State.profile.rmRecords = userData.rmRecords || {};
                     State.profile.machineNotes = userData.machineNotes || {};
+                    if (userData.comparativaImages) State.comparativaImages = userData.comparativaImages;
                 } else {
                     State.profile.maxWeights = {};
                     State.profile.rmRecords = {};
@@ -1002,18 +1003,36 @@
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        if (e.target.id === 'upload-inicio') {
-                            State.comparativaImages = State.comparativaImages || {};
-                            State.comparativaImages.inicio = ev.target.result;
+                    reader.onload = async (ev) => {
+                        const base64Img = ev.target.result;
+                        const type = e.target.id === 'upload-inicio' ? 'inicio' : 'actual';
+
+                        // 1. Mostrar Preview Local instantáneo
+                        State.comparativaImages = State.comparativaImages || {};
+                        State.comparativaImages[type] = base64Img;
+
+                        if (type === 'inicio') {
                             const img = document.getElementById('img-before');
-                            if (img) img.src = ev.target.result;
+                            if (img) img.src = base64Img;
                         } else {
-                            State.comparativaImages = State.comparativaImages || {};
-                            State.comparativaImages.actual = ev.target.result;
-                            // The actual image is the first one with class .slider-img.after
                             const img = document.querySelector('.slider-img.after');
-                            if (img) img.src = ev.target.result;
+                            if (img) img.src = base64Img;
+                        }
+
+                        // 2. Subir a Firebase Storage y Database
+                        const lbl = e.target.closest('label');
+                        const originalText = lbl ? lbl.innerHTML.trim() : "";
+                        if (lbl) lbl.innerHTML = `<span style="color:#fff;">Subiendo...</span>`;
+
+                        const downloadUrl = await uploadComparativaImage(State.profile.uid, type, base64Img);
+                        if (downloadUrl) {
+                            State.comparativaImages[type] = downloadUrl;
+                            await updateProfile(State.profile.uid, { comparativaImages: State.comparativaImages });
+                            if (lbl) lbl.innerHTML = `<span style="color:var(--cyber-green);">¡Guardada!</span>`;
+                            setTimeout(() => { if (lbl) lbl.innerHTML = originalText; }, 2000);
+                        } else {
+                            alert("Hubo un error al subir la imagen en la nube.");
+                            if (lbl) lbl.innerHTML = originalText;
                         }
                     };
                     reader.readAsDataURL(file);

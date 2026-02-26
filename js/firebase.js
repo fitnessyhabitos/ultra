@@ -3,6 +3,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, collection, addDoc, updateDoc, doc, getDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCOYWxr9kBdN3kQLG_34Z5Lr4z8RKvZjn0",
@@ -18,6 +19,7 @@ const auth = getAuth(app);
 const db = initializeFirestore(app, {
     localCache: persistentLocalCache()
 });
+const storage = getStorage(app);
 
 // -----------------------------------------
 // DATABASE HELPERS
@@ -88,5 +90,20 @@ export async function loadHistory(uid, limitCount = 50) {
     }
 }
 
+/**
+ * Sube una imagen en base64 a Firebase Storage y devuelve la URL
+ */
+export async function uploadComparativaImage(uid, type, dataUrl) {
+    try {
+        const storageRef = ref(storage, `users/${uid}/comparativa_${type}.jpg`);
+        const snapshot = await uploadString(storageRef, dataUrl, 'data_url');
+        const downloadUrl = await getDownloadURL(snapshot.ref);
+        return downloadUrl;
+    } catch (error) {
+        console.error("Error subiendo imagen:", error);
+        return null;
+    }
+}
+
 // Exportamos todo para uso global
-export { auth, db };
+export { auth, db, storage };
