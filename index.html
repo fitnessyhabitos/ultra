@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>FitDataPro - Cyber OS</title>
+    <link rel="icon" href="logo.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <div id="toast-container"></div>
+
+    <section id="auth-view" class="auth-container">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <img src="logo.png" alt="FitDataPro Logo"
+                style="width: 80px; height: 80px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 0 20px var(--cyber-red-dim);">
+            <h1 style="font-size: 36px; font-weight: 900; letter-spacing: -1px;">FIT<span
+                    class="highlight">DATA</span>PRO</h1>
+            <p style="color: var(--cyber-text-gray); font-size: 14px;">Red Neuronal de Entrenamiento</p>
+        </div>
+
+        <div class="liquid-glass" style="width: 100%; max-width: 400px; padding: 30px 20px;">
+            <div id="login-section">
+                <form id="login-form" class="auth-form">
+                    <input type="email" id="login-email" placeholder="Correo Electrónico" required>
+                    <input type="password" id="login-password" placeholder="Código de Acceso" required>
+                    <button type="submit" class="cyber-button">Iniciar Sesión</button>
+                </form>
+                <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                    <p style="font-size: 13px; color: var(--cyber-text-gray);"><a href="#" id="toggle-to-register"
+                            class="highlight" style="text-decoration:none;">Solicitar Acceso</a></p>
+                    <p style="font-size: 13px;"><a href="#" id="btn-show-install"
+                            style="color:#00ff88; text-decoration:none; font-weight:bold;">📲 Instalar App</a></p>
+                </div>
+            </div>
+
+            <div id="register-section" style="display: none;">
+                <form id="register-form" class="auth-form">
+                    <input type="text" id="reg-name" placeholder="Nombre Operativo" required>
+                    <input type="email" id="reg-email" placeholder="Correo" required>
+                    <input type="password" id="reg-password" placeholder="Contraseña" required>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="select-wrapper">
+                            <select id="reg-gender" required>
+                                <option value="" disabled selected>Género</option>
+                                <option value="masculino">Masculino</option>
+                                <option value="femenino">Femenino</option>
+                            </select>
+                        </div>
+                        <input type="date" id="reg-dob" required style="font-size: 14px;">
+                    </div>
+                    <input type="tel" id="reg-phone" placeholder="Teléfono" required>
+                    <button type="submit" class="cyber-button">Conectar a la Red</button>
+                </form>
+                <p style="margin-top: 20px; text-align: center; font-size: 13px; color: var(--cyber-text-gray);"><a
+                        href="#" id="toggle-to-login" class="highlight" style="text-decoration:none;">Autenticarse</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="app-wrapper">
+        <div class="header-title">
+            <div style="display:flex; align-items:center;">
+                <img src="logo.png" alt="Logo" class="header-logo">
+                <span id="header-text">FIT<span class="highlight">DATA</span>PRO</span>
+            </div>
+            <svg class="cyber-icon highlight" viewBox="0 0 24 24" style="width:24px; height:24px;">
+                <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+            </svg>
+        </div>
+
+        <main id="app-view"></main>
+
+        <nav class="bottom-nav">
+            <div class="nav-item" data-view="menu"><svg class="cyber-icon" viewBox="0 0 24 24">
+                    <path
+                        d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z" />
+                </svg><span>Menú</span></div>
+            <div class="nav-item active" data-view="plan"><svg class="cyber-icon" viewBox="0 0 24 24">
+                    <path
+                        d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 002 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z" />
+                </svg><span>Plan</span></div>
+            <button class="fab-button" id="fab-trigger"><svg class="cyber-icon" viewBox="0 0 24 24">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                </svg></button>
+            <div class="nav-item" data-view="progreso"><svg class="cyber-icon" viewBox="0 0 24 24">
+                    <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z" />
+                </svg><span>Progreso</span></div>
+            <div class="nav-item" data-view="mensajes"><svg class="cyber-icon" viewBox="0 0 24 24">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+                </svg><span>Mensajes</span></div>
+        </nav>
+
+        <div id="active-workout-banner" class="active-workout-banner hidden">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div class="pulse-dot"></div><span style="font-weight:bold; font-size:14px; color:white;">Entrenamiento
+                    Activo</span>
+            </div>
+            <span style="font-size:12px; color:var(--cyber-red-neon); font-weight:bold;">Retomar ▶</span>
+        </div>
+
+        <div id="modal-install" class="modal-overlay">
+            <div class="modal-content">
+                <h3 style="color:var(--cyber-white); text-align:center; margin-bottom:20px;">Instalar FitDataPro</h3>
+                <p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-bottom:20px;">Añade la
+                    app a tu pantalla de inicio para una experiencia nativa.</p>
+                <div class="liquid-glass card" style="margin-bottom:15px; padding:15px;">
+                    <h4 style="color:#00d4ff; margin-bottom:10px;">🍎 iOS (Safari)</h4>
+                    <ol style="color:var(--cyber-text-gray); font-size:12px; margin-left:15px; line-height:1.6;">
+                        <li>Toca el icono Compartir abajo.</li>
+                        <li>Selecciona "Añadir a la pantalla de inicio".</li>
+                    </ol>
+                </div>
+                <div class="liquid-glass card" style="padding:15px;">
+                    <h4 style="color:#00ff88; margin-bottom:10px;">🤖 Android (Chrome)</h4>
+                    <ol style="color:var(--cyber-text-gray); font-size:12px; margin-left:15px; line-height:1.6;">
+                        <li>Toca el Menú (3 puntos) arriba a la derecha.</li>
+                        <li>Selecciona "Añadir a pantalla de inicio".</li>
+                    </ol>
+                </div><button class="cyber-button secondary" id="close-install-modal"
+                    style="margin-top:20px;">Entendido</button>
+            </div>
+        </div>
+
+        <div id="fab-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h3 style="margin-bottom: 20px; text-align: center;">Registrar Métrica</h3>
+                <div class="modal-grid">
+                    <div class="modal-action" data-action="weight"><svg class="cyber-icon" viewBox="0 0 24 24">
+                            <path d="M12 2L2 7l4.38 2.19L8 16h8l1.62-6.81L22 7l-10-5zM8 18h8v2H8v-2z" />
+                        </svg><span>Peso</span></div>
+                    <div class="modal-action" data-action="fat"><svg class="cyber-icon" style="color: #ffaa00;"
+                            viewBox="0 0 24 24">
+                            <path d="M12 2c0 0-4 4-4 9 0 2.21 1.79 4 4 4s4-1.79 4-4c0-5-4-9-4-9z" />
+                        </svg><span>% Grasa</span></div>
+                    <div class="modal-action" data-action="measures"><svg class="cyber-icon" style="color: #00d4ff;"
+                            viewBox="0 0 24 24">
+                            <path
+                                d="M21.5 5.5l-2-2c-.39-.39-1.02-.39-1.41 0L3 18.59c-.39.39-.39 1.02 0 1.41l2 2c.39.39 1.02.39 1.41 0L21.5 6.91c.39-.39.39-1.02 0-1.41zM6.41 20L4 17.59 5.59 16 7 17.41 8.41 16 7 14.59 8.41 13 9.83 14.41 11.24 13 9.83 11.59 11.24 10.17 12.66 11.59 14.07 10.17 12.66 8.76 14.07 7.34 15.49 8.76 16.9 7.34 15.49 5.93 17.9 3.51 20.31 5.93 6.41 20z" />
+                        </svg><span>Pliegues</span></div>
+                    <div class="modal-action" data-action="meal"><svg class="cyber-icon" style="color: #44ff44;"
+                            viewBox="0 0 24 24">
+                            <path
+                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 6h2v6.27l4.25 2.52-1 1.73-5.25-3.15V6z" />
+                        </svg><span>Comida</span></div>
+                    <div class="modal-action" id="btn-ia-setup-fab" style="border-color: #ff1f3d;"><svg
+                            class="cyber-icon" style="color: var(--cyber-red-neon);" viewBox="0 0 24 24">
+                            <path
+                                d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 17 22.71 22.71 17z" />
+                        </svg><span>Rutina IA</span></div>
+                    <div class="modal-action"
+                        style="background: rgba(255, 31, 61, 0.2); border-color: var(--cyber-red-neon);"
+                        id="close-modal"><svg class="cyber-icon highlight" viewBox="0 0 24 24">
+                            <path
+                                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                        </svg><span style="color: var(--cyber-red-neon); font-weight: bold;">Cancelar</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-timer" class="modal-overlay">
+            <div class="modal-content" style="text-align:center;">
+                <h3 style="color:var(--cyber-text-gray); font-size:14px; letter-spacing:2px; margin-bottom:10px;">
+                    RECUPERACIÓN</h3>
+                <div id="timer-display-main" class="timer-display-huge">01:30</div>
+                <div style="display:flex; gap:10px; justify-content:center; margin-bottom:20px;">
+                    <button class="cyber-button secondary" id="btn-timer-minus" style="flex:1;">-15s</button>
+                    <button class="cyber-button secondary" id="btn-timer-plus" style="flex:1;">+15s</button>
+                </div>
+                <button class="cyber-button" id="btn-timer-skip">Saltar Descanso ▶</button>
+            </div>
+        </div>
+
+        <div id="modal-rpe" class="modal-overlay">
+            <div class="modal-content" style="text-align:center;">
+                <h3 style="color:white; margin-bottom:10px; font-size:18px;">Resumen Operativo</h3>
+
+                <div class="scanner-wrapper" id="workout-muscle-map"></div>
+
+                <textarea id="workout-general-note" class="auth-form"
+                    placeholder="Nota general de tu entreno (Sensaciones, energía, etc.)..."
+                    style="width:100%; min-height:60px; margin-bottom:15px; border-radius:8px; padding:10px; background:rgba(10,10,10,0.5); color:white; border:1px solid rgba(255,31,61,0.3); font-family:inherit;"></textarea>
+
+                <p style="color:var(--cyber-text-gray); font-size:14px; margin-bottom:15px;">Evaluación de Esfuerzo
+                    (RPE)</p>
+                <div style="display:flex; gap:10px; margin-bottom: 20px;">
+                    <button class="cyber-button" style="flex:1; background:#00ff88; color:black;" data-rpe="Suave">🟢
+                        Suave</button>
+                    <button class="cyber-button" style="flex:1; background:#ffaa00; color:black;" data-rpe="Duro">🟠
+                        Duro</button>
+                    <button class="cyber-button" style="flex:1; background:#ff3333; color:white;" data-rpe="Fallo">🔴
+                        Fallo</button>
+                </div>
+
+                <button class="cyber-button secondary" id="btn-back-workout">← Me dejé algo (Volver)</button>
+            </div>
+        </div>
+
+        <div id="modal-payment" class="modal-overlay">
+            <div class="modal-content">
+                <h3 style="margin-bottom: 20px; text-align: center;">Completar Suscripción</h3>
+                <p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-bottom:20px;">Elige tu
+                    método de pago para activar el plan.</p>
+                <div style="display:flex; flex-direction:column; gap:15px;">
+                    <button class="cyber-button" id="btn-pay-bizum"
+                        style="background:#00c4b3; color:white; text-shadow:none; box-shadow:0 0 15px rgba(0,196,179,0.4);">Pagar
+                        con Bizum (0% Comisiones)</button>
+                    <button class="cyber-button" id="btn-pay-sumup"
+                        style="background:#0f1e32; border:1px solid #fff; color:white; text-shadow:none; box-shadow:none;">Pagar
+                        con Tarjeta (SumUp)</button>
+                    <button class="cyber-button secondary" id="close-payment-modal"
+                        style="margin-top:10px; border-color:#666; color:#888;">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-swap" class="modal-overlay">
+            <div class="modal-content">
+                <h3 style="margin-bottom: 15px; text-align: center;">Cambiar Máquina</h3>
+                <p style="color:var(--cyber-text-gray); font-size:12px; text-align:center; margin-bottom:15px;">Elige
+                    una alternativa del mismo grupo muscular:</p>
+                <div id="swap-list-container" class="swap-list"></div>
+                <button class="cyber-button secondary" id="close-swap-modal" style="margin-top:15px;">Cancelar</button>
+            </div>
+        </div>
+
+    </section>
+
+    <script type="module">
+        import { auth, db, loadUserData, loadHistory, updateProfile, saveWorkout } from './js/firebase.js';
+        import { EXERCISES } from './js/data.js';
+        import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(e => { }); }); }
+
+        const loginSection = document.getElementById('login-section');
+        const registerSection = document.getElementById('register-section');
+        document.getElementById('toggle-to-register').addEventListener('pointerup', () => { loginSection.style.display = 'none'; registerSection.style.display = 'block'; });
+        document.getElementById('toggle-to-login').addEventListener('pointerup', () => { registerSection.style.display = 'none'; loginSection.style.display = 'block'; });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button'); btn.disabled = true;
+            try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value); }
+            catch (error) { alert('Error: ' + error.message); }
+            finally { btn.disabled = false; }
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                document.getElementById('auth-view').style.display = 'none';
+                document.getElementById('app-wrapper').style.display = 'block';
+
+                // Cargar datos de Firestore al Estado
+                const userData = await loadUserData(user.uid);
+                if (userData) {
+                    if (userData.maxWeights) State.profile.maxWeights = userData.maxWeights;
+                    if (userData.rmRecords) State.profile.rmRecords = userData.rmRecords;
+                    if (userData.machineNotes) State.profile.machineNotes = userData.machineNotes;
+                    // Mapear otros campos si es necesario
+                }
+                State.profile.id = user.uid.substring(0, 4).toUpperCase();
+                State.profile.uid = user.uid;
+
+                // Cargar Historial
+                State.history = await loadHistory(user.uid);
+
+                navigateTo('plan');
+            } else {
+                document.getElementById('auth-view').style.display = 'flex';
+                document.getElementById('app-wrapper').style.display = 'none';
+            }
+        });
+
+        function calculateAge(dobString) {
+            if (!dobString) return 30;
+            const today = new Date(); const birthDate = new Date(dobString);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+            return age;
+        }
+
+        function calculateJP7(sum7, age, gender) {
+            if (!sum7 || !age) return '';
+            let bd = 0;
+            if (gender === 'femenino') bd = 1.097 - (0.00046971 * sum7) + (0.00000056 * (sum7 * sum7)) - (0.00012828 * age);
+            else bd = 1.112 - (0.00043499 * sum7) + (0.00000055 * (sum7 * sum7)) - (0.00028826 * age);
+            let fat = (495 / bd) - 450;
+            return fat > 0 ? fat.toFixed(1) : '';
+        }
+
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const t = document.createElement('div');
+            t.className = 'toast-msg'; t.innerHTML = msg;
+            container.appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 500); }, 4000);
+        }
+
+        function getWeekDays() {
+            let curr = new Date(); let week = [];
+            let first = curr.getDate() - curr.getDay() + (curr.getDay() === 0 ? -6 : 1);
+            let monday = new Date(curr.setDate(first));
+            for (let i = 0; i < 7; i++) { let d = new Date(monday); d.setDate(monday.getDate() + i); week.push(d); }
+            return week;
+        }
+        const daysNames = ['DOM.', 'LUN.', 'MAR.', 'MIÉ.', 'JUE.', 'VIE.', 'SÁB.'];
+        const formatYMD = (date) => { const offset = date.getTimezoneOffset() * 60000; return (new Date(date - offset)).toISOString().split('T')[0]; };
+
+        // ==========================================
+        // MOTOR GRÁFICO: ESCÁNER ANATÓMICO (HUD TELEMETRÍA)
+        // ==========================================
+        function renderHUDMap(containerId, activeMuscles) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            // Si el contenedor es el de progreso global o el del workout
+            const isGlobal = containerId === 'global-muscle-map';
+            const chartKey = isGlobal ? 'radarProgress' : 'radarWorkout';
+            const canvasId = `chart-${containerId}`;
+
+            // 1. Limpiar e inyectar Canvas
+            container.innerHTML = `
+                <div style="position: relative; width: 100%; height: 280px; padding: 10px;">
+                    <canvas id="${canvasId}"></canvas>
+                </div>
+            `;
+
+            // Volúmenes máximos óptimos aproximados (semanales o sesión intensa) para normalizar al 100%
+            // Si se pasa de este valor, el gráfico se llenará por encima del 100% (sobreentrenamiento)
+            const MAX_VOLUMES = {
+                'Cuádriceps': 20,
+                'Isquios': 16,
+                'Glúteos': 16,
+                'Pecho': 18,
+                'Espalda': 20,
+                'Hombros': 18,
+                'Bíceps': 12,
+                'Tríceps': 12,
+                'Gemelos': 14,
+                'Abs': 10
+            };
+
+            const labels = [];
+            const dataSets = [];
+            const rawData = []; // Para el tooltip
+
+            // 2. Preparar Datos (Normalización)
+            for (let m in activeMuscles) {
+                const count = activeMuscles[m];
+                if (count > 0 && MAX_VOLUMES[m]) {
+                    labels.push(m);
+                    const percentage = Math.round((count / MAX_VOLUMES[m]) * 100);
+                    dataSets.push(percentage);
+                    rawData.push({ muscle: m, sets: count, max: MAX_VOLUMES[m] });
+                }
+            }
+
+            // Si no hay datos, mostrar mensaje
+            if (labels.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:var(--cyber-text-gray); font-size:12px; padding:20px;">Sin telemetría muscular registrada.</p>`;
+                return;
+            }
+
+            // 3. Renderizar Chart.js Radar
+            if (typeof Chart === 'undefined') { setTimeout(() => renderHUDMap(containerId, activeMuscles), 500); return; }
+
+            if (State.charts[chartKey]) State.charts[chartKey].destroy();
+
+            const ctx = document.getElementById(canvasId).getContext('2d');
+
+            State.charts[chartKey] = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Desgaste / Volumen',
+                        data: dataSets,
+                        backgroundColor: 'rgba(255, 31, 61, 0.3)', // Cyber Red Neon (Dim)
+                        borderColor: '#ff1f3d', // Solid Neon Red
+                        borderWidth: 2,
+                        pointBackgroundColor: '#00ff88', // Neo Green points
+                        pointBorderColor: '#000',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#ff1f3d',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(10, 10, 10, 0.95)',
+                            titleColor: '#00ff88',
+                            bodyColor: '#fff',
+                            borderColor: '#ff1f3d',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function (context) {
+                                    const raw = rawData[context.dataIndex];
+                                    return `Series Reales: ${raw.sets} / Máx. Rec: ${raw.max}`;
+                                },
+                                afterLabel: function (context) {
+                                    return `Carga Relativa: ${context.raw}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.2)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)', circular: true },
+                            pointLabels: {
+                                color: '#a0a0a0', // Cyber-text-gray
+                                font: { size: 10, family: 'monospace', weight: 'bold' }
+                            },
+                            ticks: {
+                                display: false, // Ocultar números del eje
+                                min: 0,
+                                suggestedMax: 100 // El radar va hasta el 100% ideal
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // AUDIO
+        function initAudioEngine() {
+            if (!State.audioCtx) { const AudioContext = window.AudioContext || window.webkitAudioContext; State.audioCtx = new AudioContext(); }
+            if (State.audioCtx.state === 'suspended') State.audioCtx.resume();
+        }
+        function playTickSound(isFinal = false) {
+            if (!State.audioCtx) return;
+            if (State.audioCtx.state === 'suspended') State.audioCtx.resume();
+            const osc = State.audioCtx.createOscillator(); const gain = State.audioCtx.createGain();
+            osc.connect(gain); gain.connect(State.audioCtx.destination);
+            const now = State.audioCtx.currentTime;
+            if (isFinal) {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(880, now);
+                gain.gain.setValueAtTime(1.0, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+                osc.start(now); osc.stop(now + 1.0);
+                if ("vibrate" in navigator) navigator.vibrate([300, 100, 300]);
+            } else {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(1000, now);
+                gain.gain.setValueAtTime(0.8, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            }
+        }
+
+        // ==========================================
+        // ESTADO GLOBAL DE LA APP 
+        // ==========================================
+        const State = {
+            currentView: '', routine: [], activeWorkout: null, currentExerciseIndex: 0,
+            restTimeLeft: 0, timerInt: null, audioCtx: null, lastBeepSecond: -1,
+            comparativaAngle: 'frontal', charts: { bio: null, measure: null, progress: null, radarProgress: null, radarWorkout: null },
+            profile: {
+                id: '24', name: 'Antoni Lafuente', dob: '1990-05-15', gender: 'masculino',
+                objective: 'volumen', restTimerDefault: 60, weight: '', height: '', fat: '', muscle: '',
+                machineNotes: {}, maxWeights: {}, measurements: {}
+            },
+            plan: {
+                activeDate: formatYMD(new Date()), routinesAvailable: ['Rutina de Empuje', 'Rutina de Tirón', 'Piernas Completas'],
+                events: { [formatYMD(new Date())]: [{ title: 'Cita Coach Admin', time: '18:00h', type: 'visit' }] }
+            },
+            messages: [{ sender: 'coach', text: "¡Hola! ¿Cómo llevamos el volumen?", time: "10:30" }]
+        };
+
+        const DOM = { view: document.getElementById('app-view'), navItems: document.querySelectorAll('.nav-item') };
+
+        function generateAIRoutine(target, level, time) {
+            const muscleMap = { 'pecho': ['Pecho'], 'espalda': ['Espalda'], 'piernas': ['Cuádriceps', 'Isquios', 'Glúteos', 'Gemelos'], 'brazos': ['Bíceps', 'Tríceps'], 'fullbody': ['Pecho', 'Espalda', 'Cuádriceps', 'Hombros'] };
+            const targetMuscles = muscleMap[target] || ['Pecho'];
+            let available = EXERCISES.filter(ex => targetMuscles.includes(ex.m));
+            const shuffle = (arr) => arr.sort(() => 0.5 - Math.random());
+            available = shuffle(available);
+            let limit = time === '30' ? 3 : time === '45' ? 5 : 7;
+            let compounds = available.filter(ex => ex.t === 'c');
+            let isolated = available.filter(ex => ex.t === 'i');
+            let result = [];
+            if (level === 'avanzado') result = [...compounds.slice(0, Math.ceil(limit * 0.7)), ...isolated.slice(0, Math.floor(limit * 0.3))];
+            else result = [...compounds.slice(0, Math.floor(limit * 0.4)), ...isolated.slice(0, Math.ceil(limit * 0.6))];
+            if (result.length < limit) result = available.slice(0, limit);
+            return shuffle(result);
+        }
+
+        // ==========================================
+        // RENDERIZADO DE VISTAS (100% COMPLETAS)
+        // ==========================================
+        const Views = {
+            menu: () => `
+                <h2 style="margin-bottom: 15px;">Panel de Control</h2>
+                <div class="menu-grid">
+                    <div class="liquid-glass menu-item view-trigger" data-target="perfil"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><span>Mi Perfil</span></div>
+                    <div class="liquid-glass menu-item view-trigger" data-target="estado_fisico"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M16 6l-3.5 10.5-2.5-7.5H4v2h4.5l2.5 7.5 3.5-10.5 1.5 4.5H20v-2h-2.5z"/></svg></div><span>Estado Físico</span></div>
+                    <div class="liquid-glass menu-item view-trigger" data-target="suscripcion"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg></div><span>Suscripción</span></div>
+                    <div class="liquid-glass menu-item view-trigger" data-target="alertas"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div><span>Alertas <span class="badge">2</span></span></div>
+                    <div class="liquid-glass menu-item view-trigger" data-target="historial"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg></div><span>Historial</span></div>
+                    <div class="liquid-glass menu-item view-trigger" data-target="comparativa"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></div><span>Comparativa</span></div>
+                </div>
+                
+                <button class="info-btn-thin view-trigger" data-target="instrucciones"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h-2v6h2zm0-8h-2V7h2v2z"/></svg> Instrucciones</button>
+                <button class="info-btn-thin view-trigger" data-target="faq"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/></svg> FAQ (Dudas)</button>
+                <button class="logout-btn-thin" id="btn-logout"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg> Desconectar Sistema</button>
+            `,
+
+            instrucciones: () => `
+                <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Manual Operativo</h2>
+                <div class="liquid-glass card">
+                    <div class="guide-block"><h4><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 002 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/></svg> 1. Plan Semanal</h4>Tu pantalla base. Aquí ves tu calendario, citas con el Coach y las rutinas pendientes. Toca "INICIAR" en una rutina para entrenar.</div>
+                    <div class="guide-block"><h4><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> 2. Botón (+) Rápido</h4>Púlsalo en el gimnasio para anotar al vuelo tu peso, % grasa, pliegues o un Cheat Meal sin perder tu sesión activa.</div>
+                    <div class="guide-block"><h4><svg viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 17 22.71 22.71 17z"/></svg> 3. Dropset y Marcar Todo</h4>En el entreno, usa "✓ Todo" si vas rápido. Si fallas una serie, pulsa la gota "💧", el sistema leerá lo que acabas de hacer, cerrará la serie y creará una descendente restando un 32% al peso y sumándole 4 reps a las que te quedaban.</div>
+                    <div class="guide-block"><h4><svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg> 4. Progreso y Comparativa</h4>Ve tus gráficas y HUD Muscular en "Progreso". Para ver tu cambio físico, ve al Menú -> "Comparativa" y sube fotos para usar el slider.</div>
+                </div>
+            `,
+
+            faq: () => `
+                <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> FAQ</h2>
+                <div class="liquid-glass card">
+                    <div class="guide-block"><h4>¿Qué significa la gota 💧?</h4>Es el botón de <b>Dropset</b>. Púlsalo después de anotar tu peso y repeticiones reales. Si tocaba hacer 16 reps y solo haces 12 con 20kg, al dar a la gota el sistema creará una serie extra al momento pidiéndote 8 reps (las 4 que faltan + 4) con 14kg (-32%).</div>
+                    <div class="guide-block"><h4>¿Qué es el RPE al finalizar?</h4>Significa "Esfuerzo Percibido". <br>🟢 Suave: Podías hacer más repeticiones.<br>🟠 Duro: Te costó terminar, quizá podías hacer 1 más.<br>🔴 Fallo: Imposible hacer ni una repetición más.</div>
+                    <div class="guide-block"><h4>¿Cómo funciona la IA?</h4>Lee tu Peso, Altura, Edad y Género para estructurar un entrenamiento perfecto al instante basándose en tu nivel y el tiempo que tengas disponible.</div>
+                    <div class="guide-block"><h4>¿Cómo cambio de máquina?</h4>Si la máquina está ocupada, pulsa "🔁 Cambiar Máquina" dentro del ejercicio activo. Se abrirá una lista manual de opciones del mismo grupo muscular.</div>
+                </div>
+            `,
+
+            perfil: () => {
+                const initialAge = calculateAge(State.profile.dob);
+                return `
+                <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Mi Perfil</h2>
+                <div class="liquid-glass card auth-form">
+                    <p style="color:var(--cyber-text-gray); font-size:12px;">Código Operativo: <strong style="color:white;">#${State.profile.id}</strong></p>
+                    <label style="font-size:12px; color:var(--cyber-red-neon);">Correo Electrónico</label><input type="email" value="operativo@fitdata.pro" disabled>
+                    <label style="font-size:12px; color:var(--cyber-red-neon);">Nombre Completo</label><input type="text" id="prof-name" value="${State.profile.name}">
+                    <label style="font-size:12px; color:var(--cyber-red-neon); display:flex; justify-content:space-between;">Fecha Nacimiento <span id="age-display" style="color:var(--cyber-white); font-weight:bold;">${initialAge ? `(${initialAge} años)` : ''}</span></label>
+                    <input type="date" id="prof-dob" value="${State.profile.dob}">
+                    <label style="font-size:12px; color:var(--cyber-red-neon);">Usuario Telegram</label><div style="position: relative;"><input type="text" value="antoni_fit" style="padding-left: 40px;"><span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--cyber-red-neon);">@</span></div>
+                    <label style="font-size:12px; color:var(--cyber-red-neon);">Perfil Instagram</label><div style="position: relative;"><input type="text" placeholder="usuario_ig" style="padding-left: 40px;"><span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--cyber-red-neon);">@</span></div>
+                    <button class="cyber-button" style="margin-top: 10px;" id="btn-save-profile">Actualizar Datos</button>
+                </div>`;
+            },
+
+            estado_fisico: () => `
+                <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Estado Físico</h2>
+                <div class="liquid-glass card auth-form">
+                    
+                    <h3 style="color:var(--cyber-white); font-size:16px;">Métricas Base</h3>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div><label style="font-size:12px; color:var(--cyber-red-neon);">Peso (kg)</label><input type="number" id="bio-weight" value="${State.profile.weight}"></div>
+                        <div><label style="font-size:12px; color:var(--cyber-red-neon);">Altura (cm)</label><input type="number" id="bio-height" value="${State.profile.height}"></div>
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div><label style="font-size:12px; color:var(--cyber-red-neon);">% Grasa</label><input type="number" id="bio-fat" value="${State.profile.fat}" placeholder="Auto-JP7"></div>
+                        <div><label style="font-size:12px; color:var(--cyber-text-gray);">% Músculo (Opcional)</label><input type="number" id="bio-muscle" value="${State.profile.muscle}"></div>
+                    </div>
+                    
+                    <div class="collapsible-container">
+                        <div class="collapsible-header" id="btn-toggle-jp7"><span>Pliegues Avanzados (JP7)</span><span id="jp7-arrow" style="color:var(--cyber-red-neon);">▼</span></div>
+                        <div id="jp7-content" class="collapsible-content hidden">
+                            <p style="font-size:11px; color:var(--cyber-text-gray); margin-bottom:15px;">Al rellenar los 7, se calculará el % Grasa automáticamente.</p>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                <div><label style="font-size:11px; color:white;">Pecho</label><input type="number" class="jp7-input" placeholder="0" style="min-height:35px; padding:5px;"></div>
+                                <div><label style="font-size:11px; color:white;">Abdomen</label><input type="number" class="jp7-input" placeholder="0" style="min-height:35px; padding:5px;"></div>
+                                <div><label style="font-size:11px; color:white;">Muslo</label><input type="number" class="jp7-input" placeholder="0" style="min-height:35px; padding:5px;"></div>
+                                <div><label style="font-size:11px; color:white;">Tríceps</label><input type="number" class="jp7-input" placeholder="0" style="min-height:35px; padding:5px;"></div>
+                                <div><label style="font-size:11px; color:white;">Subesc.</label><input type="number" class="jp7-input" placeholder="0" style="min-height:35px; padding:5px;"></div>
+                                <div><label style="font-size:11px; color:white;">Suprail.</label><input type="number" class="jp7-input" placeholder="0" style="min-height:35px; padding:5px;"></div>
+                                <div style="grid-column: span 2;"><label style="font-size:11px; color:white;">Axilar Medio</label><input type="number" class="jp7-input" placeholder="0" style="min-height:35px; padding:5px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="collapsible-container">
+                        <div class="collapsible-header" id="btn-toggle-perimeters"><span>Perímetros Corporales (cm)</span><span id="perim-arrow" style="color:var(--cyber-red-neon);">▼</span></div>
+                        <div id="perim-content" class="collapsible-content hidden">
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                <div><label style="font-size:11px; color:white;">Hombros</label><input type="number" id="perim-hombros" placeholder="0" style="min-height:35px; padding:5px;"></div>
+                                <div><label style="font-size:11px; color:white;">Pecho</label><input type="number" id="perim-pecho" placeholder="0" style="min-height:35px; padding:5px;"></div>
+                                <div><label style="font-size:11px; color:white;">Brazo</label><input type="number" id="perim-brazo" placeholder="0" style="min-height:35px; padding:5px;"></div>
+                                <div><label style="font-size:11px; color:white;">Cintura</label><input type="number" id="perim-cintura" placeholder="0" style="min-height:35px; padding:5px;"></div>
+                                <div><label style="font-size:11px; color:white;">Abdomen</label><input type="number" id="perim-abdomen" placeholder="0" style="min-height:35px; padding:5px;"></div>
+                                <div><label style="font-size:11px; color:white;">Cadera</label><input type="number" id="perim-cadera" placeholder="0" style="min-height:35px; padding:5px;"></div>
+                                <div style="grid-column: span 2;"><label style="font-size:11px; color:white;">Muslo</label><input type="number" id="perim-muslo" placeholder="0" style="min-height:35px; padding:5px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:15px 0;">
+
+                    <h3 style="color:var(--cyber-white); font-size:16px;">Parámetros Deportivos</h3>
+                    <label style="font-size:12px; color:var(--cyber-red-neon);">Objetivo Principal</label>
+                    <div class="select-wrapper">
+                        <select id="bio-obj">
+                            <option value="salud" ${State.profile.objective === 'salud' ? 'selected' : ''}>Mantenimiento / Salud</option>
+                            <option value="deficit" ${State.profile.objective === 'deficit' ? 'selected' : ''}>Déficit (Pérdida de Grasa)</option>
+                            <option value="volumen" ${State.profile.objective === 'volumen' ? 'selected' : ''}>Volumen (Hipertrofia)</option>
+                            <option value="fuerza" ${State.profile.objective === 'fuerza' ? 'selected' : ''}>Fuerza Máxima</option>
+                            <option value="resistencia" ${State.profile.objective === 'resistencia' ? 'selected' : ''}>Resistencia / Cardio</option>
+                        </select>
+                    </div>
+                    <label style="font-size:12px; color:var(--cyber-red-neon);">Descanso entre Series (seg)</label>
+                    <input type="number" id="bio-rest" value="${State.profile.restTimerDefault}">
+
+                    <button class="cyber-button" style="margin-top: 15px;" id="btn-save-bio">Guardar Biometría</button>
+                </div>
+            `,
+            log_comida: () => `<h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="plan" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Añadir Comida</h2><div class="liquid-glass card auth-form"><label style="font-size:12px; color:var(--cyber-red-neon);">Tipo</label><div class="select-wrapper"><select><option value="cheat">Cheat Meal (Fuera de Dieta)</option><option value="extra">Comida Extra</option></select></div><label style="font-size:12px; color:var(--cyber-red-neon);">Descripción</label><input type="text" placeholder="Ej: Pizza doble"><button class="cyber-button" style="margin-top:20px;" id="btn-save-meal">Registrar</button></div>`,
+
+            suscripcion: () => `
+                <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Suscripción</h2>
+                <h3 style="color:var(--cyber-white); font-size:16px; margin-bottom:10px;">Seleccionar Plan Activo</h3>
+                
+                <input type="radio" name="plan" id="plan-app" class="plan-card-input" value="Plan APP (29€)">
+                <label for="plan-app" class="plan-card-label"><span style="font-weight:bold; font-size:16px;">Plan APP</span><br><span style="color:var(--cyber-text-gray);">29€ / mes</span></label>
+
+                <input type="radio" name="plan" id="plan-prep" class="plan-card-input" value="Plan Preparación (70€)" checked>
+                <label for="plan-prep" class="plan-card-label"><span class="recommended-badge">RECOMENDADO</span><span style="font-weight:bold; font-size:16px;">Plan Preparación</span><br><span style="text-decoration:line-through; color:#666; font-size:12px;">95€</span> <span style="color:var(--cyber-red-neon); font-size:18px; font-weight:bold;">70€ / mes</span></label>
+
+                <input type="radio" name="plan" id="plan-4ses" class="plan-card-input" value="4 Sesiones Personales (170€)">
+                <label for="plan-4ses" class="plan-card-label"><span style="font-weight:bold; font-size:16px;">4 Sesiones Personales</span><br><span style="color:var(--cyber-text-gray);">170€ / mes</span></label>
+
+                <input type="radio" name="plan" id="plan-8ses" class="plan-card-input" value="8 Sesiones Personales (290€)">
+                <label for="plan-8ses" class="plan-card-label"><span style="font-weight:bold; font-size:16px;">8 Sesiones Personales</span><br><span style="color:var(--cyber-text-gray);">290€ / mes</span></label>
+
+                <input type="radio" name="plan" id="plan-suelta" class="plan-card-input" value="Sesión Suelta (45€)">
+                <label for="plan-suelta" class="plan-card-label"><span style="font-weight:bold; font-size:16px;">Sesión de Entreno Suelta</span><br><span style="color:var(--cyber-text-gray);">45€ <span style="font-size:11px;">(1ra vez 40€)</span></span></label>
+
+                <button class="cyber-button" id="btn-pay-plan" style="margin-top:10px;">Proceder al Pago Seguro</button>
+
+                <h3 style="margin-top:25px; font-size:16px;">Historial de Transacciones</h3>
+                <div class="liquid-glass" style="margin-top:10px;">
+                    <div class="list-item"><div style="display:flex; flex-direction:column;"><span style="font-weight:bold;">Plan Preparación</span><span style="font-size:11px; color:var(--cyber-text-gray);">15 Sep 2026</span></div><span style="color:var(--cyber-red-neon); font-weight:bold;">70.00€</span></div>
+                </div>
+            `,
+
+            historial: () => {
+                let html = `
+                <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Historial</h2>
+                <div class="liquid-glass card">
+                    <h3 style="color:var(--cyber-red-neon); font-size:14px; margin-bottom:15px; text-transform:uppercase;">Registros Completados</h3>
+                `;
+
+                if (!State.history || State.history.length === 0) {
+                    html += `<p style="color:var(--cyber-text-gray); font-size:12px; text-align:center; padding: 20px 0;">No hay entrenamientos guardados.</p>`;
+                } else {
+                    State.history.forEach(workout => {
+                        const dateObj = new Date(workout.timestamp);
+                        const dateStr = dateObj.toLocaleDateString();
+
+                        let rpeClass = 'rpe-optimo';
+                        if (workout.rpe >= 9) rpeClass = 'rpe-fallo';
+                        else if (workout.rpe >= 7) rpeClass = 'rpe-duro';
+
+                        let title = 'Entrenamiento';
+                        if (workout.exercises && workout.exercises.length > 0) {
+                            title = workout.exercises[0].name.split(' ')[0] + ' + Otros';
+                        }
+                        const totalSets = workout.totalSets || 0;
+
+                        html += `
+                        <div class="list-item" style="padding: 10px 0;">
+                            <div style="display:flex; flex-direction:column;">
+                                <span style="font-weight:bold; font-size:14px;">${title}</span>
+                                <span style="font-size:11px; color:var(--cyber-text-gray);">${dateStr} • ${totalSets} series <span class="rpe-dot ${rpeClass}"></span></span>
+                            </div>
+                        </div>`;
+                    });
+                }
+                html += `</div>`;
+                return html;
+            },
+
+            comparativa: () => `
+                <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Comparativa</h2>
+                <div class="liquid-glass card">
+                    <p style="color:var(--cyber-text-gray); font-size:12px; margin-bottom:10px;">Selecciona fechas y ángulo para comparar.</p>
+                    
+                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                        <div class="select-wrapper" style="flex:1;">
+                            <select id="comp-date-1" style="font-size:12px; padding:8px; min-height:40px;">
+                                <option value="Inicio (Ene 2026)">Inicio (Ene)</option>
+                                <option value="Feb 2026">Feb 2026</option>
+                            </select>
+                        </div>
+                        <div class="select-wrapper" style="flex:1;">
+                            <select id="comp-date-2" style="font-size:12px; padding:8px; min-height:40px;">
+                                <option value="Mar 2026">Mar 2026</option>
+                                <option value="Actual (Hoy)" selected>Actual (Hoy)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="angle-tabs">
+                        <div class="angle-btn ${State.comparativaAngle === 'frontal' ? 'active' : ''}" data-angle="frontal">Frontal</div>
+                        <div class="angle-btn ${State.comparativaAngle === 'espalda' ? 'active' : ''}" data-angle="espalda">Espalda</div>
+                        <div class="angle-btn ${State.comparativaAngle === 'izq' ? 'active' : ''}" data-angle="izq">L. Izq</div>
+                        <div class="angle-btn ${State.comparativaAngle === 'der' ? 'active' : ''}" data-angle="der">L. Der</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <img src="https://via.placeholder.com/400x600/111111/00ff88?text=FOTO+ACTUAL" class="slider-img after">
+                        <img src="https://via.placeholder.com/400x600/222222/ff1f3d?text=FOTO+INICIO" class="slider-img before" id="img-before">
+                        
+                        <div class="slider-label label-before" id="label-img-1">INICIO (ENE)</div>
+                        <div class="slider-label label-after" id="label-img-2">ACTUAL (HOY)</div>
+                        
+                        <input type="range" min="0" max="100" value="50" class="slider-range" id="photo-slider">
+                        <div class="slider-line" id="slider-line"><div class="slider-thumb">◄►</div></div>
+                    </div>
+                    
+                    <div style="display:flex; justify-content:space-between; margin-top:15px; gap:10px;">
+                        <button class="cyber-button secondary" id="btn-upload-inicio" style="flex:1; font-size:11px;">Subir Foto 1</button>
+                        <button class="cyber-button secondary" id="btn-upload-actual" style="flex:1; font-size:11px; border-color:#00ff88; color:#00ff88;">Subir Foto 2</button>
+                    </div>
+                </div>
+            `,
+
+            alertas: () => `<h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Notificaciones</h2><div class="liquid-glass"><div class="list-item" style="background: rgba(255, 31, 61, 0.1);"><div style="display:flex; flex-direction:column;"><span style="font-weight:bold; color:var(--cyber-white);">Sistema FitDataPro</span><span style="font-size:12px; color:var(--cyber-text-gray);">Actualiza tus datos biométricos para activar la IA.</span></div></div></div>`,
+
+            plan: () => {
+                const weekDays = getWeekDays(); let calendarHtml = '';
+                weekDays.forEach(date => {
+                    const ymd = formatYMD(date); const isActive = ymd === State.plan.activeDate; const dayName = daysNames[date.getDay()]; const dayNum = date.getDate();
+                    calendarHtml += `<div class="cal-day ${isActive ? 'active' : ''}" data-date="${ymd}"><span>${dayName}</span><span>${dayNum}</span></div>`;
+                });
+
+                const todaysEvents = State.plan.events[State.plan.activeDate] || [];
+                let eventsHtml = todaysEvents.length === 0 ? `<div class="liquid-glass" style="padding:15px; color:var(--cyber-text-gray); font-style:italic; font-size:14px; margin-bottom:20px;">Sin eventos programados.</div>` : '';
+                todaysEvents.forEach(ev => eventsHtml += `<div class="liquid-glass card" style="border-left: 4px solid #ffcc00; margin-bottom:20px; padding:15px;"><div class="card-title" style="color:#ffcc00;"><svg class="cyber-icon" style="width:16px; height:16px;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg> ${ev.title}</div><p style="color:white; font-size:16px;">${ev.time}</p></div>`);
+
+                let routinesHtml = State.plan.routinesAvailable.length === 0 ? `<div class="liquid-glass" style="padding:15px; color:var(--cyber-text-gray); font-style:italic; font-size:14px;">Semana completada. ¡Buen trabajo!</div>` : '';
+                State.plan.routinesAvailable.forEach(r => routinesHtml += `<div class="liquid-glass card" style="padding:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;"><span style="font-weight:bold; color:white;">${r}</span><button class="cyber-button secondary view-trigger" data-target="workout_player" style="min-height:35px; width:auto; padding:0 15px; font-size:12px;">INICIAR</button></div>`);
+
+                return `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><h2 style="font-size:18px;">Mis actividades</h2></div>
+                    <div class="calendar-scroller">${calendarHtml}</div>
+                    ${eventsHtml}
+                    <h2 style="font-size:18px; margin-bottom:10px; margin-top:10px;">Plan Semanal <span style="font-size:12px; color:var(--cyber-red-neon); float:right;">Restantes: ${State.plan.routinesAvailable.length}</span></h2>
+                    ${routinesHtml}
+                    <h2 style="font-size:18px; margin-bottom:10px; margin-top:20px;">Tu Red Neuronal</h2>
+                    <div class="liquid-glass card" style="text-align:center; padding:15px;"><button class="cyber-button ai-button" id="btn-ia-setup" style="display:flex; justify-content:center; align-items:center; gap:10px;"><svg class="cyber-icon" style="width:24px; height:24px;" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.991.991 0 013 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L5.4 7.86l6.6 3.71 6.6-3.71L12 4.15zm0 14.7l6.6-3.71V7.86l-6.6 3.71v7.28z"/></svg> Generar Rutina Extra IA</button></div>
+                `;
+            },
+
+            progreso: () => `
+                <h2 style="margin-bottom: 15px;">Dashboard Evolutivo</h2>
+                <div class="liquid-glass card" style="margin-bottom:20px;">
+                    <div class="card-title">Peso y Composición</div>
+                    <div class="chart-container"><canvas id="bioChart"></canvas></div>
+                    <div style="display:flex; justify-content:space-around; margin-top:5px; font-size:11px; color:white;"><div><span style="color:#ff3333;">■</span> Peso</div><div><span style="color:#ffaa00;">■</span> Grasa</div><div><span style="color:#00ff88;">■</span> Músculo</div></div>
+                </div>
+                <div class="liquid-glass card" style="margin-bottom:20px;">
+                    <div class="card-title">Perímetros y Pliegues</div>
+                    <div class="chart-container"><canvas id="measureChart"></canvas></div>
+                    <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:10px; font-size:10px; color:white; padding:0 5px;">
+                        <div><span style="color:#00d4ff;">■</span> %Grasa</div><div><span style="color:#A133FF;">■</span> Homb.</div><div><span style="color:#FF5733;">■</span> Pecho</div>
+                        <div><span style="color:#FF33A8;">■</span> Brazo</div><div><span style="color:#00FF88;">■</span> Cint.</div><div><span style="color:#2ECC71;">■</span> Abd.</div>
+                        <div><span style="color:#3357FF;">■</span> Cad.</div><div><span style="color:#F3FF33;">■</span> Muslo</div>
+                    </div>
+                </div>
+                <div class="liquid-glass card" style="margin-bottom:20px;">
+                    <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">Rendimiento <select id="prog-ex-select" style="background:rgba(10,10,10,0.8); color:var(--cyber-red-neon); border:1px solid var(--cyber-red-neon); border-radius:4px; font-size:11px; padding:2px;"><option value="Press Banca Barra">Press Banca</option></select></div>
+                    <div class="chart-container"><canvas id="progressChart"></canvas></div>
+                    <div style="display:flex; justify-content:space-around; margin-top:5px; font-size:11px; color:white;"><div><span style="color:#00ff88;">■</span> Vol.</div><div><span style="color:#ffaa00;">■</span> 1RM</div><div><span style="color:#ff3333;">■</span> Máx</div></div>
+                </div>
+                
+                <div class="liquid-glass card" style="margin-bottom:20px;">
+                    <div class="card-title">HUD Muscular Global (Telemetría)</div>
+                    <div id="global-muscle-map"></div>
+                </div>
+            `,
+
+            mensajes: () => {
+                let msgsHtml = ''; State.messages.forEach(m => { msgsHtml += `<div class="msg ${m.sender}">${m.text}<span class="msg-time">${m.time}</span></div>`; });
+                return `<h2 style="margin-bottom: 15px;">Transmisión con Coach</h2><div class="liquid-glass card chat-container" style="padding:15px;"><div class="chat-messages" id="chat-box">${msgsHtml}</div><div class="chat-input-area"><input type="text" class="chat-input" id="chat-input-text" placeholder="Escribe a tu coach..."><button class="chat-send" id="btn-chat-send"><svg style="width:20px;height:20px;fill:white;" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div></div>`;
+            },
+
+            // --- IA Y WORKOUT PLAYER AVANZADO (AUTOFILL + MARCAR TODO + DROPSET EXACTO) ---
+            ia_setup: () => `<h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="plan" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Parámetros IA</h2><div class="liquid-glass card auth-form"><label style="font-size:12px; color:var(--cyber-red-neon);">Objetivo / Músculo</label><div class="select-wrapper"><select id="ai-target"><option value="pecho">Pecho</option><option value="espalda">Espalda</option><option value="piernas">Piernas</option><option value="brazos">Brazos</option></select></div><label style="font-size:12px; color:var(--cyber-red-neon);">Nivel</label><div class="select-wrapper"><select id="ai-level"><option value="principiante">Principiante</option><option value="avanzado">Avanzado</option></select></div><label style="font-size:12px; color:var(--cyber-red-neon);">Tiempo</label><div class="select-wrapper"><select id="ai-time"><option value="30">30 min</option><option value="45" selected>45 min</option></select></div><button class="cyber-button ai-button" id="btn-generate-ai" style="margin-top:20px;">Iniciar Cálculo</button></div>`,
+            ia_loading: () => `<div class="liquid-glass card" style="margin-top:50px; text-align:center;"><div class="ai-loader">Analizando biometría y cruzando base de datos</div><p style="font-size:11px; color:var(--cyber-text-gray); margin-top:10px;">Aplicando variables de peso (${State.profile.weight}kg) y grasa (${State.profile.fat}%)...</p></div>`,
+            ia_result: () => `<h2 style="margin-bottom: 15px; color:var(--cyber-white);">Rutina Optimizada</h2><div class="liquid-glass card" style="padding:15px;"><ul style="list-style:none; padding:0; color:var(--cyber-text-gray); font-size:14px;">${State.routine.map((ex, i) => `<li style="padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05);"><strong>${i + 1}.</strong> ${ex.n}</li>`).join('')}</ul><button class="cyber-button ai-button" id="btn-start-ai-workout" style="margin-top:20px;">Iniciar Entreno Ahora</button><button class="cyber-button secondary view-trigger" data-target="ia_setup" style="margin-top:10px;">Descartar</button></div>`,
+
+            workout_player: () => {
+                if (!State.activeWorkout) {
+                    State.activeWorkout = [{
+                        name: 'Press Banca Barra', notes: '', obs: '', sets: [
+                            { id: 1, targetR: 20, r: '', w: '', done: false, prevW: 40, prevR: 20, isDrop: false },
+                            { id: 2, targetR: 16, r: '', w: '', done: false, prevW: 45, prevR: 16, isDrop: false },
+                            { id: 3, targetR: 16, r: '', w: '', done: false, prevW: 45, prevR: 16, isDrop: false },
+                            { id: 4, targetR: 16, r: '', w: '', done: false, prevW: 45, prevR: 16, isDrop: false },
+                            { id: 5, targetR: 16, r: '', w: '', done: false, prevW: 45, prevR: 16, isDrop: false }
+                        ]
+                    }];
+                }
+                const currentEx = State.activeWorkout[State.currentExerciseIndex];
+                const isLast = State.currentExerciseIndex === State.activeWorkout.length - 1;
+
+                let setsHtml = '';
+                currentEx.sets.forEach((set, idx) => {
+                    const checkClass = `set-checkbox ${set.done ? 'checked' : ''}`;
+                    const disabled = set.done ? 'disabled' : '';
+
+                    const nextSet = currentEx.sets[idx + 1];
+                    const hasDropActive = (nextSet && nextSet.isDrop && nextSet.parentId === set.id);
+                    const dropBtnClass = `btn-drop ${hasDropActive ? 'active' : ''}`;
+
+                    // AUTOFILL logic
+                    const displayR = set.r || set.prevR || set.targetR || '';
+                    const displayW = set.w || set.prevW || '';
+
+                    // Leer PR específico de la serie
+                    const exMaxes = State.profile.maxWeights[currentEx.name] || {};
+                    const setPR = exMaxes[idx] || 0;
+
+                    const historyHtml = !set.isDrop
+                        ? `<div class="set-history-sub"><span>Ant: ${set.prevR || 0}x${set.prevW || 0}kg</span><span><span style="color:gold;">🏅</span> Máx: ${setPR}kg</span></div>`
+                        : `<div class="set-history-sub" style="color:#ffaa00;">Dropset Telemetría (-32% Carga)</div>`;
+
+                    setsHtml += `
+                    <div class="set-wrapper ${set.isDrop ? 'is-drop' : ''}">
+                        <div class="set-row ${set.done ? 'done' : ''}">
+                            <div style="font-weight:bold; font-size:13px; text-align:center; color:var(--cyber-text-gray);">${set.id}</div>
+                            <input type="number" class="set-input set-r" placeholder="Reps" value="${displayR}" ${disabled}>
+                            <input type="number" class="set-input set-w" placeholder="Kg" value="${displayW}" ${disabled}>
+                            <div class="${checkClass}" data-ex="${State.currentExerciseIndex}" data-set="${idx}"></div>
+                            ${!set.isDrop ? `<div class="${dropBtnClass}" data-ex="${State.currentExerciseIndex}" data-set="${idx}"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2L1 21h22M12 6l7.5 13h-15M11 10h2v4h-2M11 16h2v2h-2"/></svg></div>` : '<div></div>'}
+                        </div>
+                        ${historyHtml}
+                    </div>`;
+                });
+
+                return `
+                <p style="color:var(--cyber-text-gray); font-size:12px; margin-bottom:5px;">Ejercicio ${State.currentExerciseIndex + 1} de ${State.activeWorkout.length}</p>
+                <div class="workout-header">
+                    <h2 style="font-size:20px; color:var(--cyber-red-neon); margin-bottom:5px;">${currentEx.name}</h2>
+                </div>
+                
+                <div class="liquid-glass card auth-form" style="padding: 10px; margin-bottom:20px;">
+                    <textarea class="ex-notes" placeholder="Ajustes de máquina (Ej: Asiento al 3) - Se guarda para siempre" style="min-height:40px; font-size:12px;">${State.profile.machineNotes[currentEx.name] || ''}</textarea>
+                    
+                    <div style="display:grid; grid-template-columns: 25px 1fr 1fr 35px 35px; gap:6px; color:var(--cyber-text-gray); font-size:11px; font-weight:bold; border-bottom:1px solid #333; padding-bottom:5px; margin-top:10px; text-align:center;">
+                        <div>#</div><div>Reps</div><div>Kg</div><div>✓</div><div><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2L1 21h22M12 6l7.5 13h-15M11 10h2v4h-2M11 16h2v2h-2"/></svg></div>
+                    </div>
+                    
+                    <div style="margin-top:10px;">${setsHtml}</div>
+                    
+                    <textarea class="ex-obs" placeholder="Observaciones de hoy (Ej: Molestia hombro)" style="min-height:40px; font-size:12px; margin-top:10px;">${currentEx.obs || ''}</textarea>
+
+                    <div style="display:flex; gap:10px; margin-top:15px;">
+                        <button class="cyber-button secondary" id="btn-swap-ex" style="flex:1; font-size:11px; padding:0;">🔁 Cambio</button>
+                        <button class="cyber-button secondary" id="btn-add-set" style="flex:1; font-size:11px; padding:0;">+ Serie</button>
+                        <button class="cyber-button" id="btn-mark-all" style="flex:1; font-size:11px; padding:0; background:#00ff88; color:black; border:none;">✔ Todo</button>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button class="cyber-button secondary" id="btn-abort-workout" style="flex:1;">Abortar</button>
+                    <button class="cyber-button" id="btn-next-exercise" style="flex:1;">${isLast ? 'FINALIZAR' : 'Siguiente'}</button>
+                </div>`;
+            }
+        };
+
+        // ==========================================
+        // RENDER DE CHART.JS
+        // ==========================================
+        function drawProgressChart() {
+            if (typeof Chart === 'undefined') { setTimeout(drawProgressChart, 500); return; }
+
+            if (document.getElementById('bioChart') && State.charts.bio) State.charts.bio.destroy();
+            if (document.getElementById('bioChart')) {
+                State.charts.bio = new Chart(document.getElementById('bioChart'), {
+                    type: 'line', data: {
+                        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May'], datasets: [
+                            { label: 'Peso', data: [80, 79, 78.5, 78, 77.2], borderColor: '#ff3333', tension: 0.3 },
+                            { label: 'Grasa', data: [18, 17.5, 16, 15.2, 14.5], borderColor: '#ffaa00', tension: 0.3 },
+                            { label: 'Músculo', data: [42, 42.2, 42.5, 43, 43.5], borderColor: '#00ff88', tension: 0.3 }
+                        ]
+                    }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
+                });
+            }
+
+            if (document.getElementById('measureChart') && State.charts.measure) State.charts.measure.destroy();
+            if (document.getElementById('measureChart')) {
+                State.charts.measure = new Chart(document.getElementById('measureChart'), {
+                    type: 'line', data: {
+                        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May'], datasets: [
+                            { label: '% Grasa (JP7)', data: [18, 17, 16, 14.5, 14], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.1)', fill: true, tension: 0.4 },
+                            { label: 'Hombros', data: [115, 116, 118, 120, 122], borderColor: '#A133FF', borderDash: [3, 3], tension: 0.3, pointRadius: 1 },
+                            { label: 'Pecho', data: [100, 102, 103, 105, 106], borderColor: '#FF5733', borderDash: [3, 3], tension: 0.3, pointRadius: 1 },
+                            { label: 'Brazo', data: [35, 36, 36.5, 37, 38], borderColor: '#FF33A8', borderDash: [3, 3], tension: 0.3, pointRadius: 1 },
+                            { label: 'Cintura', data: [90, 88, 86, 84, 83], borderColor: '#00FF88', borderDash: [3, 3], tension: 0.3, pointRadius: 1 },
+                            { label: 'Abdomen', data: [92, 90, 88, 85, 84], borderColor: '#2ECC71', borderDash: [3, 3], tension: 0.3, pointRadius: 1 },
+                            { label: 'Cadera', data: [100, 99, 98, 97, 96], borderColor: '#3357FF', borderDash: [3, 3], tension: 0.3, pointRadius: 1 },
+                            { label: 'Muslo', data: [55, 56, 57, 58, 60], borderColor: '#F3FF33', borderDash: [3, 3], tension: 0.3, pointRadius: 1 }
+                        ]
+                    }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
+                });
+            }
+
+            if (document.getElementById('progressChart') && State.charts.progress) State.charts.progress.destroy();
+            if (document.getElementById('progressChart')) {
+                State.charts.progress = new Chart(document.getElementById('progressChart'), {
+                    type: 'line', data: {
+                        labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5'], datasets: [
+                            { label: 'Volumen', data: [3000, 3200, 3100, 3500, 3800], borderColor: '#00ff88', backgroundColor: 'rgba(0,255,136,0.1)', fill: true, tension: 0.4 },
+                            { label: '1RM', data: [80, 82, 82, 85, 88], borderColor: '#ffaa00', tension: 0.3 },
+                            { label: 'Máx', data: [70, 75, 75, 80, 82], borderColor: '#ff3333', borderDash: [5, 5], tension: 0.3 }
+                        ]
+                    }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
+                });
+            }
+
+            // Render Global HUD in Progress
+            if (State.currentView === 'progreso') {
+                const recentMuscles = {};
+                if (State.history && State.history.length > 0) {
+                    const oneWeekAgo = new Date();
+                    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+                    State.history.forEach(workout => {
+                        const wDate = new Date(workout.timestamp);
+                        if (wDate >= oneWeekAgo && workout.muscles) {
+                            for (let m in workout.muscles) {
+                                if (!recentMuscles[m]) recentMuscles[m] = 0;
+                                recentMuscles[m] += workout.muscles[m];
+                            }
+                        }
+                    });
+                }
+                renderHUDMap('global-muscle-map', recentMuscles);
+            }
+        }
+
+        function navigateTo(viewName) {
+            if (Views[viewName]) {
+                DOM.view.innerHTML = Views[viewName]();
+                State.currentView = viewName;
+                window.scrollTo(0, 0);
+                if (viewName === 'progreso') drawProgressChart();
+                if (viewName === 'mensajes') { const box = document.getElementById('chat-box'); if (box) box.scrollTop = box.scrollHeight; }
+
+                // Banner Flotante Entreno Activo
+                const banner = document.getElementById('active-workout-banner');
+                if (banner) {
+                    if (State.activeWorkout && viewName !== 'workout_player') banner.classList.remove('hidden');
+                    else banner.classList.add('hidden');
+                }
+            }
+            DOM.navItems.forEach(item => item.classList.toggle('active', item.dataset.view === viewName));
+        }
+
+        // ==========================================
+        // GESTOR DE EVENTOS GLOBAL (Delegación Definitiva)
+        // ==========================================
+        document.body.addEventListener('input', (e) => {
+            if (e.target.id === 'prof-dob') {
+                const newAge = calculateAge(e.target.value);
+                const display = document.getElementById('age-display');
+                if (display) display.textContent = newAge ? `(${newAge} años)` : '';
+                State.profile.dob = e.target.value;
+            }
+
+            if (e.target.classList.contains('jp7-input')) {
+                const inputs = document.querySelectorAll('.jp7-input');
+                let sum = 0; let allFilled = true;
+                inputs.forEach(inp => { if (!inp.value) allFilled = false; sum += parseFloat(inp.value) || 0; });
+                if (allFilled) {
+                    const bf = calculateJP7(sum, calculateAge(State.profile.dob), State.profile.gender);
+                    if (bf) document.getElementById('bio-fat').value = bf;
+                }
+            }
+
+            if (e.target.classList.contains('ex-notes')) { const currentExName = State.activeWorkout[State.currentExerciseIndex].name; State.profile.machineNotes[currentExName] = e.target.value; }
+            if (e.target.classList.contains('ex-obs')) { State.activeWorkout[State.currentExerciseIndex].obs = e.target.value; }
+
+            // Slider Fotográfico
+            if (e.target.id === 'photo-slider') {
+                const val = e.target.value;
+                document.getElementById('img-before').style.clipPath = `polygon(0 0, ${val}% 0, ${val}% 100%, 0 100%)`;
+                document.getElementById('slider-line').style.left = `${val}%`;
+            }
+            if (e.target.id === 'comp-date-1') { const l1 = document.getElementById('label-img-1'); if (l1) l1.textContent = e.target.options[e.target.selectedIndex].text.toUpperCase(); }
+            if (e.target.id === 'comp-date-2') { const l2 = document.getElementById('label-img-2'); if (l2) l2.textContent = e.target.options[e.target.selectedIndex].text.toUpperCase(); }
+            if (e.target.id === 'prog-ex-select') drawProgressChart();
+        });
+
+        document.body.addEventListener('pointerup', async (e) => {
+            const navItem = e.target.closest('.nav-item');
+            if (navItem && navItem.dataset.view !== State.currentView) navigateTo(navItem.dataset.view);
+            const trigger = e.target.closest('.view-trigger');
+            if (trigger) {
+                document.getElementById('fab-modal').classList.remove('active');
+                document.getElementById('modal-rpe').classList.remove('active');
+                navigateTo(trigger.dataset.target);
+            }
+            if (e.target.closest('#btn-logout')) await signOut(auth);
+
+            // Banner Flotante Clic (Volver a entreno activo)
+            if (e.target.closest('#active-workout-banner')) navigateTo('workout_player');
+            if (e.target.closest('#btn-back-workout')) document.getElementById('modal-rpe').classList.remove('active');
+
+            // CALENDARIO CLICKS
+            const calDay = e.target.closest('.cal-day');
+            if (calDay) { State.plan.activeDate = calDay.dataset.date; navigateTo('plan'); }
+
+            // MODAL INSTALACIÓN PWA
+            if (e.target.closest('#btn-show-install')) { e.preventDefault(); document.getElementById('modal-install').classList.add('active'); }
+            if (e.target.closest('#close-install-modal')) document.getElementById('modal-install').classList.remove('active');
+
+            // CHAT ENVIAR MENSAJE
+            if (e.target.closest('#btn-chat-send')) {
+                const inp = document.getElementById('chat-input-text');
+                if (inp && inp.value.trim() !== '') {
+                    const d = new Date(); State.messages.push({ sender: 'user', text: inp.value.trim(), time: `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}` });
+                    navigateTo('mensajes');
+                }
+            }
+
+            // MODALES FAB
+            if (e.target.closest('#fab-trigger')) document.getElementById('fab-modal').classList.add('active');
+            if (e.target.closest('#close-modal')) document.getElementById('fab-modal').classList.remove('active');
+
+            const modalAction = e.target.closest('.modal-action');
+            if (modalAction && modalAction.id !== 'close-modal' && modalAction.id !== 'btn-ia-setup-fab') {
+                const action = modalAction.dataset.action;
+                document.getElementById('fab-modal').classList.remove('active');
+                if (action === 'weight' || action === 'fat' || action === 'measures') {
+                    navigateTo('estado_fisico');
+                    if (action === 'measures') {
+                        setTimeout(() => {
+                            const jp7 = document.getElementById('jp7-content');
+                            if (jp7) { jp7.classList.remove('hidden'); document.getElementById('jp7-arrow').textContent = '▲'; }
+                        }, 50);
+                    }
+                } else if (action === 'meal') navigateTo('log_comida');
+            }
+
+            // ACORDEONES
+            if (e.target.closest('#btn-toggle-jp7')) {
+                const content = document.getElementById('jp7-content');
+                content.classList.toggle('hidden');
+                document.getElementById('jp7-arrow').textContent = content.classList.contains('hidden') ? '▼' : '▲';
+            }
+            if (e.target.closest('#btn-toggle-perimeters')) {
+                const content = document.getElementById('perim-content');
+                content.classList.toggle('hidden');
+                document.getElementById('perim-arrow').textContent = content.classList.contains('hidden') ? '▼' : '▲';
+            }
+
+            // LÓGICA DE PAGOS
+            if (e.target.closest('#btn-pay-plan')) {
+                const selected = document.querySelector('.plan-card-input:checked');
+                if (!selected) return alert("Selecciona un plan.");
+                document.getElementById('modal-payment').classList.add('active');
+            }
+            if (e.target.closest('#close-payment-modal')) document.getElementById('modal-payment').classList.remove('active');
+            if (e.target.closest('#btn-pay-bizum')) {
+                const planName = document.querySelector('.plan-card-input:checked').value;
+                alert(`📱 BIZUM (0% Comisiones)\n\n1. Envía el importe al: 614 056 363\n2. Concepto: "${State.profile.name} - #${State.profile.id}"\n\nCoach validará tu ${planName}.`);
+                document.getElementById('modal-payment').classList.remove('active');
+            }
+            if (e.target.closest('#btn-pay-sumup')) {
+                const planValue = document.querySelector('.plan-card-input:checked').value;
+                let link = 'https://pay.sumup.com/b2c/DEFAULT';
+                if (planValue.includes('APP')) link = 'https://pay.sumup.com/b2c/PLAN_APP';
+                if (planValue.includes('Preparación')) link = 'https://pay.sumup.com/b2c/PLAN_PREP';
+                if (planValue.includes('4 Sesiones')) link = 'https://pay.sumup.com/b2c/PLAN_4SES';
+                if (planValue.includes('8 Sesiones')) link = 'https://pay.sumup.com/b2c/PLAN_8SES';
+                if (planValue.includes('Suelta')) link = 'https://pay.sumup.com/b2c/PLAN_SUELTA';
+                window.open(link, '_blank');
+                document.getElementById('modal-payment').classList.remove('active');
+            }
+
+            // COMPARATIVA FOTOS
+            const angleBtn = e.target.closest('.angle-btn');
+            if (angleBtn) { State.comparativaAngle = angleBtn.dataset.angle; navigateTo('comparativa'); }
+            if (e.target.closest('#btn-upload-inicio') || e.target.closest('#btn-upload-actual')) { alert("Abriendo galería segura de dispositivo..."); }
+
+            // GUARDADO DE DATOS BASE
+            if (e.target.closest('#btn-save-profile')) alert("Datos personales actualizados.");
+            if (e.target.closest('#btn-save-bio')) {
+                State.profile.weight = document.getElementById('bio-weight').value;
+                State.profile.height = document.getElementById('bio-height').value;
+                State.profile.fat = document.getElementById('bio-fat').value;
+                State.profile.muscle = document.getElementById('bio-muscle').value;
+                State.profile.objective = document.getElementById('bio-obj').value;
+                State.profile.restTimerDefault = parseInt(document.getElementById('bio-rest').value) || 60;
+                alert("Biometría sincronizada. La IA y el Timer están calibrados.");
+            }
+            if (e.target.closest('#btn-save-meal')) { alert("Registro nutricional enviado a tu historial."); navigateTo('historial'); }
+
+            // IA Y WORKOUT INIT
+            if (e.target.closest('#btn-ia-setup') || e.target.closest('#btn-ia-setup-fab')) {
+                document.getElementById('fab-modal').classList.remove('active');
+                if (!State.profile.weight) { alert("⚠️ Faltan datos biométricos. Ve a 'Estado Físico'."); navigateTo('estado_fisico'); return; }
+                navigateTo('ia_setup');
+            }
+            if (e.target.closest('#btn-generate-ai')) {
+                const target = document.getElementById('ai-target').value; const level = document.getElementById('ai-level').value; const time = document.getElementById('ai-time').value;
+                navigateTo('ia_loading');
+                setTimeout(() => { State.routine = generateAIRoutine(target, level, time); navigateTo('ia_result'); }, 3000);
+            }
+            if (e.target.closest('#btn-start-ai-workout')) {
+                State.activeWorkout = State.routine.map(ex => ({
+                    name: ex.n, notes: '', obs: '',
+                    sets: [
+                        { id: 1, targetR: 20, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false },
+                        { id: 2, targetR: 16, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false },
+                        { id: 3, targetR: 16, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false },
+                        { id: 4, targetR: 16, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false },
+                        { id: 5, targetR: 16, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false }
+                    ]
+                }));
+                State.currentExerciseIndex = 0;
+                navigateTo('workout_player');
+            }
+
+            // --- LÓGICA WORKOUT (SWAP MODAL) ---
+            if (e.target.closest('#btn-swap-ex')) {
+                const currentName = State.activeWorkout[State.currentExerciseIndex].name;
+                const currentData = EXERCISES.find(ex => ex.n === currentName);
+                if (currentData) {
+                    const alternatives = EXERCISES.filter(ex => ex.m === currentData.m && ex.n !== currentName);
+                    if (alternatives.length > 0) {
+                        const listContainer = document.getElementById('swap-list-container');
+                        listContainer.innerHTML = '';
+                        alternatives.forEach(alt => {
+                            const div = document.createElement('div');
+                            div.className = 'swap-item'; div.innerHTML = `<b>${alt.n}</b>`; div.dataset.name = alt.n;
+                            listContainer.appendChild(div);
+                        });
+                        document.getElementById('modal-swap').classList.add('active');
+                    } else { alert("No hay alternativas de ese grupo muscular."); }
+                }
+            }
+            if (e.target.closest('#close-swap-modal')) document.getElementById('modal-swap').classList.remove('active');
+
+            if (e.target.closest('.swap-item')) {
+                const newExName = e.target.closest('.swap-item').dataset.name;
+                State.activeWorkout[State.currentExerciseIndex].name = newExName;
+                document.getElementById('modal-swap').classList.remove('active');
+                showToast(`🔁 Cambiado a: ${newExName}`);
+                navigateTo('workout_player');
+            }
+
+            if (e.target.closest('#btn-add-set')) {
+                const ex = State.activeWorkout[State.currentExerciseIndex];
+                ex.sets.push({ id: ex.sets.length + 1, targetR: 16, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false });
+                navigateTo('workout_player');
+            }
+
+            // MARCAR TODO (AUTOFILL)
+            if (e.target.closest('#btn-mark-all')) {
+                const currentEx = State.activeWorkout[State.currentExerciseIndex];
+                const rows = document.querySelectorAll('.set-row');
+                currentEx.sets.forEach((set, idx) => {
+                    if (!set.done) {
+                        const row = rows[idx];
+                        if (row) {
+                            const rInp = row.querySelector('.set-r'); const wInp = row.querySelector('.set-w');
+                            const rVal = rInp.value || set.prevR || set.targetR || 0;
+                            const wVal = wInp.value || set.prevW || 0;
+                            set.r = parseInt(rVal); set.w = parseFloat(wVal); set.done = true;
+
+                            if (!State.profile.maxWeights[currentEx.name]) State.profile.maxWeights[currentEx.name] = {};
+                            const currentMax = State.profile.maxWeights[currentEx.name][idx] || 0;
+                            if (set.w > currentMax) { State.profile.maxWeights[currentEx.name][idx] = set.w; }
+
+                            if (set.w > 0 && set.r > 0) {
+                                const est1RM = Math.round(set.w / (1.0278 - (0.0278 * set.r)));
+                                const currentRecord = State.profile.rmRecords[currentEx.name] || 0;
+                                if (est1RM > currentRecord) { State.profile.rmRecords[currentEx.name] = est1RM; showToast(`🔥 ¡NUEVO NIVEL! 1RM Est: <b>${est1RM}kg</b>`); }
+                            }
+                        }
+                    }
+                });
+                if (navigator.vibrate) navigator.vibrate(20);
+                navigateTo('workout_player');
+            }
+
+            // GESTIÓN DE DROPSET (LECTURA EXACTA Y MATEMÁTICA)
+            if (e.target.closest('.btn-drop')) {
+                const btn = e.target.closest('.btn-drop');
+                const exIdx = parseInt(btn.dataset.ex); const setIdx = parseInt(btn.dataset.set);
+                const workout = State.activeWorkout[exIdx];
+                const currentSet = workout.sets[setIdx];
+
+                // 1. Forzar lectura del input DOM ANTES de procesar
+                const row = btn.closest('.set-row');
+                if (row) {
+                    const rInp = row.querySelector('.set-r'); const wInp = row.querySelector('.set-w');
+                    currentSet.r = parseInt(rInp.value || currentSet.prevR || currentSet.targetR || 0);
+                    currentSet.w = parseFloat(wInp.value || currentSet.prevW || 0);
+                }
+
+                const nextSet = workout.sets[setIdx + 1];
+
+                // 2. Toggle: Si ya existe el dropset hijo, se borra y reabre la actual
+                if (nextSet && nextSet.isDrop && nextSet.parentId === currentSet.id) {
+                    workout.sets.splice(setIdx + 1, 1);
+                    currentSet.done = false;
+                } else {
+                    // 3. Crear Dropset
+                    const targetR = parseInt(currentSet.targetR || 16);
+                    const actualR = parseInt(currentSet.r || 0);
+                    const actualW = parseFloat(currentSet.w || 0);
+
+                    const remainingReps = Math.max(0, targetR - actualR);
+                    const dropTargetReps = remainingReps + 4; // Faltantes + 4 extra
+                    const dropW = actualW > 0 ? Math.round(actualW * 0.68) : 0; // -32%
+
+                    currentSet.done = true; // Cerrar la original
+
+                    if (!State.profile.maxWeights[workout.name]) State.profile.maxWeights[workout.name] = {};
+                    if (actualW > (State.profile.maxWeights[workout.name][setIdx] || 0)) {
+                        State.profile.maxWeights[workout.name][setIdx] = actualW;
+                    }
+                    if (actualW > 0 && actualR > 0) {
+                        const est1RM = Math.round(actualW / (1.0278 - (0.0278 * actualR)));
+                        if (est1RM > (State.profile.rmRecords[workout.name] || 0)) { State.profile.rmRecords[workout.name] = est1RM; showToast(`🔥 ¡NUEVO NIVEL! 1RM Est: <b>${est1RM}kg</b>`); }
+                    }
+
+                    workout.sets.splice(setIdx + 1, 0, {
+                        id: currentSet.id + 0.5, isDrop: true, parentId: currentSet.id,
+                        targetR: dropTargetReps, r: '', w: dropW, done: false, prevW: 0, prevR: 0
+                    });
+                }
+                navigateTo('workout_player');
+            }
+
+            // GESTIÓN CHECKBOX MANUAL (SERIE ÚNICA)
+            if (e.target.closest('.set-checkbox')) {
+                initAudioEngine();
+                const checkbox = e.target.closest('.set-checkbox'); const exIdx = checkbox.dataset.ex; const setIdx = checkbox.dataset.set; const setObj = State.activeWorkout[exIdx].sets[setIdx]; const row = checkbox.closest('.set-row');
+
+                if (!setObj.done) {
+                    const rInp = row.querySelector('.set-r'); const wInp = row.querySelector('.set-w');
+                    const r = parseInt(rInp.value || setObj.prevR || setObj.targetR || 0);
+                    const w = parseFloat(wInp.value || setObj.prevW || 0);
+                    setObj.w = w; setObj.r = r;
+
+                    if (!State.profile.maxWeights[State.activeWorkout[exIdx].name]) State.profile.maxWeights[State.activeWorkout[exIdx].name] = {};
+                    if (w > (State.profile.maxWeights[State.activeWorkout[exIdx].name][setIdx] || 0)) { State.profile.maxWeights[State.activeWorkout[exIdx].name][setIdx] = w; }
+
+                    if (w > 0 && r > 0) {
+                        const est1RM = Math.round(w / (1.0278 - (0.0278 * r)));
+                        if (est1RM > (State.profile.rmRecords[State.activeWorkout[exIdx].name] || 0)) { State.profile.rmRecords[State.activeWorkout[exIdx].name] = est1RM; showToast(`🔥 ¡NUEVO NIVEL! 1RM Est: <b>${est1RM}kg</b>`); }
+                    }
+                    setObj.done = true; if (navigator.vibrate) navigator.vibrate(10);
+                    navigateTo('workout_player');
+
+                    if (!setObj.isDrop) {
+                        document.getElementById('modal-timer').classList.add('active');
+                        State.restTimeLeft = State.profile.restTimerDefault; State.lastBeepSecond = -1;
+                        if (State.timerInt) clearInterval(State.timerInt);
+                        State.timerInt = setInterval(() => {
+                            State.restTimeLeft--;
+                            const d = document.getElementById('timer-display-main');
+                            if (d) { const m = Math.floor(State.restTimeLeft / 60); const s = State.restTimeLeft % 60; d.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; d.style.color = State.restTimeLeft <= 5 ? "#fff" : "var(--cyber-red-neon)"; }
+                            if (State.restTimeLeft <= 5 && State.restTimeLeft > 0) { if (State.restTimeLeft !== State.lastBeepSecond) { playTickSound(false); State.lastBeepSecond = State.restTimeLeft; } }
+                            if (State.restTimeLeft <= 0) { clearInterval(State.timerInt); document.getElementById('modal-timer').classList.remove('active'); playTickSound(true); }
+                        }, 1000);
+                    }
+                } else { setObj.done = false; navigateTo('workout_player'); }
+            }
+
+            if (e.target.closest('#btn-timer-skip')) { clearInterval(State.timerInt); document.getElementById('modal-timer').classList.remove('active'); }
+            if (e.target.closest('#btn-timer-plus')) { State.restTimeLeft += 15; const d = document.getElementById('timer-display-main'); if (d) { const m = Math.floor(State.restTimeLeft / 60); const s = State.restTimeLeft % 60; d.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; } }
+            if (e.target.closest('#btn-timer-minus')) { State.restTimeLeft = Math.max(0, State.restTimeLeft - 15); const d = document.getElementById('timer-display-main'); if (d) { const m = Math.floor(State.restTimeLeft / 60); const s = State.restTimeLeft % 60; d.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; } }
+
+            // RPE Y MAPA MUSCULAR AL FINALIZAR
+            if (e.target.closest('#btn-next-exercise')) {
+                if (State.currentExerciseIndex < State.activeWorkout.length - 1) {
+                    State.currentExerciseIndex++;
+                    navigateTo('workout_player');
+                } else {
+                    let workoutMuscles = {};
+                    State.activeWorkout.forEach(ex => {
+                        const data = EXERCISES.find(e => e.n === ex.name);
+                        if (data && data.m) { if (!workoutMuscles[data.m]) workoutMuscles[data.m] = 0; workoutMuscles[data.m] += ex.sets.filter(s => s.done).length; }
+                    });
+                    document.getElementById('modal-rpe').classList.add('active');
+                    renderHUDMap('workout-muscle-map', workoutMuscles);
+                }
+            }
+
+            const btnRpe = e.target.closest('button[data-rpe]');
+            if (btnRpe) {
+                const rpeVal = btnRpe.dataset.rpe; const note = document.getElementById('workout-general-note').value;
+                document.getElementById('modal-rpe').classList.remove('active');
+
+                // GUARDAR EN FIRESTORE
+                if (State.profile.uid) {
+                    let totalSets = 0;
+                    let workoutMuscles = {};
+                    State.activeWorkout.forEach(ex => {
+                        const data = EXERCISES.find(e => e.n === ex.name);
+                        const doneSets = ex.sets.filter(s => s.done).length;
+                        totalSets += doneSets;
+                        if (data && data.m) { if (!workoutMuscles[data.m]) workoutMuscles[data.m] = 0; workoutMuscles[data.m] += doneSets; }
+                    });
+
+                    const record = {
+                        rpe: parseInt(rpeVal),
+                        note: note,
+                        exercises: State.activeWorkout,
+                        totalSets: totalSets,
+                        muscles: workoutMuscles
+                    };
+
+                    saveWorkout(State.profile.uid, record).then(success => {
+                        if (success) {
+                            record.timestamp = new Date().toISOString();
+                            if (!State.history) State.history = [];
+                            State.history.unshift(record);
+                        }
+                    });
+
+                    updateProfile(State.profile.uid, {
+                        maxWeights: State.profile.maxWeights || {},
+                        rmRecords: State.profile.rmRecords || {},
+                        machineNotes: State.profile.machineNotes || {}
+                    });
+                }
+
+                showToast(`🏆 Entreno subido (RPE: ${rpeVal}). Eliminando de semana.`);
+                State.activeWorkout = null;
+                if (State.plan.routinesAvailable.length > 0) State.plan.routinesAvailable.shift();
+                document.getElementById('workout-general-note').value = ''; navigateTo('historial');
+            }
+            if (e.target.closest('#btn-abort-workout')) { if (confirm("⚠ ¿Abortar entrenamiento?")) { State.activeWorkout = null; navigateTo('plan'); } }
+        });
+    </script>
+</body>
+
+</html>
