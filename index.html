@@ -688,8 +688,12 @@
             },
 
             comparativa: () => {
-                const imgInicio = (State.comparativaImages && State.comparativaImages.inicio) ? State.comparativaImages.inicio : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23222222'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23ff1f3d' font-family='sans-serif' font-size='24'>FOTO INICIO</text></svg>";
-                const imgActual = (State.comparativaImages && State.comparativaImages.actual) ? State.comparativaImages.actual : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23111111'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2300ff88' font-family='sans-serif' font-size='24'>FOTO ACTUAL</text></svg>";
+                const angle = State.comparativaAngle || 'frontal';
+                const keyInicio = `inicio_${angle}`;
+                const keyActual = `actual_${angle}`;
+
+                const imgInicio = (State.comparativaImages && State.comparativaImages[keyInicio]) ? State.comparativaImages[keyInicio] : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23222222'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23ff1f3d' font-family='sans-serif' font-size='24'>FOTO INICIO</text></svg>";
+                const imgActual = (State.comparativaImages && State.comparativaImages[keyActual]) ? State.comparativaImages[keyActual] : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23111111'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2300ff88' font-family='sans-serif' font-size='24'>FOTO ACTUAL</text></svg>";
 
                 return `
                 <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Comparativa</h2>
@@ -1006,10 +1010,12 @@
                     reader.onload = async (ev) => {
                         const base64Img = ev.target.result;
                         const type = e.target.id === 'upload-inicio' ? 'inicio' : 'actual';
+                        const angle = State.comparativaAngle || 'frontal';
+                        const compositeKey = `${type}_${angle}`;
 
                         // 1. Mostrar Preview Local instantáneo
                         State.comparativaImages = State.comparativaImages || {};
-                        State.comparativaImages[type] = base64Img;
+                        State.comparativaImages[compositeKey] = base64Img;
 
                         if (type === 'inicio') {
                             const img = document.getElementById('img-before');
@@ -1024,9 +1030,9 @@
                         const originalText = lbl ? lbl.innerHTML.trim() : "";
                         if (lbl) lbl.innerHTML = `<span style="color:#fff;">Subiendo...</span>`;
 
-                        const downloadUrl = await uploadComparativaImage(State.profile.uid, type, base64Img);
+                        const downloadUrl = await uploadComparativaImage(State.profile.uid, compositeKey, base64Img);
                         if (downloadUrl) {
-                            State.comparativaImages[type] = downloadUrl;
+                            State.comparativaImages[compositeKey] = downloadUrl;
                             await updateProfile(State.profile.uid, { comparativaImages: State.comparativaImages });
                             if (lbl) lbl.innerHTML = `<span style="color:var(--cyber-green);">¡Guardada!</span>`;
                             setTimeout(() => { if (lbl) lbl.innerHTML = originalText; }, 2000);
