@@ -686,7 +686,11 @@
                 return html;
             },
 
-            comparativa: () => `
+            comparativa: () => {
+                const imgInicio = (State.comparativaImages && State.comparativaImages.inicio) ? State.comparativaImages.inicio : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23222222'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23ff1f3d' font-family='sans-serif' font-size='24'>FOTO INICIO</text></svg>";
+                const imgActual = (State.comparativaImages && State.comparativaImages.actual) ? State.comparativaImages.actual : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23111111'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2300ff88' font-family='sans-serif' font-size='24'>FOTO ACTUAL</text></svg>";
+
+                return `
                 <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Comparativa</h2>
                 <div class="liquid-glass card">
                     <p style="color:var(--cyber-text-gray); font-size:12px; margin-bottom:10px;">Selecciona fechas y ángulo para comparar.</p>
@@ -714,22 +718,29 @@
                     </div>
                     
                     <div class="slider-container">
-                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23111111'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2300ff88' font-family='sans-serif' font-size='24'>FOTO ACTUAL</text></svg>" class="slider-img after">
-                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23222222'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23ff1f3d' font-family='sans-serif' font-size='24'>FOTO INICIO</text></svg>" class="slider-img before" id="img-before">
+                        <img src="${imgActual}" class="slider-img after">
+                        <img src="${imgInicio}" class="slider-img before" id="img-before">
                         
                         <div class="slider-label label-before" id="label-img-1">INICIO (ENE)</div>
                         <div class="slider-label label-after" id="label-img-2">ACTUAL (HOY)</div>
                         
-                        <input type="range" min="0" max="100" value="50" class="slider-range" id="photo-slider">
-                        <div class="slider-line" id="slider-line"><div class="slider-thumb">◄►</div></div>
+                        <input type="range" min="0" max="100" value="0" class="slider-range" id="photo-slider">
+                        <div class="slider-line" id="slider-line" style="left: 0%;"><div class="slider-thumb">◄►</div></div>
                     </div>
                     
                     <div style="display:flex; justify-content:space-between; margin-top:15px; gap:10px;">
-                        <button class="cyber-button secondary" id="btn-upload-inicio" style="flex:1; font-size:11px;">Subir Foto 1</button>
-                        <button class="cyber-button secondary" id="btn-upload-actual" style="flex:1; font-size:11px; border-color:#00ff88; color:#00ff88;">Subir Foto 2</button>
+                        <label class="cyber-button secondary" style="flex:1; font-size:11px; text-align:center; cursor:pointer;" for="upload-inicio">
+                            Subir Foto 1
+                            <input type="file" id="upload-inicio" accept="image/*" style="display:none;">
+                        </label>
+                        <label class="cyber-button secondary" style="flex:1; font-size:11px; border-color:#00ff88; color:#00ff88; text-align:center; cursor:pointer;" for="upload-actual">
+                            Subir Foto 2
+                            <input type="file" id="upload-actual" accept="image/*" style="display:none;">
+                        </label>
                     </div>
                 </div>
-            `,
+            `;
+            },
 
             alertas: () => `<h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Notificaciones</h2><div class="liquid-glass"><div class="list-item" style="background: rgba(255, 31, 61, 0.1);"><div style="display:flex; flex-direction:column;"><span style="font-weight:bold; color:var(--cyber-white);">Sistema FitDataPro</span><span style="font-size:12px; color:var(--cyber-text-gray);">Actualiza tus datos biométricos para activar la IA.</span></div></div></div>`,
 
@@ -983,6 +994,29 @@
                 if (allFilled) {
                     const bf = calculateJP7(sum, calculateAge(State.profile.dob), State.profile.gender);
                     if (bf) document.getElementById('bio-fat').value = bf;
+                }
+            }
+
+            // GESTIÓN SUBIDA IMÁGENES COMPARATIVA
+            if (e.target.id === 'upload-inicio' || e.target.id === 'upload-actual') {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        if (e.target.id === 'upload-inicio') {
+                            State.comparativaImages = State.comparativaImages || {};
+                            State.comparativaImages.inicio = ev.target.result;
+                            const img = document.getElementById('img-before');
+                            if (img) img.src = ev.target.result;
+                        } else {
+                            State.comparativaImages = State.comparativaImages || {};
+                            State.comparativaImages.actual = ev.target.result;
+                            // The actual image is the first one with class .slider-img.after
+                            const img = document.querySelector('.slider-img.after');
+                            if (img) img.src = ev.target.result;
+                        }
+                    };
+                    reader.readAsDataURL(file);
                 }
             }
 
