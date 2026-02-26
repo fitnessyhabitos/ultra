@@ -266,10 +266,12 @@
                     State.profile.rmRecords = userData.rmRecords || {};
                     State.profile.machineNotes = userData.machineNotes || {};
                     if (userData.comparativaImages) State.comparativaImages = userData.comparativaImages;
+                    State.profile.role = userData.role || 'user';
                 } else {
                     State.profile.maxWeights = {};
                     State.profile.rmRecords = {};
                     State.profile.machineNotes = {};
+                    State.profile.role = 'user';
                 }
                 State.profile.id = user.uid.substring(0, 4).toUpperCase();
                 State.profile.uid = user.uid;
@@ -277,7 +279,11 @@
                 // Cargar Historial
                 State.history = await loadHistory(user.uid);
 
-                navigateTo('plan');
+                if (State.profile.role === 'admin') {
+                    navigateTo('admin_dashboard');
+                } else {
+                    navigateTo('plan');
+                }
             } else {
                 document.getElementById('auth-view').style.display = 'flex';
                 document.getElementById('app-wrapper').style.display = 'none';
@@ -301,6 +307,32 @@
             let fat = (495 / bd) - 450;
             return fat > 0 ? fat.toFixed(1) : '';
         }
+
+        // CONTROLADOR DE PESTAÑAS DEL ADMIN
+        window.loadAdminTab = function (tabName) {
+            const tabs = document.querySelectorAll('.admin-tabs button');
+            tabs.forEach(t => t.classList.remove('active'));
+            const activeBtn = Array.from(tabs).find(t => t.textContent.toLowerCase().includes(tabName.toLowerCase()));
+            if (activeBtn) activeBtn.classList.add('active');
+
+            const contentArea = document.getElementById('admin-content-area');
+            if (!contentArea) return;
+
+            contentArea.innerHTML = `<p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-top:40px;">Cargando módulo ${tabName}...</p>`;
+
+            // Aquí irán las llamadas a Firebase (admin.js) más adelante
+            setTimeout(() => {
+                if (tabName === 'solicitudes') {
+                    contentArea.innerHTML = `<h3 style="color:#ffcc00; margin-bottom:15px;">Atletas Pendientes</h3><p style="font-size:12px; color:#aaa;">No hay solicitudes pendientes.</p>`;
+                } else if (tabName === 'atletas') {
+                    contentArea.innerHTML = `<h3 style="color:#00ff88; margin-bottom:15px;">Directorio de Atletas</h3><p style="font-size:12px; color:#aaa;">No tienes atletas activos.</p>`;
+                } else if (tabName === 'rutinas') {
+                    contentArea.innerHTML = `<h3 style="color:#00d4ff; margin-bottom:15px;">Gestor de Rutinas</h3><button class="cyber-button" style="font-size:12px; padding:10px;">+ Crear Nueva Rutina Base</button>`;
+                } else if (tabName === 'chat') {
+                    contentArea.innerHTML = `<h3 style="color:white; margin-bottom:15px;">Comunicaciones Globales</h3><p style="font-size:12px; color:#aaa;">Bandeja de entrada vacía.</p>`;
+                }
+            }, 300);
+        };
 
         function showToast(msg) {
             const container = document.getElementById('toast-container');
@@ -799,6 +831,27 @@
                 <div class="liquid-glass card" style="margin-bottom:20px;">
                     <div class="card-title">HUD Muscular Global (Telemetría)</div>
                     <div id="global-muscle-map"></div>
+                </div>
+            `,
+
+            admin_dashboard: () => `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                    <h2 style="display:flex; gap:10px; align-items:center; color:#ffcc00;">
+                        <span class="view-trigger" data-target="plan" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> 
+                        Panel Coach
+                    </h2>
+                    <span style="font-size:11px; padding:4px 8px; background:rgba(255,204,0,0.1); color:#ffcc00; border:1px solid #ffcc00; border-radius:4px;">ADMIN</span>
+                </div>
+                
+                <div class="admin-tabs" style="display:flex; gap:10px; overflow-x:auto; margin-bottom:20px; padding-bottom:5px;">
+                    <button class="cyber-button secondary active" onclick="loadAdminTab('solicitudes')" style="font-size:11px; padding:8px 15px; min-width:auto;">Solicitudes</button>
+                    <button class="cyber-button secondary" onclick="loadAdminTab('atletas')" style="font-size:11px; padding:8px 15px; min-width:auto;">Atletas</button>
+                    <button class="cyber-button secondary" onclick="loadAdminTab('rutinas')" style="font-size:11px; padding:8px 15px; min-width:auto;">Rutinas</button>
+                    <button class="cyber-button secondary" onclick="loadAdminTab('chat')" style="font-size:11px; padding:8px 15px; min-width:auto;">Global Inbox</button>
+                </div>
+                
+                <div id="admin-content-area" class="liquid-glass card" style="min-height: 400px; padding: 15px;">
+                    <p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-top:40px;">← Selecciona una pestaña para comenzar</p>
                 </div>
             `,
 
