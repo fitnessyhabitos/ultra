@@ -1,14 +1,14 @@
 import { auth, db } from './firebase.js';
 import { createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { doc, setDoc, getDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 export function initAuthFlow() {
     const registerForm = document.getElementById('register-form');
-    
-    if(registerForm) {
+
+    if (registerForm) {
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             // Recoger datos del DOM
             const email = document.getElementById('reg-email').value;
             const password = document.getElementById('reg-password').value; // Asume que añadiste un campo password
@@ -17,19 +17,35 @@ export function initAuthFlow() {
             const age = document.getElementById('reg-age').value;
             const phone = document.getElementById('reg-phone').value;
             const telegram = document.getElementById('reg-telegram').value;
-            
+
             const btn = registerForm.querySelector('button');
             btn.disabled = true;
             btn.textContent = 'Registrando...';
 
             try {
+
                 // 1. Crear usuario en Firebase Auth
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
+                // Transacción para ID autoincremental
+                const counterRef = doc(db, "system", "counters");
+                const newIdNum = await runTransaction(db, async (transaction) => {
+                    const counterDoc = await transaction.get(counterRef);
+                    let count = 1;
+                    if (counterDoc.exists()) {
+                        count = (counterDoc.data().userCount || 0) + 1;
+                        transaction.update(counterRef, { userCount: count });
+                    } else {
+                        transaction.set(counterRef, { userCount: 1 });
+                    }
+                    return count;
+                });
+
                 // 2. Crear perfil en Firestore. Programación Defensiva: Forzar estado y rol
                 await setDoc(doc(db, "users", user.uid), {
                     uid: user.uid,
+                    clientIdNum: newIdNum,
                     fullName: fullName,
                     email: email,
                     gender: gender,
@@ -44,7 +60,7 @@ export function initAuthFlow() {
 
                 alert('Registro completado. Tu cuenta está pendiente de aprobación por el Coach.');
                 // Aquí podrías ocultar el formulario o redirigir a una pantalla de "En espera"
-                
+
             } catch (error) {
                 console.error("Error en registro:", error);
                 alert('Error al registrar: ' + error.message);

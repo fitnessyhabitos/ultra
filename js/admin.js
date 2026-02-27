@@ -36,6 +36,29 @@ export const AdminController = {
     },
 
     /**
+     * Incrementa y obtiene el ID único del cliente de manera transaccional. (Fallback method para la UI si no lo maneja auth.js)
+     */
+    async getOptimizedIncrementCounter() {
+        const counterRef = doc(db, "system", "counters");
+        try {
+            return await runTransaction(db, async (transaction) => {
+                const counterDoc = await transaction.get(counterRef);
+                let count = 1;
+                if (counterDoc.exists()) {
+                    count = (counterDoc.data().userCount || 0) + 1;
+                    transaction.update(counterRef, { userCount: count });
+                } else {
+                    transaction.set(counterRef, { userCount: 1 });
+                }
+                return count;
+            });
+        } catch (e) {
+            console.error("Fallo al incrementar ID.", e);
+            return 999;
+        }
+    },
+
+    /**
      * Aprueba a un usuario pendiente, dándole acceso a la app.
      */
     async approveUser(uid) {
