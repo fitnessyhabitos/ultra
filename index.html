@@ -32,11 +32,28 @@
                     <input type="password" id="login-password" placeholder="Código de Acceso" required>
                     <button type="submit" class="cyber-button">Iniciar Sesión</button>
                 </form>
-                <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                <div
+                    style="text-align:center; margin-top:20px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1);">
                     <p style="font-size: 13px; color: var(--cyber-text-gray);"><a href="#" id="toggle-to-register"
-                            class="highlight" style="text-decoration:none;">Solicitar Acceso</a></p>
-                    <p style="font-size: 13px;"><a href="#" id="btn-show-install"
-                            style="color:#00ff88; text-decoration:none; font-weight:bold;">📲 Instalar App</a></p>
+                            class="highlight" style="text-decoration:none;">Solicitar Acceso como Atleta Nuevo</a></p>
+                </div>
+
+                <h4 style="margin-top:20px; font-size:14px; text-align:center; color:#fff;">Instalar App (Pantalla
+                    Completa)</h4>
+                <div
+                    style="background:rgba(0,0,0,0.5); padding:10px; border-radius:8px; border-left:3px solid #00d4ff; text-align:left; margin-bottom:10px; margin-top:10px;">
+                    <h4 style="color:#00d4ff; font-size:13px; margin-bottom:5px;">🍎 iPhone (iOS Safari)</h4>
+                    <span style="color:#ccc; font-size:11px;">1. Toca <b>Compartir <svg viewBox="0 0 24 24" width="12"
+                                height="12" fill="currentColor" style="vertical-align:middle; display:inline-block;">
+                                <path
+                                    d="M16 5l-1.42 1.42-1.59-1.59V16h-2V4.83L9.41 6.41 8 5l4-4 4 4zm4 4v11c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2V9c0-1.1.9-2 2-2h3v2H6v11h12V9h-3V7h3c1.1 0 2 .9 2 2z" />
+                            </svg></b> abajo.<br>2. Elige <b>Añadir a pantalla inicio</b>.</span>
+                </div>
+                <div
+                    style="background:rgba(0,0,0,0.5); padding:10px; border-radius:8px; border-left:3px solid #00ff88; text-align:left; margin-bottom:10px;">
+                    <h4 style="color:#00ff88; font-size:13px; margin-bottom:5px;">🤖 Android (Chrome)</h4>
+                    <span style="color:#ccc; font-size:11px;">1. Toca los tres puntos <b>(⋮)</b> arriba.<br>2.
+                        Selecciona <b>Instalar Aplicación</b>.</span>
                 </div>
             </div>
 
@@ -71,10 +88,6 @@
                 <img src="logo.png" alt="Logo" class="header-logo">
                 <span id="header-text">FIT<span class="highlight">DATA</span>PRO</span>
             </div>
-            <svg class="cyber-icon highlight" viewBox="0 0 24 24" style="width:24px; height:24px;">
-                <path
-                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-            </svg>
         </div>
 
         <main id="app-view"></main>
@@ -130,42 +143,8 @@
             </div>
         </div>
 
-        <!-- MODAL INSTALACIÓN PWA (INSTRUCCIONES MANUALES) -->
-        <div id="modal-install" class="modal-overlay">
-            <div class="modal-content liquid-glass" style="max-height:85vh; padding:20px; text-align:center;">
-                <h3 style="color:#00ff88; margin-bottom:15px; font-size:18px;">Instalar como App Nativa</h3>
-                <img src="logo.png" style="width:60px; height:60px; margin-bottom:15px; border-radius:12px;">
-                <p style="color:#aaa; font-size:13px; margin-bottom:20px; line-height:1.5;">FitDataPro es un sistema
-                    PWA. Descárgalo en tu pantalla de inicio para una experiencia inmersiva a pantalla completa y
-                    notificaciones Push.</p>
-
-                <div
-                    style="background:rgba(0,0,0,0.5); padding:15px; border-radius:8px; border-left:3px solid #00d4ff; text-align:left; margin-bottom:15px;">
-                    <h4 style="color:#00d4ff; font-size:14px; margin-bottom:8px;">🍎 iPhone (iOS Safari)</h4>
-                    <ol style="color:white; font-size:12px; margin-left:15px; line-height:1.8;">
-                        <li>Toca el botón <b>Compartir <svg viewBox="0 0 24 24" width="14" height="14"
-                                    fill="currentColor" style="vertical-align:middle; display:inline-block;">
-                                    <path
-                                        d="M16 5l-1.42 1.42-1.59-1.59V16h-2V4.83L9.41 6.41 8 5l4-4 4 4zm4 4v11c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2V9c0-1.1.9-2 2-2h3v2H6v11h12V9h-3V7h3c1.1 0 2 .9 2 2z" />
-                                </svg></b> en la barra inferior del navegador.</li>
-                        <li>Desliza hacia abajo y selecciona <b>"Añadir a la pantalla de inicio"</b>.</li>
-                        <li>Toca <b>"Añadir"</b> arriba a la derecha.</li>
-                        <li>¡Abre FitData desde tu pantalla para la vista nativa!</li>
-                    </ol>
-                </div>
-
-                <div
-                    style="background:rgba(0,0,0,0.5); padding:15px; border-radius:8px; border-left:3px solid #00ff88; text-align:left; margin-bottom:20px;">
-                    <h4 style="color:#00ff88; font-size:14px; margin-bottom:8px;">🤖 Android (Chrome)</h4>
-                    <ol style="color:white; font-size:12px; margin-left:15px; line-height:1.8;">
-                        <li>Toca los tres puntos <b>(⋮)</b> arriba a la derecha.</li>
-                        <li>Selecciona <b>"Instalar aplicación"</b> o "Añadir a la pantalla...".</li>
-                        <li>Acepta la instalación en el cajón emergente.</li>
-                    </ol>
-                </div>
-
-                <button id="close-install-modal" class="cyber-button" style="width:100%;">Entendido</button>
-            </div>
+        </div>
+        </div>
         </div>
 
         <!-- MODALES FAB -->
@@ -2313,74 +2292,90 @@
             ia_result: () => `<h2 style="margin-bottom: 15px; color:var(--cyber-white);">Rutina Optimizada</h2><div class="liquid-glass card" style="padding:15px;"><ul style="list-style:none; padding:0; color:var(--cyber-text-gray); font-size:14px;">${State.routine.map((ex, i) => `<li style="padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05);"><strong>${i + 1}.</strong> ${ex.n}</li>`).join('')}</ul><button class="cyber-button ai-button" id="btn-start-ai-workout" style="margin-top:20px;">Iniciar Entreno Ahora</button><button class="cyber-button secondary view-trigger" data-target="ia_setup" style="margin-top:10px;">Descartar</button></div>`,
 
             workout_player: () => {
-                if (!State.activeWorkout || State.activeWorkout.length === 0) {
-                    return `<h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="plan" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Entreno Rápido</h2><div class="liquid-glass card" style="text-align:center; padding:30px;"><p style="color:red; font-size:14px; margin-bottom:15px;">No hay rutina activa iniciada.</p><button class="cyber-button view-trigger" data-target="plan">Volver al Plan</button></div>`;
-                }
-                const currentEx = State.activeWorkout[State.currentExerciseIndex];
-                const isLast = State.currentExerciseIndex === State.activeWorkout.length - 1;
+                if (!State.activeWorkout || State.activeWorkout.length === 0) return `<div class="card"><p style="text-align:center;">No hay entreno activo.</p><button onclick="navigateTo('plan')" class="cyber-button" style="margin-top:20px;">Volver</button></div>`;
 
-                let setsHtml = '';
-                currentEx.sets.forEach((set, idx) => {
-                    const checkClass = `set-checkbox ${set.done ? 'checked' : ''}`;
-                    const disabled = set.done ? 'disabled' : '';
+                let html = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; position:sticky; top:0; background:#050505; z-index:10; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <h2 style="margin:0; font-size:18px;">Sesión Activa</h2>
+                    <button id="btn-abort-workout" class="cyber-button secondary" style="min-width:auto; padding:5px 10px; font-size:11px; border-color:#ff1f3d; color:#ff1f3d;">Abortar</button>
+                    <button class="cyber-button" id="btn-finish-workout" style="min-width:auto; padding:5px 15px; font-size:12px; background:#00ff88; color:black;">Terminar Todo</button>
+                </div>
+                
+                <p style="color:var(--cyber-text-gray); font-size:12px; margin-bottom:15px;">Abre cualquier ejercicio para registrar tus series. Puedes alternar libremente.</p>
+                <div style="display:flex; flex-direction:column; gap:10px; padding-bottom:80px;">
+                `;
 
-                    const nextSet = currentEx.sets[idx + 1];
-                    const hasDropActive = (nextSet && nextSet.isDrop && nextSet.parentId === set.id);
-                    const dropBtnClass = `btn-drop ${hasDropActive ? 'active' : ''}`;
+                State.activeWorkout.forEach((ex, exIdx) => {
+                    const exData = EXERCISES.find(e => e.n === ex.name) || {};
+                    const imgPath = typeof exData.img === 'string' ? exData.img : 'logo.png';
+                    const allDone = ex.sets.length > 0 && ex.sets.every(s => s.done);
+                    const headerBorder = allDone ? 'border-left:3px solid #00ff88;' : 'border-left:3px solid #ff1f3d;';
+                    const headerColor = allDone ? '#00ff88' : 'white';
 
-                    // AUTOFILL logic
-                    const displayR = set.r || set.prevR || set.targetR || '';
-                    const displayW = set.w || set.prevW || '';
+                    // Generar html de las series
+                    let setsHTML = `<div class="sets-container" style="margin-top:10px;">`;
+                    ex.sets.forEach((setObj, setIdx) => {
+                        const maxW = State.profile.maxWeights[ex.name]?.[setIdx] || 0;
+                        const isDrop = setObj.isDrop;
+                        const checkClass = `set-checkbox ${setObj.done ? 'checked' : ''}`;
+                        const disabled = setObj.done ? 'disabled' : '';
+                        const nextSet = ex.sets[setIdx + 1];
+                        const hasDropActive = (nextSet && nextSet.isDrop && nextSet.parentId === setObj.id);
+                        const dropBtnClass = `btn-drop ${hasDropActive ? 'active' : ''}`;
+                        const displayR = setObj.r || setObj.prevR || setObj.targetR || '';
+                        const displayW = setObj.w || setObj.prevW || '';
 
-                    // Leer PR específico de la serie
-                    const exMaxes = State.profile.maxWeights[currentEx.name] || {};
-                    const setPR = exMaxes[idx] || 0;
+                        setsHTML += `
+                        <div class="set-wrapper ${setObj.isDrop ? 'is-drop' : ''}">
+                            <div class="set-row ${setObj.done ? 'done' : ''}">
+                                <div style="font-weight:bold; font-size:13px; text-align:center; color:var(--cyber-text-gray);">${setObj.id}</div>
+                                <input type="number" class="set-input set-r" placeholder="Reps" value="${displayR}" ${disabled}>
+                                <input type="number" class="set-input set-w" placeholder="Kg" value="${displayW}" ${disabled}>
+                                <div class="${checkClass}" data-ex="${exIdx}" data-set="${setIdx}"></div>
+                                ${!setObj.isDrop ? `<div class="${dropBtnClass}" data-ex="${exIdx}" data-set="${setIdx}"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2L1 21h22M12 6l7.5 13h-15M11 10h2v4h-2M11 16h2v2h-2"/></svg></div>` : '<div></div>'}
+                            </div>
+                            ${!setObj.isDrop ? `<div class="set-history-sub"><span>Ant: ${setObj.prevR || 0}x${setObj.prevW || 0}kg</span><span><span style="color:gold;">🏅</span> Máx: ${maxW}kg</span></div>` : `<div class="set-history-sub" style="color:#ffaa00;">Dropset Telemetría (-32% Carga)</div>`}
+                        </div>`;
+                    });
 
-                    const historyHtml = !set.isDrop
-                        ? `<div class="set-history-sub"><span>Ant: ${set.prevR || 0}x${set.prevW || 0}kg</span><span><span style="color:gold;">🏅</span> Máx: ${setPR}kg</span></div>`
-                        : `<div class="set-history-sub" style="color:#ffaa00;">Dropset Telemetría (-32% Carga)</div>`;
-
-                    setsHtml += `
-                    <div class="set-wrapper ${set.isDrop ? 'is-drop' : ''}">
-                        <div class="set-row ${set.done ? 'done' : ''}">
-                            <div style="font-weight:bold; font-size:13px; text-align:center; color:var(--cyber-text-gray);">${set.id}</div>
-                            <input type="number" class="set-input set-r" placeholder="Reps" value="${displayR}" ${disabled}>
-                            <input type="number" class="set-input set-w" placeholder="Kg" value="${displayW}" ${disabled}>
-                            <div class="${checkClass}" data-ex="${State.currentExerciseIndex}" data-set="${idx}"></div>
-                            ${!set.isDrop ? `<div class="${dropBtnClass}" data-ex="${State.currentExerciseIndex}" data-set="${idx}"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2L1 21h22M12 6l7.5 13h-15M11 10h2v4h-2M11 16h2v2h-2"/></svg></div>` : '<div></div>'}
+                    setsHTML += `
+                        <div style="display:flex; justify-content:space-between; margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+                            <button class="cyber-button secondary btn-add-set-free" data-ex="${exIdx}" style="flex:1; margin-right:5px; font-size:11px; padding:6px; border-color:#fff; color:#fff;">+ Serie</button>
+                            <button class="cyber-button btn-all-sets-free" data-ex="${exIdx}" style="flex:1; margin-left:5px; font-size:11px; padding:6px; background:rgba(0,255,136,0.2); border-color:#00ff88; color:#00ff88;">✓ Todo Auto</button>
                         </div>
-                        ${historyHtml}
+                    </div>`;
+
+                    html += `
+                    <div class="liquid-glass card" style="padding:10px; ${headerBorder} transition:all 0.3s;">
+                        <div class="accordion-header free-workout-header" data-target="ex-body-${exIdx}" style="display:flex; align-items:center; cursor:pointer;">
+                            <img src="${imgPath}" onerror="this.style.display='none'" style="width:50px; height:50px; object-fit:contain; border-radius:8px; background:rgba(0,0,0,0.5); padding:5px; margin-right:15px;">
+                            <div style="flex:1;">
+                                <h3 style="color:${headerColor}; font-size:14px; margin-bottom:2px; display:flex; align-items:center; gap:5px;">
+                                    ${ex.name} ${allDone ? ' <span style="font-size:11px; color:#00ff88;">(✓)</span>' : ''}
+                                </h3>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-size:11px; color:var(--cyber-text-gray);">${exData.m || 'Músculo'} • ${ex.sets.length} Series</span>
+                                    <span class="ex-arrow" id="arrow-ex-${exIdx}" style="color:var(--cyber-red-neon); transform: rotate(${exIdx === 0 ? '180deg' : '0deg'}); transition: transform 0.3s; font-size:18px;">▼</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="ex-body-${exIdx}" style="display:${exIdx === 0 ? 'block' : 'none'}; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1); margin-top:10px;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                <button class="cyber-button secondary btn-swap-ex-free" data-ex="${exIdx}" style="min-width:auto; padding:5px 10px; font-size:11px;">🔁 Cambiar Máquina</button>
+                            </div>
+                            <textarea class="ex-notes-free" data-ex="${exIdx}" placeholder="Notas técnicas para este ejercicio (ej: subir banco 2 puntos)..." style="width:100%; min-height:40px; background:rgba(0,0,0,0.3); border:1px solid #444; color:#ccc; border-radius:4px; padding:8px; font-size:12px; margin-bottom:10px; font-family:inherit;">${State.profile.machineNotes[ex.name] || ''}</textarea>
+                            
+                            <div style="display:grid; grid-template-columns: 25px 1fr 1fr 35px 35px; gap:6px; color:var(--cyber-text-gray); font-size:11px; font-weight:bold; border-bottom:1px solid #333; padding-bottom:5px; margin-top:10px; text-align:center;">
+                                <div>#</div><div>Reps</div><div>Kg</div><div>✓</div><div><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2L1 21h22M12 6l7.5 13h-15M11 10h2v4h-2M11 16h2v2h-2"/></svg></div>
+                            </div>
+                            ${setsHTML}
+                            <textarea class="ex-obs-free" data-ex="${exIdx}" placeholder="Observaciones de hoy (Ej: Molestia hombro)" style="min-height:40px; font-size:12px; margin-top:10px; width:100%;">${ex.obs || ''}</textarea>
+                        </div>
                     </div>`;
                 });
 
-                return `
-                <p style="color:var(--cyber-text-gray); font-size:12px; margin-bottom:5px;">Ejercicio ${State.currentExerciseIndex + 1} de ${State.activeWorkout.length}</p>
-                <div class="workout-header">
-                    <h2 style="font-size:20px; color:var(--cyber-red-neon); margin-bottom:5px;">${currentEx.name}</h2>
-                </div>
-                
-                <div class="liquid-glass card auth-form" style="padding: 10px; margin-bottom:20px;">
-                    <textarea class="ex-notes" placeholder="Ajustes de máquina (Ej: Asiento al 3) - Se guarda para siempre" style="min-height:40px; font-size:12px;">${State.profile.machineNotes[currentEx.name] || ''}</textarea>
-                    
-                    <div style="display:grid; grid-template-columns: 25px 1fr 1fr 35px 35px; gap:6px; color:var(--cyber-text-gray); font-size:11px; font-weight:bold; border-bottom:1px solid #333; padding-bottom:5px; margin-top:10px; text-align:center;">
-                        <div>#</div><div>Reps</div><div>Kg</div><div>✓</div><div><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2L1 21h22M12 6l7.5 13h-15M11 10h2v4h-2M11 16h2v2h-2"/></svg></div>
-                    </div>
-                    
-                    <div style="margin-top:10px;">${setsHtml}</div>
-                    
-                    <textarea class="ex-obs" placeholder="Observaciones de hoy (Ej: Molestia hombro)" style="min-height:40px; font-size:12px; margin-top:10px;">${currentEx.obs || ''}</textarea>
-
-                    <div style="display:flex; gap:10px; margin-top:15px;">
-                        <button class="cyber-button secondary" id="btn-swap-ex" style="flex:1; font-size:11px; padding:0;">🔁 Cambio</button>
-                        <button class="cyber-button secondary" id="btn-add-set" style="flex:1; font-size:11px; padding:0;">+ Serie</button>
-                        <button class="cyber-button" id="btn-mark-all" style="flex:1; font-size:11px; padding:0; background:#00ff88; color:black; border:none;">✔ Todo</button>
-                    </div>
-                </div>
-
-                <div style="display:flex; gap:10px; margin-top:20px;">
-                    <button class="cyber-button secondary" id="btn-abort-workout" style="flex:1;">Abortar</button>
-                    <button class="cyber-button" id="btn-next-exercise" style="flex:1;">${isLast ? 'FINALIZAR' : 'Siguiente'}</button>
-                </div>`;
+                html += `</div>`; // Close wrapper
+                return html;
             }
         };
 
@@ -2577,25 +2572,6 @@
             const calDay = e.target.closest('.cal-day');
             if (calDay) { State.plan.activeDate = calDay.dataset.date; navigateTo('plan'); }
 
-            // MODAL INSTALACIÓN PWA
-            if (e.target.closest('#btn-show-install')) {
-                e.preventDefault();
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    deferredPrompt.userChoice.then((choiceResult) => {
-                        if (choiceResult.outcome === 'accepted') {
-                            console.log('Usuario aceptó instalar la PWA');
-                        }
-                        deferredPrompt = null;
-                    });
-                } else {
-                    // Fallback a instrucciones manuales (ej. iOS Safari)
-                    const modal = document.getElementById('modal-install');
-                    if (modal) modal.classList.add('active');
-                }
-            }
-            if (e.target.closest('#close-install-modal')) document.getElementById('modal-install').classList.remove('active');
-
             // CHAT ENVIAR MENSAJE
             if (e.target.closest('#btn-chat-send')) {
                 const inp = document.getElementById('chat-input-text');
@@ -2658,15 +2634,60 @@
                 document.getElementById('modal-payment').classList.remove('active');
             }
             if (e.target.closest('#btn-pay-sumup')) {
-                const planValue = document.querySelector('.plan-card-input:checked').value;
-                let link = 'https://pay.sumup.com/b2c/DEFAULT';
-                if (planValue.includes('APP')) link = 'https://pay.sumup.com/b2c/PLAN_APP';
-                if (planValue.includes('Preparación')) link = 'https://pay.sumup.com/b2c/PLAN_PREP';
-                if (planValue.includes('4 Sesiones')) link = 'https://pay.sumup.com/b2c/PLAN_4SES';
-                if (planValue.includes('8 Sesiones')) link = 'https://pay.sumup.com/b2c/PLAN_8SES';
-                if (planValue.includes('Suelta')) link = 'https://pay.sumup.com/b2c/PLAN_SUELTA';
-                window.open(link, '_blank');
-                document.getElementById('modal-payment').classList.remove('active');
+                const btn = e.target.closest('#btn-pay-sumup');
+                const originalText = btn.innerHTML;
+                const planEl = document.querySelector('.plan-card-input:checked');
+                if (!planEl) return alert("Selecciona un plan.");
+
+                const planValue = planEl.value; // e.g. "Suscripción APP (29€/mes)"
+                let price = 29.00; // Default fallback
+
+                if (planValue.includes('APP')) price = 29.00;
+                if (planValue.includes('Preparación')) price = 65.00;
+                if (planValue.includes('4 Sesiones')) price = 80.00;
+                if (planValue.includes('8 Sesiones')) price = 144.00;
+                if (planValue.includes('Suelta')) price = 23.00;
+
+                btn.innerHTML = 'Generando pasarela... <span class="spinner"></span>';
+                btn.style.opacity = '0.7';
+
+                const sumupAPI = 'sup_sk_T82OYQH1H86LYMkG9X9fCF1vczTrYe79N';
+                const payload = {
+                    "checkout_reference": `FIT_${State.profile.uid || 'GUEST'}_${Date.now()}`,
+                    "amount": price,
+                    "currency": "EUR",
+                    "pay_to_email": "YOUR_SUMUP_ACCOUNT_EMAIL@EXAMPLE.COM", // Note: Usually handled by SK automatically, included for schema strictness if needed
+                    "description": `Fit Data Ultra: ${planValue}`
+                };
+
+                // CORS Proxy to bypass browser restrictions for client-side API requests
+                fetch('https://cors-anywhere.herokuapp.com/https://api.sumup.com/v0.1/checkouts', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${sumupAPI}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        btn.innerHTML = originalText;
+                        btn.style.opacity = '1';
+                        if (data.id) {
+                            window.open(`https://pay.sumup.com/b2c/${data.id}`, '_blank');
+                            document.getElementById('modal-payment').classList.remove('active');
+                        } else {
+                            alert("Error conectando con SumUp. Prueba de nuevo más tarde o revisa tu clave API.");
+                            console.error('SumUp Error:', data);
+                        }
+                    })
+                    .catch(err => {
+                        btn.innerHTML = originalText;
+                        btn.style.opacity = '1';
+                        alert("No se pudo iniciar el checkout. Es posible que el proxy CORS no esté activo (Requiere visitarlo una vez desde este equipo). Redirigiendo a pasarela base por defecto.");
+                        window.open('https://pay.sumup.com/b2c/DEFAULT', '_blank');
+                        document.getElementById('modal-payment').classList.remove('active');
+                    });
             }
 
             // COMPARATIVA FOTOS
@@ -2713,44 +2734,72 @@
                 navigateTo('workout_player');
             }
 
-            // --- LÓGICA WORKOUT (SWAP MODAL) ---
-            if (e.target.closest('#btn-swap-ex')) {
-                const currentName = State.activeWorkout[State.currentExerciseIndex].name;
+            // --- LÓGICA WORKOUT PLAYER (VERTICAL ACORDEÓN) ---
+            if (e.target.closest('.free-workout-header')) {
+                const header = e.target.closest('.free-workout-header');
+                const targetId = header.dataset.target;
+                const body = document.getElementById(targetId);
+                const arrow = header.querySelector('.ex-arrow');
+                if (body.style.display === 'none') {
+                    body.style.display = 'block';
+                    if (arrow) arrow.style.transform = 'rotate(180deg)';
+                } else {
+                    body.style.display = 'none';
+                    if (arrow) arrow.style.transform = 'rotate(0deg)';
+                }
+            }
+
+            if (e.target.closest('.btn-swap-ex-free')) {
+                const exIdx = parseInt(e.target.closest('.btn-swap-ex-free').dataset.ex);
+                State.currentExerciseIndex = exIdx; // Keep track temporarily for swap modal
+                const currentName = State.activeWorkout[exIdx].name;
                 const currentData = EXERCISES.find(ex => ex.n === currentName);
                 if (currentData) {
                     const alternatives = EXERCISES.filter(ex => ex.m === currentData.m && ex.n !== currentName);
                     if (alternatives.length > 0) {
                         const listContainer = document.getElementById('swap-list-container');
-                        listContainer.innerHTML = '';
-                        alternatives.forEach(alt => {
-                            const div = document.createElement('div');
-                            div.className = 'swap-item'; div.innerHTML = `<b>${alt.n}</b>`; div.dataset.name = alt.n;
-                            listContainer.appendChild(div);
-                        });
-                        document.getElementById('modal-swap').classList.add('active');
+                        if (listContainer) {
+                            listContainer.innerHTML = '';
+                            alternatives.forEach(alt => {
+                                const div = document.createElement('div');
+                                div.className = 'swap-item'; div.innerHTML = `<b>${alt.n}</b>`; div.dataset.name = alt.n;
+                                listContainer.appendChild(div);
+                            });
+                        }
+                        const modal = document.getElementById('modal-swap');
+                        if (modal) modal.classList.add('active');
                     } else { alert("No hay alternativas de ese grupo muscular."); }
                 }
             }
-            if (e.target.closest('#close-swap-modal')) document.getElementById('modal-swap').classList.remove('active');
+            if (e.target.closest('#close-swap-modal')) {
+                const modal = document.getElementById('modal-swap');
+                if (modal) modal.classList.remove('active');
+            }
 
             if (e.target.closest('.swap-item')) {
                 const newExName = e.target.closest('.swap-item').dataset.name;
                 State.activeWorkout[State.currentExerciseIndex].name = newExName;
-                document.getElementById('modal-swap').classList.remove('active');
+                const modal = document.getElementById('modal-swap');
+                if (modal) modal.classList.remove('active');
                 showToast(`🔁 Cambiado a: ${newExName}`);
                 navigateTo('workout_player');
             }
 
-            if (e.target.closest('#btn-add-set')) {
-                const ex = State.activeWorkout[State.currentExerciseIndex];
-                ex.sets.push({ id: ex.sets.length + 1, targetR: 16, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false });
+            if (e.target.closest('.btn-add-set-free')) {
+                const exIdx = parseInt(e.target.closest('.btn-add-set-free').dataset.ex);
+                const ex = State.activeWorkout[exIdx];
+                ex.sets.push({ id: ex.sets.length + 1, targetR: 16, r: '', w: '', done: false, prevW: ex.sets.length > 0 ? ex.sets[ex.sets.length - 1].w : 0, prevR: 0, isDrop: false });
                 navigateTo('workout_player');
             }
 
-            // MARCAR TODO (AUTOFILL)
-            if (e.target.closest('#btn-mark-all')) {
-                const currentEx = State.activeWorkout[State.currentExerciseIndex];
-                const rows = document.querySelectorAll('.set-row');
+            // MARCAR TODO (AUTOFILL por ejercicio)
+            if (e.target.closest('.btn-all-sets-free')) {
+                const exIdx = parseInt(e.target.closest('.btn-all-sets-free').dataset.ex);
+                const currentEx = State.activeWorkout[exIdx];
+                const block = document.getElementById(`ex-body-${exIdx}`);
+                if (!block) return;
+
+                const rows = block.querySelectorAll('.set-row');
                 currentEx.sets.forEach((set, idx) => {
                     if (!set.done) {
                         const row = rows[idx];
@@ -2783,7 +2832,6 @@
                 const workout = State.activeWorkout[exIdx];
                 const currentSet = workout.sets[setIdx];
 
-                // 1. Forzar lectura del input DOM ANTES de procesar
                 const row = btn.closest('.set-row');
                 if (row) {
                     const rInp = row.querySelector('.set-r'); const wInp = row.querySelector('.set-w');
@@ -2793,21 +2841,19 @@
 
                 const nextSet = workout.sets[setIdx + 1];
 
-                // 2. Toggle: Si ya existe el dropset hijo, se borra y reabre la actual
                 if (nextSet && nextSet.isDrop && nextSet.parentId === currentSet.id) {
                     workout.sets.splice(setIdx + 1, 1);
                     currentSet.done = false;
                 } else {
-                    // 3. Crear Dropset
                     const targetR = parseInt(currentSet.targetR || 16);
                     const actualR = parseInt(currentSet.r || 0);
                     const actualW = parseFloat(currentSet.w || 0);
 
                     const remainingReps = Math.max(0, targetR - actualR);
-                    const dropTargetReps = remainingReps + 4; // Faltantes + 4 extra
+                    const dropTargetReps = remainingReps + 4;
                     const dropW = actualW > 0 ? Math.round(actualW * 0.68) : 0; // -32%
 
-                    currentSet.done = true; // Cerrar la original
+                    currentSet.done = true;
 
                     if (!State.profile.maxWeights[workout.name]) State.profile.maxWeights[workout.name] = {};
                     if (actualW > (State.profile.maxWeights[workout.name][setIdx] || 0)) {
@@ -2826,10 +2872,13 @@
                 navigateTo('workout_player');
             }
 
+            if (e.target.classList.contains('ex-notes-free')) { const exIdx = parseInt(e.target.dataset.ex); const name = State.activeWorkout[exIdx].name; State.profile.machineNotes[name] = e.target.value; }
+            if (e.target.classList.contains('ex-obs-free')) { const exIdx = parseInt(e.target.dataset.ex); State.activeWorkout[exIdx].obs = e.target.value; }
+
             // GESTIÓN CHECKBOX MANUAL (SERIE ÚNICA)
             if (e.target.closest('.set-checkbox')) {
                 initAudioEngine();
-                const checkbox = e.target.closest('.set-checkbox'); const exIdx = checkbox.dataset.ex; const setIdx = checkbox.dataset.set; const setObj = State.activeWorkout[exIdx].sets[setIdx]; const row = checkbox.closest('.set-row');
+                const checkbox = e.target.closest('.set-checkbox'); const exIdx = parseInt(checkbox.dataset.ex); const setIdx = parseInt(checkbox.dataset.set); const setObj = State.activeWorkout[exIdx].sets[setIdx]; const row = checkbox.closest('.set-row');
 
                 if (!setObj.done) {
                     const rInp = row.querySelector('.set-r'); const wInp = row.querySelector('.set-w');
@@ -2848,7 +2897,8 @@
                     navigateTo('workout_player');
 
                     if (!setObj.isDrop) {
-                        document.getElementById('modal-timer').classList.add('active');
+                        const modalTmr = document.getElementById('modal-timer');
+                        if (modalTmr) modalTmr.classList.add('active');
                         State.restTimeLeft = State.profile.restTimerDefault; State.lastBeepSecond = -1;
                         if (State.timerInt) clearInterval(State.timerInt);
                         State.timerInt = setInterval(() => {
@@ -2858,45 +2908,34 @@
                             if (State.restTimeLeft <= 5 && State.restTimeLeft > 0) { if (State.restTimeLeft !== State.lastBeepSecond) { playTickSound(false); State.lastBeepSecond = State.restTimeLeft; } }
                             if (State.restTimeLeft <= 0) {
                                 clearInterval(State.timerInt);
-                                document.getElementById('modal-timer').classList.remove('active');
+                                if (modalTmr) modalTmr.classList.remove('active');
                                 playTickSound(true);
-
-                                // Push Notification (Compatible con Smartwatch)
-                                if (Notification.permission === 'granted') {
+                                if (Notification.permission === 'granted' && window.navigator.serviceWorker) {
                                     navigator.serviceWorker.ready.then(registration => {
                                         registration.showNotification('¡Descanso Terminado!', {
                                             body: 'Prepárate para la siguiente serie.',
                                             icon: 'img/logo.png',
                                             vibrate: [200, 100, 200, 100, 200, 100, 200]
                                         });
-                                    }).catch(fallback => {
-                                        new Notification('¡Descanso Terminado!', { body: 'A por la siguiente serie.', icon: 'img/logo.png' });
-                                    });
+                                    }).catch(fallback => { });
                                 }
                             }
                         }, 1000);
                     }
-                } else { setObj.done = false; navigateTo('workout_player'); }
+                }
             }
 
             if (e.target.closest('#btn-timer-skip')) { clearInterval(State.timerInt); document.getElementById('modal-timer').classList.remove('active'); }
-            if (e.target.closest('#btn-timer-plus')) { State.restTimeLeft += 15; const d = document.getElementById('timer-display-main'); if (d) { const m = Math.floor(State.restTimeLeft / 60); const s = State.restTimeLeft % 60; d.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; } }
-            if (e.target.closest('#btn-timer-minus')) { State.restTimeLeft = Math.max(0, State.restTimeLeft - 15); const d = document.getElementById('timer-display-main'); if (d) { const m = Math.floor(State.restTimeLeft / 60); const s = State.restTimeLeft % 60; d.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; } }
 
             // RPE Y MAPA MUSCULAR AL FINALIZAR
-            if (e.target.closest('#btn-next-exercise')) {
-                if (State.currentExerciseIndex < State.activeWorkout.length - 1) {
-                    State.currentExerciseIndex++;
-                    navigateTo('workout_player');
-                } else {
-                    let workoutMuscles = {};
-                    State.activeWorkout.forEach(ex => {
-                        const data = EXERCISES.find(e => e.n === ex.name);
-                        if (data && data.m) { if (!workoutMuscles[data.m]) workoutMuscles[data.m] = 0; workoutMuscles[data.m] += ex.sets.filter(s => s.done).length; }
-                    });
-                    document.getElementById('modal-rpe').classList.add('active');
-                    renderHUDMap('workout-muscle-map', workoutMuscles);
-                }
+            if (e.target.closest('#btn-finish-workout')) {
+                let workoutMuscles = {};
+                State.activeWorkout.forEach(ex => {
+                    const data = EXERCISES.find(e => e.n === ex.name);
+                    if (data && data.m) { if (!workoutMuscles[data.m]) workoutMuscles[data.m] = 0; workoutMuscles[data.m] += ex.sets.filter(s => s.done).length; }
+                });
+                document.getElementById('modal-rpe').classList.add('active');
+                renderHUDMap('workout-muscle-map', workoutMuscles);
             }
 
             const btnRpe = e.target.closest('button[data-rpe]');
@@ -2943,8 +2982,10 @@
                 if (State.plan.routinesAvailable.length > 0) State.plan.routinesAvailable.shift();
                 document.getElementById('workout-general-note').value = ''; navigateTo('historial');
             }
+
             if (e.target.closest('#btn-abort-workout')) { if (confirm("⚠ ¿Abortar entrenamiento?")) { State.activeWorkout = null; navigateTo('plan'); } }
         });
+
     </script>
 </body>
 
