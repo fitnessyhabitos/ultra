@@ -7,6 +7,7 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FitDataPro - Cyber OS</title>
     <link rel="icon" href="logo.png" type="image/png">
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -241,6 +242,13 @@
         import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(e => { }); }); }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log("PWA Installation available and waiting.");
+        });
 
         // Pedir permisos de Notificación Push
         if ("Notification" in window) {
@@ -2308,7 +2316,22 @@
             if (calDay) { State.plan.activeDate = calDay.dataset.date; navigateTo('plan'); }
 
             // MODAL INSTALACIÓN PWA
-            if (e.target.closest('#btn-show-install')) { e.preventDefault(); document.getElementById('modal-install').classList.add('active'); }
+            if (e.target.closest('#btn-show-install')) {
+                e.preventDefault();
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('Usuario aceptó instalar la PWA');
+                        }
+                        deferredPrompt = null;
+                    });
+                } else {
+                    // Fallback a instrucciones manuales (ej. iOS Safari)
+                    const modal = document.getElementById('modal-install');
+                    if (modal) modal.classList.add('active');
+                }
+            }
             if (e.target.closest('#close-install-modal')) document.getElementById('modal-install').classList.remove('active');
 
             // CHAT ENVIAR MENSAJE
