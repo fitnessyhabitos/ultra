@@ -326,10 +326,63 @@ export const AdminController = {
     },
 
     /**
+     * Guarda un Plan plantilla a nivel global para el coach
+     */
+    async saveGlobalPlan(planName, routinesArray) {
+        try {
+            const planRef = doc(db, "global_plans", planName.toLowerCase().replace(/\s+/g, '_'));
+            await setDoc(planRef, {
+                name: planName,
+                routinesAvailable: routinesArray,
+                coachId: auth.currentUser.uid,
+                createdAt: serverTimestamp()
+            });
+            return true;
+        } catch (error) {
+            console.error("Admin: Error al guardar plan global", error);
+            return false;
+        }
+    },
+
+    /**
+     * Obtiene todos los planes globales guardados por el coach
+     */
+    async getGlobalPlans() {
+        try {
+            if (!auth.currentUser) return [];
+            const q = query(collection(db, "global_plans"), where("coachId", "==", auth.currentUser.uid));
+            const snapshot = await getDocs(q);
+            let plans = [];
+            snapshot.forEach(docSnap => plans.push({ id: docSnap.id, ...docSnap.data() }));
+            return plans;
+        } catch (error) {
+            console.error("Admin: Error cargando planes globales", error);
+            return [];
+        }
+    },
+
+    /**
+     * Elimina un plan global
+     */
+    async deleteGlobalPlan(planId) {
+        try {
+            const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+            await deleteDoc(doc(db, "global_plans", planId));
+            return true;
+        } catch (error) {
+            console.error("Admin: Error eliminando plan global", error);
+            return false;
+        }
+    },
+
+    /**
      * Asigna un Plan completo (múltiples rutinas) a uno o varios atletas
      */
     async assignPlanToClients(clientIdsArray, planName, routinesArray) {
         try {
+            // Guardar automáticamente el Plan en la Biblioteca del Coach
+            await this.saveGlobalPlan(planName, routinesArray);
+
             const promises = clientIdsArray.map(clientId => {
                 const userRef = doc(db, "users", clientId);
                 return updateDoc(userRef, {

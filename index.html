@@ -107,6 +107,29 @@
             <span style="font-size:12px; color:var(--cyber-red-neon); font-weight:bold;">Retomar ▶</span>
         </div>
 
+        <!-- MODAL TUNER (AJUSTE DE ASIGNACIÓN) -->
+        <div id="modal-tuner" class="modal-overlay">
+            <div class="modal-content liquid-glass"
+                style="max-height:85vh; display:flex; flex-direction:column; padding:15px; width:95%; max-width:400px;">
+                <h3
+                    style="color:#ff00ff; margin-bottom:10px; font-size:16px; text-transform:uppercase; text-align:center;">
+                    Ajuste Fino de Plan</h3>
+                <p style="color:#aaa; font-size:11px; text-align:center; margin-bottom:15px;">Adapta las series y
+                    repeticiones de las rutinas maestras antes de enviarlas al atleta.</p>
+
+                <div id="tuner-list"
+                    style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:15px; margin-bottom:15px; padding-right:5px;">
+                    <!-- Tuner lines will render here -->
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <button id="close-tuner-modal" class="cyber-button secondary" style="flex:1;">Cancelar</button>
+                    <button id="confirm-tuner-modal" class="cyber-button"
+                        style="flex:1; background:linear-gradient(45deg, #00d4ff, #00ff88); color:black;">Asignar</button>
+                </div>
+            </div>
+        </div>
+
         <!-- MODAL INSTALACIÓN PWA (INSTRUCCIONES MANUALES) -->
         <div id="modal-install" class="modal-overlay">
             <path d="M12 2L2 7l4.38 2.19L8 16h8l1.62-6.81L22 7l-10-5zM8 18h8v2H8v-2z" />
@@ -615,10 +638,40 @@
                 </div>
                 
                 <div id="rb-observer-target" style="height:40px; margin-top:10px;"></div>
+                
+                <h3 style="color:#00d4ff; margin-bottom:15px; margin-top:20px; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px; text-transform:uppercase;">Biblioteca de Rutinas</h3>
+                <div id="admin-routines-library" style="margin-bottom:25px; max-height: 300px; overflow-y:auto; padding-right:5px;">
+                    <p style="color:var(--cyber-text-gray); font-size:12px;">Cargando librería...</p>
+                </div>
             `;
 
             rbRenderList();
             setTimeout(rbSetupObserver, 500);
+
+            // Fetch and render global routines
+            AdminController.getGlobalRoutines().then(routines => {
+                const libContainer = document.getElementById('admin-routines-library');
+                if (!libContainer) return;
+
+                if (routines.length === 0) {
+                    libContainer.innerHTML = '<p style="color:#aaa; font-size:12px;">No tienes rutinas maestras guardadas.</p>';
+                } else {
+                    libContainer.innerHTML = routines.map(r => `
+                        <div class="liquid-glass card" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-left:3px solid #00d4ff; margin-bottom:10px;">
+                            <div>
+                                <strong style="color:white; font-size:14px; display:block;">${r.name}</strong>
+                                <span style="font-size:11px; color:#aaa;">Incluye ${(r.exercises || []).length} ejercicios</span>
+                            </div>
+                            <div style="display:flex; gap:5px;">
+                                <button onclick="window.confirmDeleteGlobalRoutine('${r.id}', '${r.name.replace(/'/g, "\\'")}')" class="cyber-button secondary" style="padding:4px 10px; font-size:10px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;" title="Eliminar Rutina Global">🗑️</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }).catch(e => {
+                const libContainer = document.getElementById('admin-routines-library');
+                if (libContainer) libContainer.innerHTML = '<p style="color:red; font-size:12px;">Error cargando librería de rutinas.</p>';
+            });
         };
 
         // CONTROLADOR DE CONTENIDO ADMIN
@@ -683,6 +736,7 @@
                     try {
                         const activeUsers = await AdminController.getClients('approved');
                         const globalRoutines = await AdminController.getGlobalRoutines();
+                        const globalPlans = await AdminController.getGlobalPlans();
 
                         let userOptions = activeUsers.map(u => `
                             <label style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.05); padding:8px; border-radius:6px; cursor:pointer;">
@@ -751,6 +805,23 @@
                             <h3 style="color:#00d4ff; margin-bottom:15px; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px; text-transform:uppercase;">Atletas Activos (Gestor)</h3>
                             <div style="margin-bottom:25px; max-height: 400px; overflow-y:auto; padding-right:5px;">
                                 ${activeRosterHtml}
+                            </div>
+                            
+                            <h3 style="color:#ffaa00; margin-bottom:15px; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px; text-transform:uppercase;">Biblioteca de Planes Globales</h3>
+                            <div style="margin-bottom:25px; max-height: 300px; overflow-y:auto; padding-right:5px;">
+                                ${globalPlans.length === 0 ? '<p style="color:#aaa; font-size:12px;">No tienes planes maestros guardados.</p>' :
+                                globalPlans.map(p => `
+                                    <div class="liquid-glass card" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-left:3px solid #ffaa00; margin-bottom:10px;">
+                                        <div>
+                                            <strong style="color:white; font-size:14px; display:block;">${p.name}</strong>
+                                            <span style="font-size:11px; color:#aaa;">Incluye ${(p.routinesAvailable || []).length} rutinas</span>
+                                        </div>
+                                        <div style="display:flex; gap:5px;">
+                                            <button onclick="window.confirmDeleteGlobalPlan('${p.id}', '${p.name.replace(/'/g, "\\'")}')" class="cyber-button secondary" style="padding:4px 10px; font-size:10px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;" title="Eliminar Plan Global">🗑️</button>
+                                        </div>
+                                    </div>
+                                    `).join('')
+                            }
                             </div>
                         `;
                     } catch (e) {
@@ -1035,39 +1106,137 @@
 
         // LÓGICA DEL PLAN BUILDER (ASIGNACIÓN MULTIPLE)
         window.submitPlanExecution = async () => {
-            const planName = document.getElementById('builder-plan-name').value.trim();
-            if (!planName) return alert("Por favor, ponle un nombre al Plan (ej: FullBody 3D).");
+            const pNameInp = document.getElementById('builder-plan-name');
+            const pName = pNameInp ? pNameInp.value.trim() : '';
+            if (!pName) { alert("Escribe un nombre para el Plan Pack."); return; }
 
-            const checkedRoutines = Array.from(document.querySelectorAll('input[name="plan-routines"]:checked'));
-            if (checkedRoutines.length === 0) return alert("Debes seleccionar al menos 1 rutina para formar el Plan.");
+            const clientsChecks = document.querySelectorAll('input[name="plan-targets"]:checked');
+            const clientIds = Array.from(clientsChecks).map(c => c.value);
 
-            const checkedTargets = Array.from(document.querySelectorAll('input[name="plan-targets"]:checked'));
-            if (checkedTargets.length === 0) return alert("Debes seleccionar a qué atletas quieres asignarles este plan.");
+            const routineChecks = document.querySelectorAll('input[name="plan-routines"]:checked');
+            if (routineChecks.length === 0) { alert("Selecciona al menos 1 rutina base."); return; }
 
-            const routinesPayload = checkedRoutines.map(chk => {
-                return {
-                    routineName: chk.value,
-                    exercises: JSON.parse(chk.getAttribute('data-json') || '[]')
-                };
+            // 1. Recopilar datos base de rutinas seleccionadas
+            let routinesArr = [];
+            routineChecks.forEach(rc => {
+                let parsed = [];
+                try { parsed = JSON.parse(rc.dataset.json || "[]"); } catch (e) { }
+                routinesArr.push({
+                    name: rc.value,
+                    exercises: parsed
+                });
             });
 
-            const targetIds = checkedTargets.map(chk => chk.value);
+            // 2. Extraer todos los ejercicios únicos para el Tuner
+            window._tunerData = {
+                type: 'plan',
+                planName: pName,
+                clientIds: clientIds, // (Puede estar vacío si solo quiere guardar en Global sin asignar a nadie aún)
+                routines: routinesArr,
+                uniqueExercises: []
+            };
 
-            const btn = event.target;
-            btn.textContent = "⚙️ Asignando Plan...";
-            btn.disabled = true;
+            let exMap = new Map();
+            routinesArr.forEach(r => {
+                r.exercises.forEach(ex => {
+                    if (!exMap.has(ex.n)) {
+                        exMap.set(ex.n, { series: ex.series || 5, reps: ex.reps || "20-16-16-16-16" });
+                    }
+                });
+            });
+            window._tunerData.uniqueExercises = Array.from(exMap, ([name, details]) => ({ name, ...details }));
 
-            const res = await AdminController.assignPlanToClients(targetIds, planName, routinesPayload);
-            if (res) {
-                showToast(`Plan "${planName}" asignado a ${targetIds.length} atleta(s).`);
-                window.loadAdminContent('planes');
-            } else {
-                alert("Fallo de red al asignar.");
-                btn.textContent = "ASIGNAR Y GUARDAR PLAN";
-                btn.disabled = false;
-            }
+            // 3. Renderizar Modal Tuner
+            const tList = document.getElementById('tuner-list');
+            if (!tList) return;
+            tList.innerHTML = window._tunerData.uniqueExercises.map((ex, i) => `
+                <div class="liquid-glass card" style="padding:10px; border-left:2px solid #00d4ff;">
+                    <strong style="color:var(--cyber-text-color); font-size:13px; display:block; margin-bottom:5px;">${ex.name}</strong>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <label style="color:#aaa; font-size:11px;">Series:</label>
+                        <input type="number" id="tune-series-${i}" value="${ex.series}" min="1" max="10" class="cyber-input" style="width:50px; padding:4px; font-size:12px; background:rgba(0,0,0,0.5);">
+                        <label style="color:#aaa; font-size:11px;">Reps:</label>
+                        <input type="text" id="tune-reps-${i}" value="${ex.reps}" placeholder="Ej: 12-10-8" class="cyber-input" style="flex:1; padding:4px; font-size:12px; background:rgba(0,0,0,0.5);">
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('modal-tuner').classList.add('active');
         };
 
+        // Escuchar el botón Confirmar del Tuner
+        document.getElementById('confirm-tuner-modal').addEventListener('click', async () => {
+            const btn = document.getElementById('confirm-tuner-modal');
+            btn.disabled = true;
+            btn.textContent = "Guardando...";
+
+            // 1. Recolectar nuevos valores del Tuner
+            let tuneMap = {};
+            window._tunerData.uniqueExercises.forEach((ex, i) => {
+                let s = parseInt(document.getElementById(`tune-series-${i}`).value) || 5;
+                let r = document.getElementById(`tune-reps-${i}`).value || "20-16-16-16-16";
+                tuneMap[ex.name] = { series: s, reps: r };
+            });
+
+            // 2. Aplicarlos a las rutinas clonadas
+            let modifiedRoutines = window._tunerData.routines.map(r => {
+                const modEx = r.exercises.map(ex => {
+                    const fineTune = tuneMap[ex.n];
+                    return {
+                        ...ex,
+                        series: fineTune ? fineTune.series : ex.series,
+                        reps: fineTune ? fineTune.reps : ex.reps
+                    };
+                });
+                return { ...r, exercises: modEx };
+            });
+
+            // 3. Guardar en Base de Datos (Depende si es Plan o Rutina)
+            if (window._tunerData.type === 'plan') {
+                const res = await AdminController.assignPlanToClients(
+                    window._tunerData.clientIds,
+                    window._tunerData.planName,
+                    modifiedRoutines
+                );
+
+                document.getElementById('modal-tuner').classList.remove('active');
+                btn.disabled = false;
+                btn.textContent = "Asignar";
+
+                if (res) {
+                    showToast(`✅ Plan "${window._tunerData.planName}" procesado exitosamente.`);
+                    const pNameInp = document.getElementById('builder-plan-name');
+                    if (pNameInp) pNameInp.value = '';
+                    document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+                    loadAdminContent('planes');
+                } else {
+                    alert("Fallo al guardar/asignar plan.");
+                }
+
+            } else if (window._tunerData.type === 'routine') {
+                const finalRoutine = modifiedRoutines[0];
+                const res = await AdminController.saveGlobalRoutine(finalRoutine.name, finalRoutine.exercises);
+
+                document.getElementById('modal-tuner').classList.remove('active');
+                btn.disabled = false;
+                btn.textContent = "Asignar";
+
+                if (res) {
+                    showToast(`✅ Rutina maestra "${finalRoutine.name}" guardada.`);
+                    window.currentRoutineSelections = [];
+                    const drawName = document.getElementById('draft-r-name');
+                    if (drawName) drawName.value = '';
+                    if (typeof rbRenderList === 'function') rbRenderList();
+                    loadAdminContent('rutinas');
+                } else {
+                    alert("Error intentando guardar la rutina.");
+                }
+            }
+        });
+
+        document.getElementById('close-tuner-modal').addEventListener('click', () => {
+            document.getElementById('modal-tuner').classList.remove('active');
+        });
         window.confirmUnassignPlan = async (clientId, clientName) => {
             if (confirm(`¿Desasignar entrenamiento a ${clientName}? Su panel quedará vacío.`)) {
                 const res = await AdminController.unassignPlan(clientId);
@@ -1354,31 +1523,38 @@
         };
 
         window.saveAdminRoutine = async () => {
-            const name = document.getElementById('draft-r-name').value.trim();
-            if (!name) { alert("Ponle un nombre a la rutina."); return; }
-            if (!window.currentRoutineSelections || window.currentRoutineSelections.length === 0) { alert("Añade algún ejercicio primero."); return; }
+            if (!window.currentRoutineSelections || window.currentRoutineSelections.length === 0) return alert("Añade al menos 1 ejercicio.");
+            const rName = document.getElementById('draft-r-name').value.trim();
+            if (!rName) return alert("Ponle un nombre a la rutina.");
 
-            const btn = document.querySelector('button[onclick="saveAdminRoutine()"]');
-            if (btn) { btn.disabled = true; btn.textContent = "GUARDANDO..."; }
+            // 1. Extraer datos para el Tuner
+            window._tunerData = {
+                type: 'routine',
+                routineName: rName,
+                routines: [{ name: rName, exercises: [...window.currentRoutineSelections] }],
+                uniqueExercises: [...window.currentRoutineSelections].map(ex => ({
+                    name: ex.n,
+                    series: ex.series || 5,
+                    reps: ex.reps || "20-16-16-16-16"
+                }))
+            };
 
-            // Find full exercise data to assign and combine with series/reps/ss definitions
-            const routineData = window.currentRoutineSelections.map(s => {
-                const found = EXERCISES.find(ex => ex.n === s.n);
-                if (found) {
-                    return { ...found, id: "ex_" + Math.random().toString(36).substr(2, 9), series_req: s.series, reps_req: s.reps, isSuperSet: s.s };
-                } else {
-                    return { id: "custom", n: s.n, m: "Varios", eq: "Libre", series_req: s.series, reps_req: s.reps, isSuperSet: s.s };
-                }
-            });
+            // 2. Renderizar Modal Tuner
+            const tList = document.getElementById('tuner-list');
+            if (!tList) return;
+            tList.innerHTML = window._tunerData.uniqueExercises.map((ex, i) => `
+                <div class="liquid-glass card" style="padding:10px; border-left:2px solid #00d4ff;">
+                    <strong style="color:var(--cyber-text-color); font-size:13px; display:block; margin-bottom:5px;">${ex.name}</strong>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <label style="color:#aaa; font-size:11px;">Series:</label>
+                        <input type="number" id="tune-series-${i}" value="${ex.series}" min="1" max="10" class="cyber-input" style="width:50px; padding:4px; font-size:12px; background:rgba(0,0,0,0.5);">
+                        <label style="color:#aaa; font-size:11px;">Reps:</label>
+                        <input type="text" id="tune-reps-${i}" value="${ex.reps}" placeholder="Ej: 12-10-8" class="cyber-input" style="flex:1; padding:4px; font-size:12px; background:rgba(0,0,0,0.5);">
+                    </div>
+                </div>
+            `).join('');
 
-            const res = await AdminController.saveGlobalRoutine(name, routineData);
-            if (res) {
-                showToast("Rutina guardada en la base global.");
-                window.loadAdminContent('planes'); // redirigir a los planes/librería para verla
-            } else {
-                alert("Error al guardar la rutina.");
-                if (btn) { btn.disabled = false; btn.textContent = "GUARDAR RUTINA"; }
-            }
+            document.getElementById('modal-tuner').classList.add('active');
         };
 
         window.submitCustomRoutine = async () => {
@@ -1409,7 +1585,31 @@
             btn.textContent = "Asignar Plan / Rutina";
         };
 
-        function showToast(msg) {
+        window.confirmDeleteGlobalRoutine = async (id, name) => {
+            if (confirm(`⚠️ ¿ESTÁS SEGURO?\n\nVas a eliminar la Rutina Maestra "${name}" de tu biblioteca.\nEsto NO borrará la rutina a los clientes que ya la tienen asignada, pero ya no podrás enviarla a nuevos atletas.\n\nEsta acción es irreversible.`)) {
+                const res = await AdminController.deleteGlobalRoutine(id);
+                if (res) {
+                    showToast(`🗑️ Rutina "${name}" eliminada.`);
+                    loadAdminContent('rutinas');
+                } else {
+                    alert("No se pudo eliminar la rutina.");
+                }
+            }
+        };
+
+        window.confirmDeleteGlobalPlan = async (id, name) => {
+            if (confirm(`⚠️ ¿ESTÁS SEGURO?\n\nVas a eliminar el Plan Maestro "${name}" de tu biblioteca.\nEsto NO borrará el plan visual a los clientes que ya lo tienen asignada, pero ya no existirá aquí.\n\nEsta acción es irreversible.`)) {
+                const res = await AdminController.deleteGlobalPlan(id);
+                if (res) {
+                    showToast(`🗑️ Plan "${name}" eliminado.`);
+                    loadAdminContent('planes');
+                } else {
+                    alert("No se pudo eliminar el plan global.");
+                }
+            }
+        };
+
+        window.showToast = function showToast(msg) {
             const container = document.getElementById('toast-container');
             const t = document.createElement('div');
             t.className = 'toast-msg'; t.innerHTML = msg;
