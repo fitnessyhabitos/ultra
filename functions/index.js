@@ -1,14 +1,12 @@
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v2/https");
 const fetch = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
 
-exports.createSumupCheckout = functions
-    .region("europe-west1")
-    .https.onRequest(async (req, res) => {
-        // Allow CORS for our PWA
-        res.set('Access-Control-Allow-Origin', '*');
-        res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-        res.set('Access-Control-Allow-Headers', 'Content-Type');
-
+exports.createSumupCheckout = functions.onRequest(
+    {
+        cors: true,
+        region: "europe-west1",
+    },
+    async (req, res) => {
         if (req.method === 'OPTIONS') {
             return res.status(204).send('');
         }
@@ -23,8 +21,12 @@ exports.createSumupCheckout = functions
             return res.status(400).json({ error: "Missing amount or planValue" });
         }
 
-        // Read the key from Firebase Functions config (set via firebase functions:config:set)
-        const sumupKey = functions.config().sumup.key;
+        // Read from .env file (deployed automatically with firebase deploy)
+        const sumupKey = process.env.SUMUP_KEY;
+
+        if (!sumupKey) {
+            return res.status(500).json({ error: "Payment gateway not configured" });
+        }
 
         const payload = {
             checkout_reference: `FIT_${userId || "GUEST"}_${Date.now()}`,
@@ -57,4 +59,5 @@ exports.createSumupCheckout = functions
             console.error("Network error calling SumUp:", err);
             return res.status(500).json({ error: "Internal server error" });
         }
-    });
+    }
+);
