@@ -2639,54 +2639,46 @@
                 const planEl = document.querySelector('.plan-card-input:checked');
                 if (!planEl) return alert("Selecciona un plan.");
 
-                const planValue = planEl.value; // e.g. "Suscripción APP (29€/mes)"
-                let price = 29.00; // Default fallback
-
+                const planValue = planEl.value;
+                let price = 29.00;
                 if (planValue.includes('APP')) price = 29.00;
                 if (planValue.includes('Preparación')) price = 65.00;
                 if (planValue.includes('4 Sesiones')) price = 80.00;
                 if (planValue.includes('8 Sesiones')) price = 144.00;
                 if (planValue.includes('Suelta')) price = 23.00;
 
-                btn.innerHTML = 'Generando pasarela... <span class="spinner"></span>';
-                btn.style.opacity = '0.7';
+                btn.innerHTML = 'Generando pasarela... ⏳';
+                btn.disabled = true;
 
-                const sumupAPI = 'sup_sk_T82OYQH1H86LYMkG9X9fCF1vczTrYe79N';
-                const payload = {
-                    "checkout_reference": `FIT_${State.profile.uid || 'GUEST'}_${Date.now()}`,
-                    "amount": price,
-                    "currency": "EUR",
-                    "pay_to_email": "antonilafuentem@gmail.com",
-                    "merchant_code": "MDUFC67Y",
-                    "description": `Fit Data Ultra: ${planValue}`
-                };
+                // Llamada a nuestra Firebase Cloud Function segura (no expone la clave secreta)
+                const FUNCTION_URL = 'https://europe-west1-fitdatalite.cloudfunctions.net/createSumupCheckout';
 
-                // CORS Proxy to bypass browser restrictions for client-side API requests
-                fetch('https://corsproxy.io/?' + encodeURIComponent('https://api.sumup.com/v0.1/checkouts'), {
+                fetch(FUNCTION_URL, {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${sumupAPI}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amount: price,
+                        planValue: planValue,
+                        userId: State.profile.uid || 'GUEST'
+                    })
                 })
-                    .then(response => response.json())
+                    .then(r => r.json())
                     .then(data => {
                         btn.innerHTML = originalText;
-                        btn.style.opacity = '1';
-                        if (data.id) {
-                            window.open(`https://pay.sumup.com/b2c/${data.id}`, '_blank');
+                        btn.disabled = false;
+                        if (data.checkoutId) {
+                            window.open(`https://pay.sumup.com/b2c/${data.checkoutId}`, '_blank');
                             document.getElementById('modal-payment').classList.remove('active');
                         } else {
-                            alert("Error conectando con SumUp. Prueba de nuevo más tarde o revisa tu clave API.");
-                            console.error('SumUp Error:', data);
+                            alert('Error al crear la pasarela de pago: ' + (data.error || 'Error desconocido'));
+                            console.error('SumUp CF Error:', data);
                         }
                     })
                     .catch(err => {
                         btn.innerHTML = originalText;
-                        btn.style.opacity = '1';
-                        alert("No se pudo iniciar el checkout. Es posible que el proxy CORS no esté activo (Requiere visitarlo una vez desde este equipo). Redirigiendo a pasarela base por defecto.");
-                        window.open('https://pay.sumup.com/b2c/DEFAULT', '_blank');
+                        btn.disabled = false;
+                        console.error('Error llamando a Cloud Function:', err);
+                        alert('⚠️ La pasarela de pago aún está siendo activada por el Coach. Por ahora, usa Bizum (0% comisiones) o contacta directamente.');
                         document.getElementById('modal-payment').classList.remove('active');
                     });
             }
