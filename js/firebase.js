@@ -101,16 +101,30 @@ export async function loadHistory(uid, limitCount = 50) {
 }
 
 /**
- * Sube una imagen en base64 a Firebase Storage y devuelve la URL
+ * Sube una imagen de progreso en base64 a Firebase Storage y guarda el link en la línea de tiempo del usuario
  */
-export async function uploadComparativaImage(uid, type, dataUrl) {
+export async function uploadProgressPhoto(uid, dateStr, angle, dataUrl) {
     try {
-        const storageRef = ref(storage, `users/${uid}/comparativa_${type}.jpg`);
+        const storageRef = ref(storage, `users/${uid}/progress_photos/${dateStr}_${angle}.jpg`);
         const snapshot = await uploadString(storageRef, dataUrl, 'data_url');
         const downloadUrl = await getDownloadURL(snapshot.ref);
-        return downloadUrl;
+
+        // Guardar referencia en Firestore Document
+        const userRef = doc(db, "users", uid);
+        const docSnap = await getDoc(userRef);
+        let progressPhotos = {};
+        if (docSnap.exists() && docSnap.data().progressPhotos) {
+            progressPhotos = docSnap.data().progressPhotos;
+        }
+
+        if (!progressPhotos[dateStr]) progressPhotos[dateStr] = {};
+        progressPhotos[dateStr][angle] = downloadUrl;
+
+        await updateDoc(userRef, { progressPhotos });
+
+        return { url: downloadUrl, progressPhotos };
     } catch (error) {
-        console.error("Error subiendo imagen:", error);
+        console.error("Error subiendo imagen de progreso:", error);
         return null;
     }
 }

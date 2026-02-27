@@ -132,34 +132,76 @@
 
         <!-- MODAL INSTALACIÓN PWA (INSTRUCCIONES MANUALES) -->
         <div id="modal-install" class="modal-overlay">
-            <path d="M12 2L2 7l4.38 2.19L8 16h8l1.62-6.81L22 7l-10-5zM8 18h8v2H8v-2z" />
-            </svg><span>Peso</span>
+            <div class="modal-content liquid-glass" style="max-height:85vh; padding:20px; text-align:center;">
+                <h3 style="color:#00ff88; margin-bottom:15px; font-size:18px;">Instalar como App Nativa</h3>
+                <img src="logo.png" style="width:60px; height:60px; margin-bottom:15px; border-radius:12px;">
+                <p style="color:#aaa; font-size:13px; margin-bottom:20px; line-height:1.5;">FitDataPro es un sistema
+                    PWA. Descárgalo en tu pantalla de inicio para una experiencia inmersiva a pantalla completa y
+                    notificaciones Push.</p>
+
+                <div
+                    style="background:rgba(0,0,0,0.5); padding:15px; border-radius:8px; border-left:3px solid #00d4ff; text-align:left; margin-bottom:15px;">
+                    <h4 style="color:#00d4ff; font-size:14px; margin-bottom:8px;">🍎 iPhone (iOS Safari)</h4>
+                    <ol style="color:white; font-size:12px; margin-left:15px; line-height:1.8;">
+                        <li>Toca el botón <b>Compartir <svg viewBox="0 0 24 24" width="14" height="14"
+                                    fill="currentColor" style="vertical-align:middle; display:inline-block;">
+                                    <path
+                                        d="M16 5l-1.42 1.42-1.59-1.59V16h-2V4.83L9.41 6.41 8 5l4-4 4 4zm4 4v11c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2V9c0-1.1.9-2 2-2h3v2H6v11h12V9h-3V7h3c1.1 0 2 .9 2 2z" />
+                                </svg></b> en la barra inferior del navegador.</li>
+                        <li>Desliza hacia abajo y selecciona <b>"Añadir a la pantalla de inicio"</b>.</li>
+                        <li>Toca <b>"Añadir"</b> arriba a la derecha.</li>
+                        <li>¡Abre FitData desde tu pantalla para la vista nativa!</li>
+                    </ol>
+                </div>
+
+                <div
+                    style="background:rgba(0,0,0,0.5); padding:15px; border-radius:8px; border-left:3px solid #00ff88; text-align:left; margin-bottom:20px;">
+                    <h4 style="color:#00ff88; font-size:14px; margin-bottom:8px;">🤖 Android (Chrome)</h4>
+                    <ol style="color:white; font-size:12px; margin-left:15px; line-height:1.8;">
+                        <li>Toca los tres puntos <b>(⋮)</b> arriba a la derecha.</li>
+                        <li>Selecciona <b>"Instalar aplicación"</b> o "Añadir a la pantalla...".</li>
+                        <li>Acepta la instalación en el cajón emergente.</li>
+                    </ol>
+                </div>
+
+                <button id="close-install-modal" class="cyber-button" style="width:100%;">Entendido</button>
+            </div>
         </div>
-        <div class="modal-action" data-action="fat"><svg class="cyber-icon" style="color: #ffaa00;" viewBox="0 0 24 24">
-                <path d="M12 2c0 0-4 4-4 9 0 2.21 1.79 4 4 4s4-1.79 4-4c0-5-4-9-4-9z" />
-            </svg><span>% Grasa</span></div>
-        <div class="modal-action" data-action="measures"><svg class="cyber-icon" style="color: #00d4ff;"
-                viewBox="0 0 24 24">
-                <path
-                    d="M21.5 5.5l-2-2c-.39-.39-1.02-.39-1.41 0L3 18.59c-.39.39-.39 1.02 0 1.41l2 2c.39.39 1.02.39 1.41 0L21.5 6.91c.39-.39.39-1.02 0-1.41zM6.41 20L4 17.59 5.59 16 7 17.41 8.41 16 7 14.59 8.41 13 9.83 14.41 11.24 13 9.83 11.59 11.24 10.17 12.66 11.59 14.07 10.17 12.66 8.76 14.07 7.34 15.49 8.76 16.9 7.34 15.49 5.93 17.9 3.51 20.31 5.93 6.41 20z" />
-            </svg><span>Pliegues</span></div>
-        <div class="modal-action" data-action="meal"><svg class="cyber-icon" style="color: #44ff44;"
-                viewBox="0 0 24 24">
-                <path
-                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 6h2v6.27l4.25 2.52-1 1.73-5.25-3.15V6z" />
-            </svg><span>Comida</span></div>
-        <div class="modal-action" id="btn-ia-setup-fab" style="border-color: #ff1f3d;"><svg class="cyber-icon"
-                style="color: var(--cyber-red-neon);" viewBox="0 0 24 24">
-                <path
-                    d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 17 22.71 22.71 17z" />
-            </svg><span>Rutina IA</span></div>
-        <div class="modal-action" style="background: rgba(255, 31, 61, 0.2); border-color: var(--cyber-red-neon);"
-            id="close-modal"><svg class="cyber-icon highlight" viewBox="0 0 24 24">
-                <path
-                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-            </svg><span style="color: var(--cyber-red-neon); font-weight: bold;">Cancelar</span>
-        </div>
-        </div>
+
+        <!-- MODALES FAB -->
+        <div id="fab-modal" class="modal-overlay">
+            <div class="modal-content liquid-glass" style="display:flex; flex-direction:column; gap:10px;">
+                <div class="modal-action" data-action="weight"><svg class="cyber-icon" viewBox="0 0 24 24">
+                        <path d="M12 2L2 7l4.38 2.19L8 16h8l1.62-6.81L22 7l-10-5zM8 18h8v2H8v-2z" />
+                    </svg><span>Peso</span>
+                </div>
+                <div class="modal-action" data-action="fat"><svg class="cyber-icon" style="color: #ffaa00;"
+                        viewBox="0 0 24 24">
+                        <path d="M12 2c0 0-4 4-4 9 0 2.21 1.79 4 4 4s4-1.79 4-4c0-5-4-9-4-9z" />
+                    </svg><span>% Grasa</span></div>
+                <div class="modal-action" data-action="measures"><svg class="cyber-icon" style="color: #00d4ff;"
+                        viewBox="0 0 24 24">
+                        <path
+                            d="M21.5 5.5l-2-2c-.39-.39-1.02-.39-1.41 0L3 18.59c-.39.39-.39 1.02 0 1.41l2 2c.39.39 1.02.39 1.41 0L21.5 6.91c.39-.39.39-1.02 0-1.41zM6.41 20L4 17.59 5.59 16 7 17.41 8.41 16 7 14.59 8.41 13 9.83 14.41 11.24 13 9.83 11.59 11.24 10.17 12.66 11.59 14.07 10.17 12.66 8.76 14.07 7.34 15.49 8.76 16.9 7.34 15.49 5.93 17.9 3.51 20.31 5.93 6.41 20z" />
+                    </svg><span>Pliegues</span></div>
+                <div class="modal-action" data-action="meal"><svg class="cyber-icon" style="color: #44ff44;"
+                        viewBox="0 0 24 24">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 6h2v6.27l4.25 2.52-1 1.73-5.25-3.15V6z" />
+                    </svg><span>Comida</span></div>
+                <div class="modal-action" id="btn-ia-setup-fab" style="border-color: #ff1f3d;"><svg class="cyber-icon"
+                        style="color: var(--cyber-red-neon);" viewBox="0 0 24 24">
+                        <path
+                            d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 17 22.71 22.71 17z" />
+                    </svg><span>Rutina IA</span></div>
+                <div class="modal-action"
+                    style="background: rgba(255, 31, 61, 0.2); border-color: var(--cyber-red-neon);" id="close-modal">
+                    <svg class="cyber-icon highlight" viewBox="0 0 24 24">
+                        <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                    </svg><span style="color: var(--cyber-red-neon); font-weight: bold;">Cancelar</span>
+                </div>
+            </div>
         </div>
         </div>
 
@@ -236,7 +278,7 @@
     </section>
 
     <script type="module">
-        import { auth, db, loadUserData, loadHistory, updateProfile, saveWorkout, uploadComparativaImage } from './js/firebase.js';
+        import { auth, db, loadUserData, loadHistory, updateProfile, saveWorkout, uploadProgressPhoto } from './js/firebase.js';
         import { AdminController } from './js/admin.js';
         import { EXERCISES } from './js/data.js';
         import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -1337,6 +1379,26 @@
 
                 const userHistory = await loadHistory(uid);
 
+                const photos = userData.progressPhotos || {};
+                const pDates = Object.keys(photos).sort((a, b) => b.localeCompare(a));
+                let photosHtml = '';
+                if (pDates.length === 0) {
+                    photosHtml = `<p style="font-size:11px; color:#aaa;">No ha subido fotos de progreso.</p>`;
+                } else {
+                    pDates.forEach(d => {
+                        const p = photos[d];
+                        const fImg = p.frontal || p.espalda || p.izq || p.der || '';
+                        if (fImg) {
+                            photosHtml += `
+                                <div style="min-width: 80px; text-align:center;">
+                                    <div style="width:80px; height:80px; background:url(${fImg}) center/cover; border-radius:8px; border:1px solid #444; margin-bottom:5px; cursor:pointer;" onclick="window.open('${fImg}', '_blank')"></div>
+                                    <span style="font-size:10px; color:#aaa;">${d}</span>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+
                 let html = `
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                         <button onclick="loadAdminTab('atletas')" class="cyber-button secondary" style="min-width:auto; padding:5px 10px; font-size:11px; border-color:#fff; color:#fff;">← VOLVER</button>
@@ -1353,6 +1415,11 @@
                             <p style="font-size:11px; color:white; font-weight:bold;">${userData.weight || '--'} kg | ${userData.fat || '--'}% GC</p>
                             <p style="font-size:10px; color:#aaa; margin-top:5px;">Meta: ${userData.objective || 'Mantenimiento'}</p>
                         </div>
+                    </div>
+
+                    <h4 style="color:white; font-size:13px; margin-bottom:10px;">Línea de Tiempo - Fotos Progreso</h4>
+                    <div class="liquid-glass card" style="padding:10px; margin-bottom:15px; border-left:3px solid #00d4ff; display:flex; gap:10px; overflow-x:auto;">
+                        ${photosHtml}
                     </div>
 
                     <h4 style="color:white; font-size:13px; margin-bottom:10px;">Chat Confidencial Directo</h4>
@@ -1998,11 +2065,24 @@
 
             comparativa: () => {
                 const angle = State.comparativaAngle || 'frontal';
-                const keyInicio = `inicio_${angle}`;
-                const keyActual = `actual_${angle}`;
+                const photos = State.profile.progressPhotos || {};
+                const availableDates = Object.keys(photos).sort((a, b) => b.localeCompare(a)); // Descendente
 
-                const imgInicio = (State.comparativaImages && State.comparativaImages[keyInicio]) ? State.comparativaImages[keyInicio] : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23222222'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23ff1f3d' font-family='sans-serif' font-size='24'>FOTO INICIO</text></svg>";
-                const imgActual = (State.comparativaImages && State.comparativaImages[keyActual]) ? State.comparativaImages[keyActual] : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23111111'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2300ff88' font-family='sans-serif' font-size='24'>FOTO ACTUAL</text></svg>";
+                // Si no hay fechas, creamos la de hoy temporalmente en la vista
+                const today = formatYMD(new Date());
+                if (!availableDates.includes(today)) availableDates.unshift(today);
+
+                let date1 = State.compDate1 || availableDates[availableDates.length - 1]; // La más antigua por defecto
+                let date2 = State.compDate2 || availableDates[0]; // La más nueva por defecto
+
+                // Construir options
+                const getOptions = (selected) => availableDates.map(d => `<option value="${d}" ${d === selected ? 'selected' : ''}>${d === today ? 'Actual (Hoy)' : d}</option>`).join('');
+
+                const p1 = photos[date1] || {};
+                const p2 = photos[date2] || {};
+
+                const imgInicio = p1[angle] || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23222222'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23ff1f3d' font-family='sans-serif' font-size='24'>SIN FOTO</text></svg>";
+                const imgActual = p2[angle] || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23111111'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2300ff88' font-family='sans-serif' font-size='24'>SIN FOTO</text></svg>";
 
                 return `
                 <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Comparativa</h2>
@@ -2012,44 +2092,42 @@
                     <div style="display:flex; gap:10px; margin-bottom:15px;">
                         <div class="select-wrapper" style="flex:1;">
                             <select id="comp-date-1" style="font-size:12px; padding:8px; min-height:40px;">
-                                <option value="Inicio (Ene 2026)">Inicio (Ene)</option>
-                                <option value="Feb 2026">Feb 2026</option>
+                                ${getOptions(date1)}
                             </select>
                         </div>
                         <div class="select-wrapper" style="flex:1;">
                             <select id="comp-date-2" style="font-size:12px; padding:8px; min-height:40px;">
-                                <option value="Mar 2026">Mar 2026</option>
-                                <option value="Actual (Hoy)" selected>Actual (Hoy)</option>
+                                ${getOptions(date2)}
                             </select>
                         </div>
                     </div>
 
                     <div class="angle-tabs">
-                        <div class="angle-btn ${State.comparativaAngle === 'frontal' ? 'active' : ''}" data-angle="frontal">Frontal</div>
-                        <div class="angle-btn ${State.comparativaAngle === 'espalda' ? 'active' : ''}" data-angle="espalda">Espalda</div>
-                        <div class="angle-btn ${State.comparativaAngle === 'izq' ? 'active' : ''}" data-angle="izq">L. Izq</div>
-                        <div class="angle-btn ${State.comparativaAngle === 'der' ? 'active' : ''}" data-angle="der">L. Der</div>
+                        <div class="angle-btn ${angle === 'frontal' ? 'active' : ''}" data-angle="frontal">Frontal</div>
+                        <div class="angle-btn ${angle === 'espalda' ? 'active' : ''}" data-angle="espalda">Espalda</div>
+                        <div class="angle-btn ${angle === 'izq' ? 'active' : ''}" data-angle="izq">L. Izq</div>
+                        <div class="angle-btn ${angle === 'der' ? 'active' : ''}" data-angle="der">L. Der</div>
                     </div>
                     
                     <div class="slider-container">
                         <img src="${imgActual}" class="slider-img after">
                         <img src="${imgInicio}" class="slider-img before" id="img-before">
                         
-                        <div class="slider-label label-before" id="label-img-1">INICIO (ENE)</div>
-                        <div class="slider-label label-after" id="label-img-2">ACTUAL (HOY)</div>
+                        <div class="slider-label label-before" id="label-img-1">${date1}</div>
+                        <div class="slider-label label-after" id="label-img-2">${date2}</div>
                         
                         <input type="range" min="0" max="100" value="0" class="slider-range" id="photo-slider">
                         <div class="slider-line" id="slider-line" style="left: 0%;"><div class="slider-thumb">◄►</div></div>
                     </div>
                     
                     <div style="display:flex; justify-content:space-between; margin-top:15px; gap:10px;">
-                        <label class="cyber-button secondary" style="flex:1; font-size:11px; text-align:center; cursor:pointer;" for="upload-inicio">
-                            Subir Foto 1
-                            <input type="file" id="upload-inicio" accept="image/*" style="display:none;">
+                        <label class="cyber-button secondary" style="flex:1; font-size:11px; text-align:center; cursor:pointer;" for="upload-1">
+                            Foto Izquierda
+                            <input type="file" id="upload-1" accept="image/*" capture="environment" style="display:none;" data-date="${date1}">
                         </label>
-                        <label class="cyber-button secondary" style="flex:1; font-size:11px; border-color:#00ff88; color:#00ff88; text-align:center; cursor:pointer;" for="upload-actual">
-                            Subir Foto 2
-                            <input type="file" id="upload-actual" accept="image/*" style="display:none;">
+                        <label class="cyber-button secondary" style="flex:1; font-size:11px; border-color:#00ff88; color:#00ff88; text-align:center; cursor:pointer;" for="upload-2">
+                            Foto Derecha
+                            <input type="file" id="upload-2" accept="image/*" capture="environment" style="display:none;" data-date="${date2}">
                         </label>
                     </div>
                 </div>
@@ -2415,22 +2493,22 @@
                 }
             }
 
-            // GESTIÓN SUBIDA IMÁGENES COMPARATIVA
-            if (e.target.id === 'upload-inicio' || e.target.id === 'upload-actual') {
+            // GESTIÓN SUBIDA IMÁGENES COMPARATIVA MÚLTIPLE (Línea de Tiempo)
+            if (e.target.id === 'upload-1' || e.target.id === 'upload-2') {
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = async (ev) => {
                         const base64Img = ev.target.result;
-                        const type = e.target.id === 'upload-inicio' ? 'inicio' : 'actual';
+                        const uDate = e.target.dataset.date;
                         const angle = State.comparativaAngle || 'frontal';
-                        const compositeKey = `${type}_${angle}`;
 
                         // 1. Mostrar Preview Local instantáneo
-                        State.comparativaImages = State.comparativaImages || {};
-                        State.comparativaImages[compositeKey] = base64Img;
+                        State.profile.progressPhotos = State.profile.progressPhotos || {};
+                        if (!State.profile.progressPhotos[uDate]) State.profile.progressPhotos[uDate] = {};
+                        State.profile.progressPhotos[uDate][angle] = base64Img;
 
-                        if (type === 'inicio') {
+                        if (e.target.id === 'upload-1') {
                             const img = document.getElementById('img-before');
                             if (img) img.src = base64Img;
                         } else {
@@ -2443,12 +2521,11 @@
                         const originalText = lbl ? lbl.innerHTML.trim() : "";
                         if (lbl) lbl.innerHTML = `<span style="color:#fff;">Subiendo...</span>`;
 
-                        const downloadUrl = await uploadComparativaImage(State.profile.uid, compositeKey, base64Img);
-                        if (downloadUrl) {
-                            State.comparativaImages[compositeKey] = downloadUrl;
-                            await updateProfile(State.profile.uid, { comparativaImages: State.comparativaImages });
+                        const res = await uploadProgressPhoto(State.profile.uid, uDate, angle, base64Img);
+                        if (res) {
+                            State.profile.progressPhotos = res.progressPhotos; // Sync con BD
                             if (lbl) lbl.innerHTML = `<span style="color:var(--cyber-green);">¡Guardada!</span>`;
-                            setTimeout(() => { if (lbl) lbl.innerHTML = originalText; }, 2000);
+                            setTimeout(() => { if (lbl) lbl.innerHTML = originalText; loadView('comparativa'); }, 2000);
                         } else {
                             alert("Hubo un error al subir la imagen en la nube.");
                             if (lbl) lbl.innerHTML = originalText;
@@ -2467,8 +2544,14 @@
                 document.getElementById('img-before').style.clipPath = `polygon(0 0, ${val}% 0, ${val}% 100%, 0 100%)`;
                 document.getElementById('slider-line').style.left = `${val}%`;
             }
-            if (e.target.id === 'comp-date-1') { const l1 = document.getElementById('label-img-1'); if (l1) l1.textContent = e.target.options[e.target.selectedIndex].text.toUpperCase(); }
-            if (e.target.id === 'comp-date-2') { const l2 = document.getElementById('label-img-2'); if (l2) l2.textContent = e.target.options[e.target.selectedIndex].text.toUpperCase(); }
+            if (e.target.id === 'comp-date-1') {
+                State.compDate1 = e.target.value;
+                loadView('comparativa');
+            }
+            if (e.target.id === 'comp-date-2') {
+                State.compDate2 = e.target.value;
+                loadView('comparativa');
+            }
             if (e.target.id === 'prog-ex-select') drawProgressChart();
         });
 
