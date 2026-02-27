@@ -1,7 +1,7 @@
 // js/firebase.js
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, collection, addDoc, updateDoc, doc, getDoc, getDocs, query, orderBy, limit, runTransaction, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
@@ -16,6 +16,16 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
+// FASE 10: Persistencia de Sesión Local Infinita
+setPersistence(auth, browserLocalPersistence)
+    .then(() => {
+        console.log("Persistencia de sesión establecida (LOCAL).");
+    })
+    .catch((error) => {
+        console.error("Error al configurar la persistencia de autenticación:", error);
+    });
+
 const db = initializeFirestore(app, {
     localCache: persistentLocalCache()
 });

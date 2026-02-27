@@ -107,63 +107,37 @@
             <span style="font-size:12px; color:var(--cyber-red-neon); font-weight:bold;">Retomar ▶</span>
         </div>
 
+        <!-- MODAL INSTALACIÓN PWA (INSTRUCCIONES MANUALES) -->
         <div id="modal-install" class="modal-overlay">
-            <div class="modal-content">
-                <h3 style="color:var(--cyber-white); text-align:center; margin-bottom:20px;">Instalar FitDataPro</h3>
-                <p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-bottom:20px;">Añade la
-                    app a tu pantalla de inicio para una experiencia nativa.</p>
-                <div class="liquid-glass card" style="margin-bottom:15px; padding:15px;">
-                    <h4 style="color:#00d4ff; margin-bottom:10px;">🍎 iOS (Safari)</h4>
-                    <ol style="color:var(--cyber-text-gray); font-size:12px; margin-left:15px; line-height:1.6;">
-                        <li>Toca el icono Compartir abajo.</li>
-                        <li>Selecciona "Añadir a la pantalla de inicio".</li>
-                    </ol>
-                </div>
-                <div class="liquid-glass card" style="padding:15px;">
-                    <h4 style="color:#00ff88; margin-bottom:10px;">🤖 Android (Chrome)</h4>
-                    <ol style="color:var(--cyber-text-gray); font-size:12px; margin-left:15px; line-height:1.6;">
-                        <li>Toca el Menú (3 puntos) arriba a la derecha.</li>
-                        <li>Selecciona "Añadir a pantalla de inicio".</li>
-                    </ol>
-                </div><button class="cyber-button secondary" id="close-install-modal"
-                    style="margin-top:20px;">Entendido</button>
-            </div>
+            <path d="M12 2L2 7l4.38 2.19L8 16h8l1.62-6.81L22 7l-10-5zM8 18h8v2H8v-2z" />
+            </svg><span>Peso</span>
         </div>
-
-        <div id="fab-modal" class="modal-overlay">
-            <div class="modal-content">
-                <h3 style="margin-bottom: 20px; text-align: center;">Registrar Métrica</h3>
-                <div class="modal-grid">
-                    <div class="modal-action" data-action="weight"><svg class="cyber-icon" viewBox="0 0 24 24">
-                            <path d="M12 2L2 7l4.38 2.19L8 16h8l1.62-6.81L22 7l-10-5zM8 18h8v2H8v-2z" />
-                        </svg><span>Peso</span></div>
-                    <div class="modal-action" data-action="fat"><svg class="cyber-icon" style="color: #ffaa00;"
-                            viewBox="0 0 24 24">
-                            <path d="M12 2c0 0-4 4-4 9 0 2.21 1.79 4 4 4s4-1.79 4-4c0-5-4-9-4-9z" />
-                        </svg><span>% Grasa</span></div>
-                    <div class="modal-action" data-action="measures"><svg class="cyber-icon" style="color: #00d4ff;"
-                            viewBox="0 0 24 24">
-                            <path
-                                d="M21.5 5.5l-2-2c-.39-.39-1.02-.39-1.41 0L3 18.59c-.39.39-.39 1.02 0 1.41l2 2c.39.39 1.02.39 1.41 0L21.5 6.91c.39-.39.39-1.02 0-1.41zM6.41 20L4 17.59 5.59 16 7 17.41 8.41 16 7 14.59 8.41 13 9.83 14.41 11.24 13 9.83 11.59 11.24 10.17 12.66 11.59 14.07 10.17 12.66 8.76 14.07 7.34 15.49 8.76 16.9 7.34 15.49 5.93 17.9 3.51 20.31 5.93 6.41 20z" />
-                        </svg><span>Pliegues</span></div>
-                    <div class="modal-action" data-action="meal"><svg class="cyber-icon" style="color: #44ff44;"
-                            viewBox="0 0 24 24">
-                            <path
-                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 6h2v6.27l4.25 2.52-1 1.73-5.25-3.15V6z" />
-                        </svg><span>Comida</span></div>
-                    <div class="modal-action" id="btn-ia-setup-fab" style="border-color: #ff1f3d;"><svg
-                            class="cyber-icon" style="color: var(--cyber-red-neon);" viewBox="0 0 24 24">
-                            <path
-                                d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 17 22.71 22.71 17z" />
-                        </svg><span>Rutina IA</span></div>
-                    <div class="modal-action"
-                        style="background: rgba(255, 31, 61, 0.2); border-color: var(--cyber-red-neon);"
-                        id="close-modal"><svg class="cyber-icon highlight" viewBox="0 0 24 24">
-                            <path
-                                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-                        </svg><span style="color: var(--cyber-red-neon); font-weight: bold;">Cancelar</span></div>
-                </div>
-            </div>
+        <div class="modal-action" data-action="fat"><svg class="cyber-icon" style="color: #ffaa00;" viewBox="0 0 24 24">
+                <path d="M12 2c0 0-4 4-4 9 0 2.21 1.79 4 4 4s4-1.79 4-4c0-5-4-9-4-9z" />
+            </svg><span>% Grasa</span></div>
+        <div class="modal-action" data-action="measures"><svg class="cyber-icon" style="color: #00d4ff;"
+                viewBox="0 0 24 24">
+                <path
+                    d="M21.5 5.5l-2-2c-.39-.39-1.02-.39-1.41 0L3 18.59c-.39.39-.39 1.02 0 1.41l2 2c.39.39 1.02.39 1.41 0L21.5 6.91c.39-.39.39-1.02 0-1.41zM6.41 20L4 17.59 5.59 16 7 17.41 8.41 16 7 14.59 8.41 13 9.83 14.41 11.24 13 9.83 11.59 11.24 10.17 12.66 11.59 14.07 10.17 12.66 8.76 14.07 7.34 15.49 8.76 16.9 7.34 15.49 5.93 17.9 3.51 20.31 5.93 6.41 20z" />
+            </svg><span>Pliegues</span></div>
+        <div class="modal-action" data-action="meal"><svg class="cyber-icon" style="color: #44ff44;"
+                viewBox="0 0 24 24">
+                <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 6h2v6.27l4.25 2.52-1 1.73-5.25-3.15V6z" />
+            </svg><span>Comida</span></div>
+        <div class="modal-action" id="btn-ia-setup-fab" style="border-color: #ff1f3d;"><svg class="cyber-icon"
+                style="color: var(--cyber-red-neon);" viewBox="0 0 24 24">
+                <path
+                    d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 17 22.71 22.71 17z" />
+            </svg><span>Rutina IA</span></div>
+        <div class="modal-action" style="background: rgba(255, 31, 61, 0.2); border-color: var(--cyber-red-neon);"
+            id="close-modal"><svg class="cyber-icon highlight" viewBox="0 0 24 24">
+                <path
+                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+            </svg><span style="color: var(--cyber-red-neon); font-weight: bold;">Cancelar</span>
+        </div>
+        </div>
+        </div>
         </div>
 
         <div id="modal-timer" class="modal-overlay">
@@ -189,7 +163,8 @@
                     placeholder="Nota general de tu entreno (Sensaciones, energía, etc.)..."
                     style="width:100%; min-height:60px; margin-bottom:15px; border-radius:8px; padding:10px; background:rgba(10,10,10,0.5); color:white; border:1px solid rgba(255,31,61,0.3); font-family:inherit;"></textarea>
 
-                <p style="color:var(--cyber-text-gray); font-size:14px; margin-bottom:15px;">Evaluación de Esfuerzo
+                <p style="color:var(--cyber-text-gray); font-size:14px; margin-bottom:15px;">Evaluación
+                    de Esfuerzo
                     (RPE)</p>
                 <div style="display:flex; gap:10px; margin-bottom: 20px;">
                     <button class="cyber-button" style="flex:1; background:#00ff88; color:black;" data-rpe="Suave">🟢
@@ -200,14 +175,16 @@
                         Fallo</button>
                 </div>
 
-                <button class="cyber-button secondary" id="btn-back-workout">← Me dejé algo (Volver)</button>
+                <button class="cyber-button secondary" id="btn-back-workout">← Me dejé algo
+                    (Volver)</button>
             </div>
         </div>
 
         <div id="modal-payment" class="modal-overlay">
             <div class="modal-content">
                 <h3 style="margin-bottom: 20px; text-align: center;">Completar Suscripción</h3>
-                <p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-bottom:20px;">Elige tu
+                <p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-bottom:20px;">
+                    Elige tu
                     método de pago para activar el plan.</p>
                 <div style="display:flex; flex-direction:column; gap:15px;">
                     <button class="cyber-button" id="btn-pay-bizum"
@@ -225,7 +202,8 @@
         <div id="modal-swap" class="modal-overlay">
             <div class="modal-content">
                 <h3 style="margin-bottom: 15px; text-align: center;">Cambiar Máquina</h3>
-                <p style="color:var(--cyber-text-gray); font-size:12px; text-align:center; margin-bottom:15px;">Elige
+                <p style="color:var(--cyber-text-gray); font-size:12px; text-align:center; margin-bottom:15px;">
+                    Elige
                     una alternativa del mismo grupo muscular:</p>
                 <div id="swap-list-container" class="swap-list"></div>
                 <button class="cyber-button secondary" id="close-swap-modal" style="margin-top:15px;">Cancelar</button>
@@ -459,10 +437,11 @@
                     }
                 } else {
                     setsArray = [
-                        { id: 1, targetR: 12, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false },
-                        { id: 2, targetR: 12, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false },
-                        { id: 3, targetR: 12, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false },
-                        { id: 4, targetR: 12, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false }
+                        { id: 1, targetR: 20, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false },
+                        { id: 2, targetR: 16, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false },
+                        { id: 3, targetR: 16, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false },
+                        { id: 4, targetR: 16, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false },
+                        { id: 5, targetR: 16, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false }
                     ];
                 }
 
@@ -531,7 +510,7 @@
 
         window.rbAdd = (name) => {
             if (!window.currentRoutineSelections.find(s => s.n === name)) {
-                window.currentRoutineSelections.push({ n: name, s: false, series: 4, reps: "12" });
+                window.currentRoutineSelections.push({ n: name, s: false, series: 5, reps: "20-16-16-16-16" });
                 rbRenderList();
             }
         };
