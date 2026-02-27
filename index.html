@@ -348,6 +348,42 @@
                 State.profile.id = user.uid.substring(0, 4).toUpperCase();
                 State.profile.uid = user.uid;
 
+                // GLOBAL LISTENER PARA RECORDATORIOS AUTOMÁTICOS PUSH
+                if (State.profile.role !== 'admin') {
+                    if (window.globalUserUnsubscribe) window.globalUserUnsubscribe();
+                    const { onSnapshot, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    window.globalUserUnsubscribe = onSnapshot(doc(db, "users", user.uid), async (docSnap) => {
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            const reminders = data.automaticReminders || [];
+                            const now = Date.now();
+                            let updated = false;
+
+                            reminders.forEach(r => {
+                                if (now >= r.nextTrigger) {
+                                    // DISPARAR NOTIFICACIÓN PUSH Y CHAT IN-GAME GUI
+                                    if (Notification.permission === 'granted') {
+                                        try {
+                                            navigator.serviceWorker.ready.then(registration => {
+                                                registration.showNotification('Planificación Coach', { body: r.text, icon: 'img/logo.png' });
+                                            }).catch(() => { new Notification('Planificación Coach', { body: r.text, icon: 'img/logo.png' }); });
+                                        } catch (e) { }
+                                    }
+                                    showToast(r.text);
+
+                                    // Re-programar para el siguiente ciclo
+                                    r.nextTrigger = now + (r.freqDays * 24 * 60 * 60 * 1000);
+                                    updated = true;
+                                }
+                            });
+
+                            if (updated) {
+                                await updateDoc(doc(db, "users", user.uid), { automaticReminders: reminders });
+                            }
+                        }
+                    });
+                }
+
                 // Cargar Historial
                 State.history = await loadHistory(user.uid);
 
@@ -762,11 +798,28 @@
                                 <select id="remind-client" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
                                     ${clientOptions}
                                 </select>
-                                <div style="display:flex; gap:5px; margin-top:5px;">
+                                
+                                <label style="font-size:11px; color:#aaa; margin-top:5px;">Aviso Directo (Instantáneo):</label>
+                                <div style="display:flex; gap:5px;">
                                     <button onclick="window.sendQuickReminder('fotos')" class="cyber-button secondary" style="flex:1; font-size:10px; padding:8px 4px; border-color:#00d4ff; color:#00d4ff;">📸 Subir Fotos</button>
                                     <button onclick="window.sendQuickReminder('peso')" class="cyber-button secondary" style="flex:1; font-size:10px; padding:8px 4px; border-color:#ffaa00; color:#ffaa00;">⚖️ Peso Báscula</button>
                                     <button onclick="window.sendQuickReminder('medidas')" class="cyber-button secondary" style="flex:1; font-size:10px; padding:8px 4px; border-color:#00ff88; color:#00ff88;">📏 Medidas</button>
                                 </div>
+
+                                <label style="font-size:11px; color:#aaa; margin-top:10px;">Programar Recordatorio Automático (App):</label>
+                                <div style="display:flex; gap:10px;">
+                                    <select id="remind-type" class="cyber-input" style="flex:1; background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
+                                        <option value="fotos">Fotos</option>
+                                        <option value="peso">Peso Báscula</option>
+                                        <option value="medidas">Medidas</option>
+                                    </select>
+                                    <select id="remind-freq" class="cyber-input" style="flex:1; background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
+                                        <option value="7">Semanal (7 días)</option>
+                                        <option value="15">Quincenal (15 días)</option>
+                                        <option value="30">Mensual (30 días)</option>
+                                    </select>
+                                </div>
+                                <button onclick="window.scheduleReminder()" class="cyber-button" style="margin-top:5px; background:transparent; border:1px solid #00d4ff; color:#00d4ff;">⚙️ Programar Push Automático</button>
                             </div>
                         `;
                     } catch (e) {
@@ -833,6 +886,50 @@
                 });
                 await updateDoc(userDocRef, { messages: msgs });
                 showToast("Enviado.");
+            }
+        };
+
+        window.scheduleReminder = async () => {
+            const uid = document.getElementById('remind-client').value;
+            const type = document.getElementById('remind-type').value;
+            const freq = parseInt(document.getElementById('remind-freq').value, 10);
+            if (!uid) return alert('Selecciona atleta');
+
+            let txt = "";
+            if (type === 'fotos') txt = "🔔 Toca actualización de fotos (Frontal/Espalda).";
+            if (type === 'peso') txt = "🔔 Toca actualización de peso en la báscula.";
+            if (type === 'medidas') txt = "🔔 Toca revisión de contornos biometría.";
+
+            const btn = event.target;
+            btn.textContent = "⚙️ Programando...";
+            btn.disabled = true;
+
+            try {
+                const { getDoc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                const userRef = doc(db, "users", uid);
+                const snap = await getDoc(userRef);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    const automaticReminders = data.automaticReminders || [];
+
+                    const existingIdx = automaticReminders.findIndex(r => r.type === type);
+                    const nextTime = Date.now() + (freq * 24 * 60 * 60 * 1000); // Ms in days
+
+                    if (existingIdx >= 0) {
+                        automaticReminders[existingIdx] = { type, text: txt, freqDays: freq, nextTrigger: nextTime };
+                    } else {
+                        automaticReminders.push({ type, text: txt, freqDays: freq, nextTrigger: nextTime });
+                    }
+
+                    await updateDoc(userRef, { automaticReminders });
+                    showToast(`Push Automático (${type}) programado cada ${freq} días.`);
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Error al programar el recordatorio.");
+            } finally {
+                btn.textContent = "⚙️ Programar Push Automático";
+                btn.disabled = false;
             }
         };
 

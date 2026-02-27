@@ -34,7 +34,8 @@ body {
    color: var(--cyber-white);
    min-height: 100vh;
    overflow-x: hidden;
-   overscroll-behavior-y: none;
+   overflow-y: auto;
+   /* Fix para scroll nativo con rueda ratón en PC */
 }
 
 .hidden {
@@ -166,15 +167,21 @@ body {
 
 .cyber-button {
    width: 100%;
-   min-height: 50px;
+   min-height: 44px;
+   /* Reducido de 50px para móviles */
+   padding: 10px 15px;
+   /* Controla padding interno */
    background: var(--cyber-red-neon);
    color: var(--cyber-white);
-   font-size: 14px;
+   font-size: 13px;
+   /* Reducido de 14px */
    font-weight: 800;
    text-transform: uppercase;
-   letter-spacing: 2px;
+   letter-spacing: 1px;
+   /* Reducido para encajar texto largo */
    border: none;
-   border-radius: 12px;
+   border-radius: 10px;
+   /* Reducido bordes */
    cursor: pointer;
    box-shadow: 0 4px 15px rgba(255, 31, 61, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.2);
    transition: transform 0.1s ease;
@@ -1140,4 +1147,69 @@ body {
 
 .routine-card-active {
    transition: background-color 0.5s ease;
+}
+
+/* =========================================
+   OPTIMIZACIÓN DE PC Y DISPOSITIVOS ANCHOS
+   Evita cuadros gigantes y centra la interfaz
+   ========================================= */
+@media (min-width: 768px) {
+   body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #020202;
+      /* Fondo oscuro exterior */
+   }
+
+   #auth-view,
+   #app-wrapper,
+   #toast-container {
+      width: 100%;
+      max-width: 480px;
+      /* Limite teléfono grande */
+      margin: 0 auto;
+      position: relative;
+      background-color: var(--cyber-black);
+      min-height: 100vh;
+      box-shadow: 0 0 50px rgba(255, 31, 61, 0.1);
+   }
+
+   #toast-container {
+      min-height: auto;
+      /* No forzar altura en toasts */
+      left: auto;
+      transform: none;
+      /* Lo centramos sobre la app centrada */
+      margin: 0 auto;
+      max-width: 400px;
+   }
+
+   .modal-overlay {
+      justify-content: center;
+      align-items: center;
+      /* En PC los modales van al medio */
+   }
+
+   .modal-content {
+      border-radius: 24px;
+      /* Borde completo en PC */
+      border: 1px solid var(--cyber-red-neon);
+   }
+
+   .bottom-nav {
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      border-left: 1px solid rgba(255, 31, 61, 0.3);
+      border-right: 1px solid rgba(255, 31, 61, 0.3);
+   }
+
+   .active-workout-banner {
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 440px;
+   }
 }
