@@ -2675,9 +2675,9 @@
                         if (data.checkoutId) {
                             // Redirigir la ventana ya abierta (Safari no lo bloquea)
                             if (payWin) {
-                                payWin.location.href = `https://pay.sumup.com/b2c/${data.checkoutId}`;
+                                payWin.location.href = `https://checkout.sumup.com/pay/${data.checkoutId}`;
                             } else {
-                                window.open(`https://pay.sumup.com/b2c/${data.checkoutId}`, '_blank');
+                                window.open(`https://checkout.sumup.com/pay/${data.checkoutId}`, '_blank');
                             }
                             document.getElementById('modal-payment').classList.remove('active');
                         } else {
