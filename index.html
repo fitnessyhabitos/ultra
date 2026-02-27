@@ -2634,66 +2634,20 @@
                 document.getElementById('modal-payment').classList.remove('active');
             }
             if (e.target.closest('#btn-pay-sumup')) {
-                const btn = e.target.closest('#btn-pay-sumup');
-                const originalText = btn.innerHTML;
                 const planEl = document.querySelector('.plan-card-input:checked');
                 if (!planEl) return alert("Selecciona un plan.");
-
                 const planValue = planEl.value;
-                let price = 29.00;
-                if (planValue.includes('APP')) price = 29.00;
-                if (planValue.includes('Preparación')) price = 65.00;
-                if (planValue.includes('4 Sesiones')) price = 80.00;
-                if (planValue.includes('8 Sesiones')) price = 144.00;
-                if (planValue.includes('Suelta')) price = 23.00;
 
-                btn.innerHTML = 'Generando pasarela... ⏳';
-                btn.disabled = true;
+                // Links directos de SumUp por plan (25€, 70€, 170€, 290€, 40€)
+                let payLink = 'https://pay.sumup.com/b2c/Q531SL4O';
+                if (planValue.includes('APP')) payLink = 'https://pay.sumup.com/b2c/Q531SL4O';   // 25€/mes
+                if (planValue.includes('Preparación')) payLink = 'https://pay.sumup.com/b2c/QGOVGSAW';   // 70€
+                if (planValue.includes('4 Sesiones')) payLink = 'https://pay.sumup.com/b2c/QXCZ83W2';   // 170€
+                if (planValue.includes('8 Sesiones')) payLink = 'https://pay.sumup.com/b2c/Q8SCLMME';   // 290€
+                if (planValue.includes('Suelta')) payLink = 'https://pay.sumup.com/b2c/Q0HV15F0';   // 40€
 
-                // IMPORTANTE: Abrir ventana ANTES del fetch para que Safari no lo bloquee
-                // Safari bloquea window.open() dentro de callbacks async
-                const payWin = window.open('', '_blank');
-                if (payWin) {
-                    payWin.document.write('<html><body style="background:#111;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;"><h2>⏳ Conectando con la pasarela de pago...</h2></body></html>');
-                }
-
-                const FUNCTION_URL = 'https://europe-west1-fitdatalite.cloudfunctions.net/createSumupCheckout';
-
-                fetch(FUNCTION_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        amount: price,
-                        planValue: planValue,
-                        userId: State.profile.uid || 'GUEST'
-                    })
-                })
-                    .then(r => r.json())
-                    .then(data => {
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
-                        if (data.checkoutId) {
-                            // Redirigir la ventana ya abierta (Safari no lo bloquea)
-                            if (payWin) {
-                                payWin.location.href = `https://checkout.sumup.com/pay/${data.checkoutId}`;
-                            } else {
-                                window.open(`https://checkout.sumup.com/pay/${data.checkoutId}`, '_blank');
-                            }
-                            document.getElementById('modal-payment').classList.remove('active');
-                        } else {
-                            if (payWin) payWin.close();
-                            alert('Error al crear la pasarela de pago: ' + (data.error || 'Error desconocido'));
-                            console.error('SumUp CF Error:', data);
-                        }
-                    })
-                    .catch(err => {
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
-                        if (payWin) payWin.close();
-                        console.error('Error llamando a Cloud Function:', err);
-                        alert('⚠️ Error al conectar con la pasarela. Por favor usa Bizum (0% comisiones).');
-                        document.getElementById('modal-payment').classList.remove('active');
-                    });
+                window.open(payLink, '_blank');
+                document.getElementById('modal-payment').classList.remove('active');
             }
 
             // COMPARATIVA FOTOS
