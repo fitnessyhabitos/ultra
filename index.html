@@ -2656,12 +2656,13 @@
                     "checkout_reference": `FIT_${State.profile.uid || 'GUEST'}_${Date.now()}`,
                     "amount": price,
                     "currency": "EUR",
-                    "pay_to_email": "YOUR_SUMUP_ACCOUNT_EMAIL@EXAMPLE.COM", // Note: Usually handled by SK automatically, included for schema strictness if needed
+                    "pay_to_email": "antonilafuentem@gmail.com",
+                    "merchant_code": "MDUFC67Y",
                     "description": `Fit Data Ultra: ${planValue}`
                 };
 
                 // CORS Proxy to bypass browser restrictions for client-side API requests
-                fetch('https://cors-anywhere.herokuapp.com/https://api.sumup.com/v0.1/checkouts', {
+                fetch('https://corsproxy.io/?' + encodeURIComponent('https://api.sumup.com/v0.1/checkouts'), {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${sumupAPI}`,
