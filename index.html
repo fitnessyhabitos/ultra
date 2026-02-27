@@ -2108,11 +2108,11 @@
                     <div style="display:flex; justify-content:space-between; margin-top:15px; gap:10px;">
                         <label class="cyber-button secondary" style="flex:1; font-size:11px; text-align:center; cursor:pointer;" for="upload-1">
                             Foto Izquierda
-                            <input type="file" id="upload-1" accept="image/*" capture="environment" style="display:none;" data-date="${date1}">
+                            <input type="file" id="upload-1" accept="image/*" style="display:none;" data-date="${date1}">
                         </label>
                         <label class="cyber-button secondary" style="flex:1; font-size:11px; border-color:#00ff88; color:#00ff88; text-align:center; cursor:pointer;" for="upload-2">
                             Foto Derecha
-                            <input type="file" id="upload-2" accept="image/*" capture="environment" style="display:none;" data-date="${date2}">
+                            <input type="file" id="upload-2" accept="image/*" style="display:none;" data-date="${date2}">
                         </label>
                     </div>
                 </div>
@@ -2144,7 +2144,7 @@
 
                 return `
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><h2 style="font-size:18px;">Mis actividades</h2></div>
-                    <div class="calendar-scroller">${calendarHtml}</div>
+                    <div class="calendar-scroller" id="cal-scroller">${calendarHtml}</div>
                     ${eventsHtml}
                     <h2 style="font-size:18px; margin-bottom:10px; margin-top:10px;">${State.plan.name || 'Plan Local'} <span style="font-size:12px; color:var(--cyber-red-neon); float:right;">Ruts: ${State.plan.routinesAvailable.length}</span></h2>
                     ${routinesHtml}
@@ -2463,6 +2463,20 @@
                 if (viewName === 'progreso') drawProgressChart();
                 if (viewName === 'mensajes') { const box = document.getElementById('chat-box'); if (box) box.scrollTop = box.scrollHeight; }
 
+                // Centrar el día de hoy en el calendario
+                if (viewName === 'plan') {
+                    setTimeout(() => {
+                        const activeDay = document.querySelector('.cal-day.active');
+                        if (activeDay) activeDay.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    }, 50);
+                    // Pedir permiso de notificaciones si aún no se ha concedido
+                    if ('Notification' in window && Notification.permission === 'default') {
+                        Notification.requestPermission().then(p => {
+                            if (p === 'granted') showToast('🔔 Notificaciones activadas');
+                        });
+                    }
+                }
+
                 // Banner Flotante Entreno Activo
                 const banner = document.getElementById('active-workout-banner');
                 if (banner) {
@@ -2635,8 +2649,34 @@
             }
             if (e.target.closest('#close-payment-modal')) document.getElementById('modal-payment').classList.remove('active');
             if (e.target.closest('#btn-pay-bizum')) {
-                const planName = document.querySelector('.plan-card-input:checked').value;
-                alert(`📱 BIZUM (0% Comisiones)\n\n1. Envía el importe al: 614 056 363\n2. Concepto: "${State.profile.name} - #${State.profile.id}"\n\nCoach validará tu ${planName}.`);
+                const planName = document.querySelector('.plan-card-input:checked')?.value || 'plan';
+                const phone = '614 056 363';
+                const concept = `${State.profile.name || 'Cliente'} - #${State.profile.clientIdNum || State.profile.id || '?'}`;
+
+                // Copiar número al portapapeles
+                navigator.clipboard.writeText(phone).catch(() => { });
+
+                // Mostrar panel informativo en lugar de alert()
+                const bizumPanel = document.createElement('div');
+                bizumPanel.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
+                bizumPanel.innerHTML = `
+                  <div style="background:#111;border:2px solid var(--cyber-red-neon);border-radius:12px;padding:24px;max-width:350px;width:100%;text-align:center;">
+                    <div style="font-size:28px;margin-bottom:8px;">📱</div>
+                    <h3 style="color:var(--cyber-red-neon);margin-bottom:16px;">Bizum (0% Comisiones)</h3>
+                    <p style="color:#aaa;font-size:13px;margin-bottom:20px;">Envía el importe a este número:</p>
+                    <div style="background:#1a1a2e;border-radius:8px;padding:16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+                      <span style="font-size:22px;font-weight:bold;color:white;letter-spacing:2px;">${phone}</span>
+                      <button onclick="navigator.clipboard.writeText('${phone}').then(()=>this.textContent='✅').catch(()=>{})" style="background:var(--cyber-red-neon);border:none;color:#000;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:bold;font-size:12px;">Copiar</button>
+                    </div>
+                    <p style="color:#aaa;font-size:12px;margin-bottom:6px;">Concepto del pago:</p>
+                    <div style="background:#1a1a2e;border-radius:8px;padding:12px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;">
+                      <span style="font-size:13px;color:#fff;">${concept}</span>
+                      <button onclick="navigator.clipboard.writeText('${concept}').then(()=>this.textContent='✅').catch(()=>{})" style="background:#333;border:none;color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;">Copiar</button>
+                    </div>
+                    <p style="color:#aaa;font-size:11px;margin-bottom:20px;">El Coach validará tu ${planName} en menos de 24h.</p>
+                    <button onclick="this.closest('div[style*=fixed]').remove()" style="background:var(--cyber-red-neon);border:none;color:#000;padding:10px 30px;border-radius:8px;cursor:pointer;font-weight:bold;">Entendido</button>
+                  </div>`;
+                document.body.appendChild(bizumPanel);
                 document.getElementById('modal-payment').classList.remove('active');
             }
             if (e.target.closest('#btn-pay-sumup')) {
