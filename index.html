@@ -255,13 +255,63 @@
             finally { btn.disabled = false; }
         });
 
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.disabled = true;
+            btn.textContent = 'Procesando...';
+            try {
+                const name = document.getElementById('reg-name').value;
+                const email = document.getElementById('reg-email').value;
+                const password = document.getElementById('reg-password').value;
+                const gender = document.getElementById('reg-gender').value;
+                const dob = document.getElementById('reg-dob').value;
+                const phone = document.getElementById('reg-phone').value;
+
+                console.log("Registrando usuario:", email);
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                await setDoc(doc(db, "users", user.uid), {
+                    uid: user.uid,
+                    fullName: name,
+                    email: email,
+                    gender: gender,
+                    dob: dob,
+                    phone: phone,
+                    status: 'pending',
+                    role: 'user',
+                    createdAt: serverTimestamp()
+                });
+
+                alert('Registro completado. Tu cuenta está pendiente de aprobación por el Coach.');
+                // Forzar cierre de sesión para que no entre a la app y deba esperar aprobación
+                await signOut(auth);
+                document.getElementById('toggle-to-login').click();
+            } catch (error) {
+                console.error("Registration error:", error);
+                alert('Error al registrar: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Conectar a la Red';
+            }
+        });
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                // Cargar datos de Firestore al Estado
+                const userData = await loadUserData(user.uid);
+
+                // Verificar si está aprobado
+                if (userData && userData.status !== 'approved' && userData.role !== 'admin') {
+                    alert('Tu cuenta aún no ha sido aprobada por el administrador.');
+                    await signOut(auth);
+                    return;
+                }
+
                 document.getElementById('auth-view').style.display = 'none';
                 document.getElementById('app-wrapper').style.display = 'block';
 
-                // Cargar datos de Firestore al Estado
-                const userData = await loadUserData(user.uid);
                 if (userData) {
                     State.profile.maxWeights = userData.maxWeights || {};
                     State.profile.rmRecords = userData.rmRecords || {};
