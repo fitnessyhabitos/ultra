@@ -1,17 +1,18 @@
-const { onRequest } = require("firebase-functions/v2/https");
-const { defineSecret } = require("firebase-functions/params");
+const functions = require("firebase-functions");
 const fetch = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
 
-const SUMUP_SECRET_KEY = defineSecret("SUMUP_SECRET_KEY");
+exports.createSumupCheckout = functions
+    .region("europe-west1")
+    .https.onRequest(async (req, res) => {
+        // Allow CORS for our PWA
+        res.set('Access-Control-Allow-Origin', '*');
+        res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+        res.set('Access-Control-Allow-Headers', 'Content-Type');
 
-exports.createSumupCheckout = onRequest(
-    {
-        secrets: [SUMUP_SECRET_KEY],
-        cors: true, // Allow all origins (our PWA)
-        region: "europe-west1",
-    },
-    async (req, res) => {
-        // Only allow POST
+        if (req.method === 'OPTIONS') {
+            return res.status(204).send('');
+        }
+
         if (req.method !== "POST") {
             return res.status(405).json({ error: "Method not allowed" });
         }
@@ -21,6 +22,9 @@ exports.createSumupCheckout = onRequest(
         if (!amount || !planValue) {
             return res.status(400).json({ error: "Missing amount or planValue" });
         }
+
+        // Read the key from Firebase Functions config (set via firebase functions:config:set)
+        const sumupKey = functions.config().sumup.key;
 
         const payload = {
             checkout_reference: `FIT_${userId || "GUEST"}_${Date.now()}`,
@@ -35,7 +39,7 @@ exports.createSumupCheckout = onRequest(
             const response = await fetch("https://api.sumup.com/v0.1/checkouts", {
                 method: "POST",
                 headers: {
-                    Authorization: `Bearer ${SUMUP_SECRET_KEY.value()}`,
+                    Authorization: `Bearer ${sumupKey}`,
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(payload),
@@ -53,5 +57,4 @@ exports.createSumupCheckout = onRequest(
             console.error("Network error calling SumUp:", err);
             return res.status(500).json({ error: "Internal server error" });
         }
-    }
-);
+    });
