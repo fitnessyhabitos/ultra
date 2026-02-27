@@ -343,5 +343,105 @@ export const AdminController = {
             console.error("Admin: Error al asignar rutina al atleta", error);
             return false;
         }
+    },
+
+    /**
+     * Obtiene todas las rutinas globales guardadas por el coach
+     */
+    async getGlobalRoutines() {
+        try {
+            if (!auth.currentUser) return [];
+            const q = query(collection(db, "global_routines"), where("coachId", "==", auth.currentUser.uid));
+            const snapshot = await getDocs(q);
+            let routines = [];
+            snapshot.forEach(docSnap => routines.push({ id: docSnap.id, ...docSnap.data() }));
+            return routines;
+        } catch (error) {
+            console.error("Admin: Error cargando rutinas globales", error);
+            return [];
+        }
+    },
+
+    /**
+     * Elimina una rutina global
+     */
+    async deleteGlobalRoutine(routineId) {
+        try {
+            const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+            await deleteDoc(doc(db, "global_routines", routineId));
+            return true;
+        } catch (error) {
+            console.error("Admin: Error eliminando rutina global", error);
+            return false;
+        }
+    },
+
+    /**
+     * Elimina a un cliente de forma definitiva (Doble confirmación la hará la UI)
+     */
+    async deleteClientComplete(clientId) {
+        try {
+            const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+            // Borramos documento principal (idealmente deberíamos borrar subcolecciones desde una Cloud Function)
+            await deleteDoc(doc(db, "users", clientId));
+            return true;
+        } catch (error) {
+            console.error("Admin: Error eliminando cliente permanente", error);
+            return false;
+        }
+    },
+
+    /**
+     * Agenda / Citas
+     */
+    async getAgenda() {
+        try {
+            if (!auth.currentUser) return [];
+            const q = query(collection(db, "appointments"), where("coachId", "==", auth.currentUser.uid));
+            const snapshot = await getDocs(q);
+            let appts = [];
+            snapshot.forEach(docSnap => appts.push({ id: docSnap.id, ...docSnap.data() }));
+            return appts.sort((a, b) => new Date(a.date) - new Date(b.date));
+        } catch (e) {
+            console.error("Admin: Error cargando agenda", e);
+            return [];
+        }
+    },
+
+    async createAppointment(clientId, clientName, dateStr, timeStr, type, notes) {
+        try {
+            if (!auth.currentUser) return false;
+            const docRef = doc(collection(db, "appointments"));
+            await setDoc(docRef, {
+                coachId: auth.currentUser.uid,
+                clientId: clientId,
+                clientName: clientName,
+                date: dateStr, // YYYY-MM-DD
+                time: timeStr, // HH:MM
+                type: type, // Presencial / Online
+                notes: notes || "",
+                timestamp: Date.now()
+            });
+
+            // Y un evento para el plan del usuario (opcional si es para que lo vea en "Su Plan")
+            const userDoc = doc(db, "users", clientId);
+            // Esto agregaría la notificación del cliente, pero con esto es suficiente para que admin lo vea.
+
+            return true;
+        } catch (e) {
+            console.error("Admin: Error creando cita", e);
+            return false;
+        }
+    },
+
+    async deleteAppointment(id) {
+        try {
+            const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+            await deleteDoc(doc(db, "appointments", id));
+            return true;
+        } catch (e) {
+            console.error("Admin: Error borrando cita", e);
+            return false;
+        }
     }
 };

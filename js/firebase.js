@@ -2,7 +2,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { initializeFirestore, persistentLocalCache, collection, addDoc, updateDoc, doc, getDoc, getDocs, query, orderBy, limit, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeFirestore, persistentLocalCache, collection, addDoc, updateDoc, doc, getDoc, getDocs, query, orderBy, limit, runTransaction, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -106,4 +106,4 @@ export async function uploadComparativaImage(uid, type, dataUrl) {
 }
 
 // Exportamos todo para uso global
-export { auth, db, storage, runTransaction };
+export { auth, db, storage, runTransaction, onSnapshot, doc };

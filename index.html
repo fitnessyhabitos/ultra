@@ -398,18 +398,19 @@
                 const selObj = window.currentRoutineSelections.find(s => s.n === ex.n);
                 if (selObj) {
                     return `
-                    <div id="card-${ex.n.replace(/[\w\s]/g, '-')}" class="liquid-glass card routine-card-active" style="border: 1px solid var(--cyber-red-neon); padding: 12px; display:flex; flex-direction:column; gap:12px; border-radius:8px; margin-bottom:10px;">
+                    <div id="card-${ex.n.replace(/[\w\s]/g, '-')}" class="liquid-glass card routine-card-active" style="border: 1px solid var(--cyber-red-neon); padding: 12px; display:flex; flex-direction:column; gap:8px; border-radius:8px; margin-bottom:10px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <img src="${ex.img}" onerror="this.src='logo.png'" style="width:35px; height:35px; object-fit:contain; border-radius:4px; background:rgba(255,255,255,0.05); padding:2px;">
-                                <span style="color:var(--cyber-white); font-weight:bold; font-size:13px;">${ex.n}</span>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <img src="${ex.img}" onerror="this.src='logo.png'" style="width:30px; height:30px; object-fit:contain; border-radius:4px; background:rgba(255,255,255,0.05); padding:2px;">
+                                <span style="color:var(--cyber-white); font-weight:bold; font-size:12px;">${ex.n}</span>
                             </div>
-                            <button onclick="rbRemove('${ex.n}')" style="background:transparent; border:none; color:#ff3333; font-size:18px; cursor:pointer; padding:0 10px;">✕</button>
+                            <button onclick="rbRemove('${ex.n}')" style="background:transparent; border:none; color:#ff3333; font-size:16px; cursor:pointer; padding:0 5px;">✕</button>
                         </div>
-                        <div style="display:flex; gap:10px; align-items:center;">
-                            <input type="number" value="${selObj.series}" onchange="rbUpdate('${ex.n}', 'series', this.value)" placeholder="Series" style="flex:1; background:rgba(0,0,0,0.5); border:1px solid #444; color:white; padding:8px; border-radius:4px; font-size:12px;">
-                            <input type="text" value="${selObj.reps}" onchange="rbUpdate('${ex.n}', 'reps', this.value)" placeholder="Ej: 12-10-8" style="flex:2; background:rgba(0,0,0,0.5); border:1px solid #444; color:white; padding:8px; border-radius:4px; font-size:12px;">
-                            <button onclick="rbToggleSuperset('${ex.n}')" class="cyber-button secondary ${selObj.s ? 'superset-active' : ''}" style="min-width:auto; padding:8px; font-size:14px; border-color:${selObj.s ? '#00d4ff' : '#444'}; color:${selObj.s ? '#00d4ff' : '#555'}; transition: 0.3s; box-shadow:${selObj.s ? '0 0 10px rgba(0,212,255,0.3)' : 'none'};">🔗</button>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <input type="text" value="${selObj.series}" onchange="rbUpdate('${ex.n}', 'series', this.value)" placeholder="S" style="width: 35px; background:rgba(0,0,0,0.5); border:1px solid #444; color:white; padding:4px; border-radius:4px; font-size:11px; text-align:center;">
+                            <span style="color:#666; font-size:10px;">x</span>
+                            <input type="text" value="${selObj.reps}" onchange="rbUpdate('${ex.n}', 'reps', this.value)" placeholder="ej: 20-16-16-16" style="flex:1; background:rgba(0,0,0,0.5); border:1px solid #444; color:white; padding:4px 6px; border-radius:4px; font-size:11px;">
+                            <button onclick="rbToggleSuperset('${ex.n}')" class="cyber-button secondary ${selObj.s ? 'superset-active' : ''}" style="min-width:30px; width:30px; height:26px; padding:0; display:flex; align-items:center; justify-content:center; font-size:12px; border-color:${selObj.s ? '#00d4ff' : '#444'}; color:${selObj.s ? '#00d4ff' : '#555'}; transition: 0.3s; box-shadow:${selObj.s ? '0 0 10px rgba(0,212,255,0.3)' : 'none'};" title="Enlazar en Superserie">🔗</button>
                         </div>
                     </div>`;
                 } else {
@@ -585,6 +586,7 @@
                                 <div style="display:flex; gap:5px;">
                                     <button onclick="viewAthleteProfile('${u.id}')" class="cyber-button" style="padding:4px 10px; font-size:10px; min-width:auto;">Ver Perfil</button>
                                     <button onclick="impersonateUser('${u.id}')" class="cyber-button" style="padding:4px 10px; font-size:10px; min-width:auto; background:#ff3333; border-color:#ff3333; color:white;">Vista Coach</button>
+                                    <button onclick="window.promptDeleteClient('${u.id}', '${(u.fullName || '').replace(/'/g, "\\'")}')" class="cyber-button secondary" style="padding:4px 10px; font-size:10px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;" title="Eliminar Cliente">🗑️</button>
                                 </div>
                             </div>`;
                         });
@@ -594,25 +596,66 @@
                     window.initRoutineBuilder();
 
                 } else if (tabName === 'planes') {
-                    // Módulo de planes (por ahora solo asignar rutinas a clientes)
-                    const activeUsers = await AdminController.getClients('approved');
-                    let userOptions = activeUsers.map(u => `<option value="${u.id}">${u.fullName || u.email}</option>`).join('');
+                    contentArea.innerHTML = `<p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-top:40px;">Sincronizando Biblioteca de Entrenamientos...</p>`;
 
-                    contentArea.innerHTML = `
-                        <h3 style="color:#00d4ff; margin-bottom:15px; font-size: 14px;">Gestor de Planes (Asignar)</h3>
-                        <p style="color:var(--cyber-text-gray); font-size:12px; margin-bottom:15px;">Aquí podrás agrupar rutinas en Planes completos y asignarlos a tus atletas.</p>
-                        <div style="display:flex; flex-direction:column; gap:10px;">
-                            <label style="font-size:11px; color:#aaa;">Seleccionar Atleta:</label>
-                            <select id="admin-routine-user" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
-                                ${userOptions}
-                            </select>
+                    try {
+                        const activeUsers = await AdminController.getClients('approved');
+                        const globalRoutines = await AdminController.getGlobalRoutines();
+
+                        let userOptions = activeUsers.map(u => `<option value="${u.id}">${u.fullName || u.email}</option>`).join('');
+                        let routineOptions = globalRoutines.map(r => `<option value="${r.name}">${r.name}</option>`).join('');
+
+                        let libraryHtml = '';
+                        if (globalRoutines.length === 0) {
+                            libraryHtml = `<p style="color:#aaa; font-size:12px;">No tienes rutinas plantillas guardadas, crea una desde "Creador de Rutinas".</p>`;
+                        } else {
+                            libraryHtml = `<div style="display:flex; flex-direction:column; gap:10px;">`;
+                            globalRoutines.forEach(r => {
+                                const exCount = r.exercises ? r.exercises.length : 0;
+                                libraryHtml += `
+                                <div class="liquid-glass card" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-left:3px solid #ff00ff;">
+                                    <div>
+                                        <strong style="color:white; display:block; font-size: 13px;">${r.name}</strong>
+                                        <span style="font-size:10px; color:#aaa;">${exCount} ejercicios</span>
+                                    </div>
+                                    <div style="display:flex; gap:5px;">
+                                        <button onclick="window.promptDeleteGlobalRoutine('${r.id}', '${r.name}')" class="cyber-button secondary" style="padding:4px 10px; font-size:10px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;" title="Eliminar de la Librería">🗑️</button>
+                                    </div>
+                                </div>`;
+                            });
+                            libraryHtml += `</div>`;
+                        }
+
+                        contentArea.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                                <h3 style="color:#ff00ff; font-size: 14px; margin:0;">Biblioteca Maestro</h3>
+                                <button onclick="loadAdminContent('planes')" class="cyber-button secondary" style="min-width:auto; padding:5px 10px; font-size:11px;">↻</button>
+                            </div>
                             
-                            <label style="font-size:11px; color:#aaa; margin-top:10px;">Nombre de la Rutina (Ya Creada Globalmente):</label>
-                            <input type="text" id="admin-routine-name" placeholder="Ej: Hipertrofia Fase 1" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
+                            <div style="margin-bottom:25px; max-height: 250px; overflow-y:auto; padding-right:5px;">
+                                ${libraryHtml}
+                            </div>
                             
-                            <button onclick="window.submitCustomRoutine()" class="cyber-button" style="margin-top:15px;">Asignar Plan / Rutina</button>
-                        </div>
-                    `;
+                            <h3 style="color:#00d4ff; margin-bottom:15px; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px;">Asignar Rutina a Atleta</h3>
+                            <div style="display:flex; flex-direction:column; gap:10px;">
+                                <label style="font-size:11px; color:#aaa;">Seleccionar Atleta:</label>
+                                <select id="admin-routine-user" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
+                                    ${userOptions}
+                                </select>
+                                
+                                <label style="font-size:11px; color:#aaa; margin-top:10px;">Selecciona la Rutina Plantilla:</label>
+                                <select id="admin-routine-name" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
+                                    <option value="">-- Elige Rutina --</option>
+                                    ${routineOptions}
+                                </select>
+                                
+                                <button onclick="window.submitGlobalRoutineAssigment()" class="cyber-button" style="margin-top:15px;">Ejecutar Asignación</button>
+                            </div>
+                        `;
+                    } catch (e) {
+                        console.error(e);
+                        contentArea.innerHTML = `<p style="color:red; font-size:12px;">Error cargando librería.</p>`;
+                    }
                 } else if (tabName === 'chat') {
                     try {
                         const clients = await AdminController.getClients();
@@ -640,6 +683,76 @@
                         console.error(error);
                         contentArea.innerHTML = `<p style="color:red; font-size:12px;">Error al cargar datos del servidor.</p>`;
                     }
+                } else if (tabName === 'agenda') {
+                    try {
+                        const clients = await AdminController.getClients('approved');
+                        const agenda = await AdminController.getAgenda();
+
+                        let clientOptions = clients.map(c => `<option value="${c.id}" data-name="${c.fullName || c.email}">${c.fullName || c.email}</option>`).join('');
+
+                        let agendaHtml = '';
+                        if (agenda.length === 0) {
+                            agendaHtml = `<p style="color:#aaa; font-size:12px; font-style:italic;">No hay citas programadas.</p>`;
+                        } else {
+                            agenda.forEach(a => {
+                                const typeColor = a.type === 'Presencial' ? '#00ff88' : '#00d4ff';
+                                agendaHtml += `
+                                <div class="liquid-glass card" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-left:3px solid ${typeColor}; margin-bottom:8px;">
+                                    <div>
+                                        <div style="font-weight:bold; color:white; font-size:13px;">${a.clientName} <span style="font-size:10px; color:${typeColor}; border:1px solid ${typeColor}; padding:2px 4px; border-radius:3px; margin-left:5px;">${a.type}</span></div>
+                                        <div style="font-size:11px; color:#aaa; margin-top:3px;">📅 ${a.date} ⏰ ${a.time}</div>
+                                        ${a.notes ? `<div style="font-size:10px; color:#777; margin-top:3px; font-style:italic;">"${a.notes}"</div>` : ''}
+                                    </div>
+                                    <button onclick="window.removeAppointment('${a.id}')" class="cyber-button secondary" style="padding:4px; font-size:12px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;" title="Cancelar Cita">✕</button>
+                                </div>
+                                `;
+                            });
+                        }
+
+                        contentArea.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                                <h3 style="color:#ffcc00; font-size: 14px; margin:0;">Citas Programadas</h3>
+                                <button onclick="loadAdminContent('agenda')" class="cyber-button secondary" style="min-width:auto; padding:5px 10px; font-size:11px;">↻</button>
+                            </div>
+                            
+                            <div style="margin-bottom:20px; max-height:200px; overflow-y:auto; padding-right:5px;">
+                                ${agendaHtml}
+                            </div>
+                            
+                            <h3 style="color:#00ff88; margin-bottom:15px; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px;">Agendar Nueva Cita</h3>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                <label style="font-size:11px; color:#aaa;">Atleta:</label>
+                                <select id="appt-client" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
+                                    ${clientOptions}
+                                </select>
+                                
+                                <div style="display:flex; gap:10px;">
+                                    <div style="flex:1;">
+                                        <label style="font-size:11px; color:#aaa;">Fecha:</label>
+                                        <input type="date" id="appt-date" class="cyber-input" style="width:100%; background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
+                                    </div>
+                                    <div style="flex:1;">
+                                        <label style="font-size:11px; color:#aaa;">Hora:</label>
+                                        <input type="time" id="appt-time" class="cyber-input" style="width:100%; background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
+                                    </div>
+                                </div>
+                                
+                                <label style="font-size:11px; color:#aaa; margin-top:5px;">Modalidad:</label>
+                                <select id="appt-type" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
+                                    <option value="Online">Videollamada / Online</option>
+                                    <option value="Presencial">Presencial / Gimnasio</option>
+                                </select>
+                                
+                                <label style="font-size:11px; color:#aaa; margin-top:5px;">Notas (Opcional):</label>
+                                <input type="text" id="appt-notes" placeholder="Ej: Revisión de técnica de sentadilla" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
+                                
+                                <button onclick="window.scheduleAppointment()" class="cyber-button" style="margin-top:10px; background:#00ff88; color:black; border:none; font-weight:bold;">Agendar Cita</button>
+                            </div>
+                        `;
+                    } catch (e) {
+                        console.error(e);
+                        contentArea.innerHTML = `<p style="color:red; font-size:12px;">Error cargando agenda.</p>`;
+                    }
                 }
             } catch (error) {
                 console.error(error);
@@ -647,45 +760,161 @@
             }
         };
 
+        window.scheduleAppointment = async () => {
+            const selectEl = document.getElementById('appt-client');
+            const uid = selectEl.value;
+            const uName = selectEl.options[selectEl.selectedIndex].dataset.name;
+            const date = document.getElementById('appt-date').value;
+            const time = document.getElementById('appt-time').value;
+            const type = document.getElementById('appt-type').value;
+            const notes = document.getElementById('appt-notes').value.trim();
+
+            if (!uid || !date || !time) {
+                alert("Debes seleccionar atleta, fecha y hora.");
+                return;
+            }
+
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = "Agendando...";
+
+            const res = await AdminController.createAppointment(uid, uName, date, time, type, notes);
+            if (res) {
+                showToast("Cita Agendada.");
+                window.loadAdminContent('agenda');
+            } else {
+                alert("Falló la creación de la cita.");
+                btn.disabled = false;
+                btn.textContent = "Agendar Cita";
+            }
+        };
+
+        window.removeAppointment = async (id) => {
+            if (confirm("¿Cancelar esta cita?")) {
+                const res = await AdminController.deleteAppointment(id);
+                if (res) {
+                    showToast("Cita cancelada.");
+                    window.loadAdminContent('agenda');
+                } else {
+                    alert("No se pudo cancelar la cita.");
+                }
+            }
+        };
+
+        window.promptDeleteClient = async (uid, name) => {
+            const check = prompt(`PELIGRO: Estás a punto de eliminar a ${name || 'este atleta'} permanentemente.\\nPara confirmar, escribe ELIMINAR en mayúsculas:`);
+            if (check !== 'ELIMINAR') {
+                alert("Eliminación cancelada.");
+                return;
+            }
+            if (confirm("ÚLTIMO AVISO: Se perderá su cuenta y todo su historial. ¿Proceder?")) {
+                showToast("Borrando cuenta permanentemente...");
+                const res = await AdminController.deleteClientComplete(uid);
+                if (res) {
+                    showToast("Cliente eliminado.");
+                    window.loadAdminContent('atletas');
+                } else {
+                    alert("Falló la eliminación.");
+                }
+            }
+        };
+
+        window.promptDeleteGlobalRoutine = async (routineId, name) => {
+            if (confirm(`¿Seguro que deseas eliminar la rutina "${name}" de tu biblioteca plantilla?`)) {
+                const res = await AdminController.deleteGlobalRoutine(routineId);
+                if (res) {
+                    showToast("Rutina borrada de la librería.");
+                    window.loadAdminContent('planes');
+                } else {
+                    alert("Error eliminando la rutina.");
+                }
+            }
+        };
+
+        window.submitGlobalRoutineAssigment = async () => {
+            const uid = document.getElementById('admin-routine-user').value;
+            const rName = document.getElementById('admin-routine-name').value;
+
+            if (!uid || !rName) {
+                alert("Selecciona un usuario y una rutina de la lista.");
+                return;
+            }
+
+            showToast("Buscando rutina en librería...");
+            const globalRoutines = await AdminController.getGlobalRoutines();
+            const target = globalRoutines.find(r => r.name === rName);
+
+            if (!target || !target.exercises) {
+                alert("La rutina seleccionada no es válida o está vacía.");
+                return;
+            }
+
+            const res = await AdminController.assignRoutineToUser(uid, rName, target.exercises);
+            if (res) {
+                showToast("Plan asignado con éxito.");
+                window.loadAdminContent('planes');
+            } else {
+                alert("Falló la asignación al atleta.");
+            }
+        };
+
         window.openAdminChat = async (uid, name) => {
             const contentArea = document.getElementById('admin-subcontent');
-            contentArea.innerHTML = `<p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-top:40px;">Cargando historial cifrado...</p>`;
+            contentArea.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <button onclick="loadAdminContent('chat'); if(window.activeChatUnsubscribe) window.activeChatUnsubscribe();" class="cyber-button secondary" style="min-width:auto; padding:5px 10px; font-size:11px;">← INBOX</button>
+                    <h3 style="color:#00d4ff; font-size:16px; margin:0; text-align:right;">${name}</h3>
+                </div>
+                <div class="liquid-glass card" style="padding:15px; min-height:250px; max-height:400px; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column;" id="admin-chat-history-${uid}">
+                    <p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-top:40px;">Conectando red cifrada en vivo...</p>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="reply-input-${uid}" placeholder="Escribe al atleta..." style="flex:1; background:rgba(0,0,0,0.5); border:1px solid #444; color:white; padding:10px; border-radius:4px; font-size:12px;" onkeydown="if(event.key === 'Enter') replyToClient('${uid}')">
+                    <button onclick="replyToClient('${uid}')" class="cyber-button" style="padding:10px 15px; font-size:12px; min-width:auto;">Enviar</button>
+                </div>
+            `;
 
             try {
-                const userData = await loadUserData(uid);
-                const msgs = userData?.messages || [];
-                let msgsHtml = msgs.length === 0 ? `<p style="color:#aaa; font-size:12px; text-align:center; font-style:italic; margin-top:20px;">Sin historial de comunicaciones</p>` : '';
+                if (window.activeChatUnsubscribe) window.activeChatUnsubscribe();
 
-                msgs.forEach(m => {
-                    const align = m.sender === 'coach' ? 'flex-end' : 'flex-start';
-                    const bg = m.sender === 'coach' ? 'rgba(0,212,255,0.2)' : 'rgba(255,255,255,0.1)';
-                    const color = m.sender === 'coach' ? '#00d4ff' : '#fff';
-                    msgsHtml += `<div style="display:flex; flex-direction:column; align-items:${align}; margin-bottom:10px;">
-                                    <div style="background:${bg}; color:${color}; padding:8px 12px; border-radius:8px; max-width:80%; font-size:13px;">${m.text}</div>
-                                    <span style="font-size:9px; color:#666; margin-top:3px;">${m.time}</span>
-                                 </div>`;
-                });
+                const { db, doc, onSnapshot } = await import('./js/firebase.js');
+                const docRef = doc(db, "users", uid);
 
-                contentArea.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <button onclick="loadAdminContent('chat')" class="cyber-button secondary" style="min-width:auto; padding:5px 10px; font-size:11px;">← INBOX</button>
-                        <h3 style="color:#00d4ff; font-size:16px; margin:0; text-align:right;">${name}</h3>
-                    </div>
-                    <div class="liquid-glass card" style="padding:15px; min-height:250px; max-height:400px; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column;" id="admin-chat-history-${uid}">
-                        ${msgsHtml}
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" id="reply-input-${uid}" placeholder="Escribe al atleta..." style="flex:1; background:rgba(0,0,0,0.5); border:1px solid #444; color:white; padding:10px; border-radius:4px; font-size:12px;">
-                        <button onclick="replyToClient('${uid}')" class="cyber-button" style="padding:10px 15px; font-size:12px; min-width:auto;">Enviar</button>
-                    </div>
-                `;
-                setTimeout(() => {
+                window.activeChatUnsubscribe = onSnapshot(docRef, (docSnap) => {
                     const box = document.getElementById(`admin-chat-history-${uid}`);
-                    if (box) box.scrollTop = box.scrollHeight;
-                }, 50);
+                    if (!box) {
+                        window.activeChatUnsubscribe();
+                        return;
+                    }
+
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data();
+                        const msgs = userData?.messages || [];
+                        let msgsHtml = msgs.length === 0 ? `<p style="color:#aaa; font-size:12px; text-align:center; font-style:italic; margin-top:20px;">Sin historial de comunicaciones</p>` : '';
+
+                        msgs.forEach(m => {
+                            const align = m.sender === 'coach' ? 'flex-end' : 'flex-start';
+                            const bg = m.sender === 'coach' ? 'rgba(0,212,255,0.2)' : 'rgba(255,255,255,0.1)';
+                            const color = m.sender === 'coach' ? '#00d4ff' : '#fff';
+                            msgsHtml += `<div style="display:flex; flex-direction:column; align-items:${align}; margin-bottom:10px;">
+                                            <div style="background:${bg}; color:${color}; padding:8px 12px; border-radius:8px; max-width:80%; font-size:13px;">${m.text}</div>
+                                            <span style="font-size:9px; color:#666; margin-top:3px;">${m.time}</span>
+                                         </div>`;
+                        });
+
+                        const isAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 50;
+                        box.innerHTML = msgsHtml;
+                        if (isAtBottom) setTimeout(() => box.scrollTop = box.scrollHeight, 50);
+                    }
+                }, (error) => {
+                    console.error("Firebase realtime chat error:", error);
+                    const box = document.getElementById(`admin-chat-history-${uid}`);
+                    if (box) box.innerHTML = `<p style="color:red; font-size:12px; text-align:center;">Se perdió la conexión confidencial.</p>`;
+                });
             } catch (e) {
                 console.error(e);
-                contentArea.innerHTML = `<p style="color:red; font-size:12px; text-align:center;">Error leyendo canal cifrado.</p><button onclick="loadAdminContent('chat')" class="cyber-button" style="margin-top:15px;">← Volver</button>`;
+                const box = document.getElementById(`admin-chat-history-${uid}`);
+                if (box) box.innerHTML = `<p style="color:red; font-size:12px; text-align:center;">Error inicializando socket.</p>`;
             }
         };
         window.approveAthlete = async (uid) => {
@@ -905,29 +1134,29 @@
         window.saveAdminRoutine = async () => {
             const name = document.getElementById('draft-r-name').value.trim();
             if (!name) { alert("Ponle un nombre a la rutina."); return; }
-            if (!window.adminDraftRoutine || window.adminDraftRoutine.length === 0) { alert("Añade algún ejercicio primero."); return; }
+            if (!window.currentRoutineSelections || window.currentRoutineSelections.length === 0) { alert("Añade algún ejercicio primero."); return; }
 
             const btn = document.querySelector('button[onclick="saveAdminRoutine()"]');
-            btn.disabled = true;
-            btn.textContent = "GUARDANDO...";
+            if (btn) { btn.disabled = true; btn.textContent = "GUARDANDO..."; }
 
-            // Find full exercise data to assign
-            const routineData = window.adminDraftRoutine.map(dEx => {
-                const found = EXERCISES.find(ex => ex.n === dEx.n);
-                return found ? { ...found, id: "ex_" + Math.random().toString(36).substr(2, 9), isSuperSet: dEx.isSuperSet } : { id: "custom", n: dEx.n, m: "Varios", eq: "Libre", isSuperSet: dEx.isSuperSet };
+            // Find full exercise data to assign and combine with series/reps/ss definitions
+            const routineData = window.currentRoutineSelections.map(s => {
+                const found = EXERCISES.find(ex => ex.n === s.n);
+                if (found) {
+                    return { ...found, id: "ex_" + Math.random().toString(36).substr(2, 9), series_req: s.series, reps_req: s.reps, isSuperSet: s.s };
+                } else {
+                    return { id: "custom", n: s.n, m: "Varios", eq: "Libre", series_req: s.series, reps_req: s.reps, isSuperSet: s.s };
+                }
             });
 
             const res = await AdminController.saveGlobalRoutine(name, routineData);
             if (res) {
                 showToast("Rutina guardada en la base global.");
-                document.getElementById('draft-r-name').value = '';
-                window.adminDraftRoutine = [];
-                window.renderDraftRoutine();
+                window.loadAdminContent('planes'); // redirigir a los planes/librería para verla
             } else {
                 alert("Error al guardar la rutina.");
+                if (btn) { btn.disabled = false; btn.textContent = "GUARDAR RUTINA"; }
             }
-            btn.disabled = false;
-            btn.textContent = "GUARDAR";
         };
 
         window.submitCustomRoutine = async () => {
@@ -1474,6 +1703,7 @@
                     <div class="liquid-glass menu-item view-trigger" data-target="admin_rutinas"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg></div><span>Rutinas</span></div>
                     <div class="liquid-glass menu-item view-trigger" data-target="admin_planes"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z"/></svg></div><span>Planes</span></div>
                     <div class="liquid-glass menu-item view-trigger" data-target="admin_chat"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg></div><span>Inbox</span></div>
+                    <div class="liquid-glass menu-item view-trigger" data-target="admin_agenda"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 002 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-7 5h5v5h-5z"/></svg></div><span>Agenda</span></div>
                 </div>
             `,
 
@@ -1493,10 +1723,63 @@
                 setTimeout(() => loadAdminContent('chat'), 50);
                 return `<h2 style="display:flex; gap:10px; align-items:center; margin-bottom:15px; color:#ffcc00;"><span class="view-trigger" data-target="admin_dashboard" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Inbox Coach</h2><div id="admin-subcontent"><div class="ai-loader" style="margin-top:40px;">Cargando...</div></div>`;
             },
+            admin_agenda: () => {
+                setTimeout(() => loadAdminContent('agenda'), 50);
+                return `<h2 style="display:flex; gap:10px; align-items:center; margin-bottom:15px; color:#ffcc00;"><span class="view-trigger" data-target="admin_dashboard" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Agenda de Citas</h2><div id="admin-subcontent"><div class="ai-loader" style="margin-top:40px;">Cargando calendario...</div></div>`;
+            },
 
             mensajes: () => {
-                let msgsHtml = ''; State.messages.forEach(m => { msgsHtml += `<div class="msg ${m.sender}">${m.text}<span class="msg-time">${m.time}</span></div>`; });
-                return `<h2 style="margin-bottom: 15px;">Transmisión con Coach</h2><div class="liquid-glass card chat-container" style="padding:15px;"><div class="chat-messages" id="chat-box">${msgsHtml}</div><div class="chat-input-area"><input type="text" class="chat-input" id="chat-input-text" placeholder="Escribe a tu coach..."><button class="chat-send" id="btn-chat-send"><svg style="width:20px;height:20px;fill:white;" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div></div>`;
+                const uid = State.profile.id;
+
+                setTimeout(async () => {
+                    const box = document.getElementById('chat-box');
+                    if (!box) return;
+
+                    box.innerHTML = `<p style="color:var(--cyber-text-gray); font-size:12px; text-align:center; margin-top:40px;">Conectando al servidor...</p>`;
+
+                    try {
+                        if (window.activeClientChatUnsubscribe) window.activeClientChatUnsubscribe();
+
+                        const { db, doc, onSnapshot } = await import('./js/firebase.js');
+                        const docRef = doc(db, "users", uid);
+
+                        window.activeClientChatUnsubscribe = onSnapshot(docRef, (docSnap) => {
+                            const currentBox = document.getElementById('chat-box');
+                            if (!currentBox) {
+                                window.activeClientChatUnsubscribe();
+                                return;
+                            }
+
+                            if (docSnap.exists()) {
+                                const userData = docSnap.data();
+                                const msgs = userData?.messages || [];
+                                let msgsHtml = msgs.length === 0 ? `<p style="color:#aaa; font-size:12px; text-align:center; font-style:italic; margin-top:20px;">Envía un mensaje a tu coach para empezar.</p>` : '';
+
+                                msgs.forEach(m => {
+                                    msgsHtml += `<div class="msg ${m.sender}">${m.text}<span class="msg-time">${m.time}</span></div>`;
+                                });
+
+                                const isAtBottom = currentBox.scrollHeight - currentBox.scrollTop <= currentBox.clientHeight + 50;
+                                currentBox.innerHTML = msgsHtml;
+                                if (isAtBottom) setTimeout(() => currentBox.scrollTop = currentBox.scrollHeight, 50);
+                            }
+                        });
+                    } catch (e) {
+                        console.error("Chat setup error", e);
+                        box.innerHTML = `<p style="color:red; font-size:12px; text-align:center;">Fallo de conexión cifrada.</p>`;
+                    }
+                }, 100);
+
+                return `<h2 style="margin-bottom: 15px;">Transmisión con Coach</h2>
+                <div class="liquid-glass card chat-container" style="padding:15px;">
+                    <div class="chat-messages" id="chat-box" style="min-height:300px; max-height:400px; overflow-y:auto; display:flex; flex-direction:column;"></div>
+                    <div class="chat-input-area">
+                        <input type="text" class="chat-input" id="chat-input-text" placeholder="Escribe a tu coach..." onkeydown="if(event.key === 'Enter') document.getElementById('btn-chat-send').click()">
+                        <button class="chat-send" id="btn-chat-send">
+                            <svg style="width:20px;height:20px;fill:white;" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                        </button>
+                    </div>
+                </div>`;
             },
 
             // --- IA Y WORKOUT PLAYER AVANZADO (AUTOFILL + MARCAR TODO + DROPSET EXACTO) ---
