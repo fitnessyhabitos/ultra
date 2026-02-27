@@ -326,21 +326,44 @@ export const AdminController = {
     },
 
     /**
-     * Asigna una rutina directamente a un atleta
+     * Asigna un Plan completo (múltiples rutinas) a uno o varios atletas
      */
-    async assignRoutineToUser(clientId, routineName, exercisesArray) {
+    async assignPlanToClients(clientIdsArray, planName, routinesArray) {
+        try {
+            const promises = clientIdsArray.map(clientId => {
+                const userRef = doc(db, "users", clientId);
+                return updateDoc(userRef, {
+                    plan: {
+                        name: planName,
+                        routinesAvailable: routinesArray,
+                        assignedAt: new Date().toISOString()
+                    }
+                });
+            });
+            await Promise.all(promises);
+            return true;
+        } catch (error) {
+            console.error("Admin: Error al asignar plan a atletas", error);
+            return false;
+        }
+    },
+
+    /**
+     * Desasigna (limpia) el plan activo de un atleta
+     */
+    async unassignPlan(clientId) {
         try {
             const userRef = doc(db, "users", clientId);
             await updateDoc(userRef, {
-                assignedRoutine: {
-                    name: routineName,
-                    exercises: exercisesArray,
-                    assignedAt: new Date().toISOString()
+                plan: {
+                    name: "Sin Plan Activo",
+                    routinesAvailable: [],
+                    unassignedAt: new Date().toISOString()
                 }
             });
             return true;
         } catch (error) {
-            console.error("Admin: Error al asignar rutina al atleta", error);
+            console.error("Admin: Error al desasignar plan", error);
             return false;
         }
     },

@@ -338,6 +338,23 @@
                     if (userData.comparativaImages) State.comparativaImages = userData.comparativaImages;
                     State.profile.role = userData.role || 'user';
                     State.messages = userData.messages || [];
+
+                    // Plan de Entrenamiento Dinámico
+                    if (userData.plan && userData.plan.routinesAvailable) {
+                        State.plan.name = userData.plan.name || "Plan Activo";
+                        State.plan.routinesAvailable = userData.plan.routinesAvailable;
+                    } else if (userData.assignedRoutine) {
+                        // Retrocompatibilidad con rutinas únicas
+                        State.plan.name = "Rutina Simple";
+                        State.plan.routinesAvailable = [{
+                            routineName: userData.assignedRoutine.name,
+                            exercises: userData.assignedRoutine.exercises || []
+                        }];
+                    } else {
+                        State.plan.name = "Sin Plan Activo";
+                        State.plan.routinesAvailable = [];
+                    }
+
                 } else {
                     State.profile.maxWeights = {};
                     State.profile.rmRecords = {};
@@ -417,8 +434,43 @@
         }
 
         // ==========================================
-        // ROUTINE BUILDER LOGIC
+        // ROUTINE BUILDER & EXECUTION LOGIC
         // ==========================================
+        window.startAssignedRoutine = (index) => {
+            const selectedRoutine = State.plan.routinesAvailable[index];
+            if (!selectedRoutine || !selectedRoutine.exercises) return alert("Rutina no válida.");
+
+            State.activeWorkout = selectedRoutine.exercises.map(ex => {
+                // Si la rutina maestra ya tiene sets guardados (ej: 4 series, 12 reps), los respetamos, 
+                // sino generamos placeholders
+                let setsArray = [];
+                if (ex.s) {
+                    const repsPattern = String(ex.s).split('-');
+                    for (let i = 0; i < repsPattern.length; i++) {
+                        setsArray.push({ id: i + 1, targetR: parseInt(repsPattern[i]) || 12, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false });
+                    }
+                } else {
+                    setsArray = [
+                        { id: 1, targetR: 12, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false },
+                        { id: 2, targetR: 12, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false },
+                        { id: 3, targetR: 12, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false },
+                        { id: 4, targetR: 12, r: '', w: '', done: false, prevW: 0, prevR: 0, isDrop: false }
+                    ];
+                }
+
+                return {
+                    name: ex.n,
+                    notes: '',
+                    obs: '',
+                    sets: setsArray
+                };
+            });
+
+            // Guardamos el índice actual para borrarlo cuando finalice el entreno si queremos ir eliminándolos de la lista de pendientes (Lógica futura)
+            State.currentExerciseIndex = 0;
+            navigateTo('workout_player');
+        };
+
         window.rbNormalized = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
         window.rbFilter = () => {
@@ -639,60 +691,79 @@
                     window.initRoutineBuilder();
 
                 } else if (tabName === 'planes') {
-                    contentArea.innerHTML = `<p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-top:40px;">Sincronizando Biblioteca de Entrenamientos...</p>`;
+                    contentArea.innerHTML = `<p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-top:40px;">Construyendo entorno de Planes...</p>`;
 
                     try {
                         const activeUsers = await AdminController.getClients('approved');
                         const globalRoutines = await AdminController.getGlobalRoutines();
 
-                        let userOptions = activeUsers.map(u => `<option value="${u.id}">${u.fullName || u.email}</option>`).join('');
-                        let routineOptions = globalRoutines.map(r => `<option value="${r.name}">${r.name}</option>`).join('');
+                        let userOptions = activeUsers.map(u => `
+                            <label style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.05); padding:8px; border-radius:6px; cursor:pointer;">
+                                <input type="checkbox" name="plan-targets" value="${u.id}" class="cyber-checkbox">
+                                <span style="color:white; font-size:13px;">${u.fullName || u.email}</span>
+                            </label>`).join('');
 
-                        let libraryHtml = '';
+                        let routineCheckboxes = '';
                         if (globalRoutines.length === 0) {
-                            libraryHtml = `<p style="color:#aaa; font-size:12px;">No tienes rutinas plantillas guardadas, crea una desde "Creador de Rutinas".</p>`;
+                            routineCheckboxes = `<p style="color:#ffaa00; font-size:11px;">⚠️ No tienes rutinas creadas. Primero crea rutinas individuales en "Rutinas".</p>`;
                         } else {
-                            libraryHtml = `<div style="display:flex; flex-direction:column; gap:10px;">`;
-                            globalRoutines.forEach(r => {
-                                const exCount = r.exercises ? r.exercises.length : 0;
-                                libraryHtml += `
-                                <div class="liquid-glass card" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-left:3px solid #ff00ff;">
-                                    <div>
-                                        <strong style="color:white; display:block; font-size: 13px;">${r.name}</strong>
-                                        <span style="font-size:10px; color:#aaa;">${exCount} ejercicios</span>
+                            routineCheckboxes = globalRoutines.map(r => `
+                            <label style="display:flex; align-items:center; gap:8px; background:rgba(10,10,10,0.8); border:1px solid #444; padding:10px; border-radius:8px; cursor:pointer;">
+                                <input type="checkbox" name="plan-routines" value="${r.name}" data-json='${JSON.stringify(r.exercises || []).replace(/'/g, "&#39;")}' class="cyber-checkbox">
+                                <strong style="color:white; font-size:13px;">${r.name}</strong>
+                                <span style="font-size:10px; color:#aaa; margin-left:auto;">${(r.exercises || []).length} ejs.</span>
+                            </label>`).join('');
+                        }
+
+                        let activeRosterHtml = '';
+                        if (activeUsers.length === 0) {
+                            activeRosterHtml = `<p style="color:#aaa; font-size:12px;">No hay atletas activos.</p>`;
+                        } else {
+                            activeRosterHtml = `<div style="display:flex; flex-direction:column; gap:10px;">`;
+                            activeUsers.forEach(u => {
+                                const pName = u.plan && u.plan.name && u.plan.name !== "Sin Plan Activo" ? u.plan.name : "Sin Plan";
+                                const isAssigned = pName !== "Sin Plan";
+
+                                activeRosterHtml += `
+                                <div class="liquid-glass card" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-left:3px solid ${isAssigned ? '#00d4ff' : '#444'};">
+                                    <div style="flex:1;">
+                                        <strong style="color:white; display:block; font-size: 13px;">${u.fullName || u.email}</strong>
+                                        <span style="font-size:10px; color:${isAssigned ? '#00d4ff' : '#888'};">Current: ${pName}</span>
                                     </div>
                                     <div style="display:flex; gap:5px;">
-                                        <button onclick="window.promptDeleteGlobalRoutine('${r.id}', '${r.name}')" class="cyber-button secondary" style="padding:4px 10px; font-size:10px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;" title="Eliminar de la Librería">🗑️</button>
+                                        ${isAssigned ? `<button onclick="window.confirmUnassignPlan('${u.id}', '${(u.fullName || '').replace(/'/g, "\\'")}')" class="cyber-button secondary" style="padding:4px 10px; font-size:10px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;" title="Quitar Plan Actual">✖️ Desasignar</button>` : ''}
                                     </div>
                                 </div>`;
                             });
-                            libraryHtml += `</div>`;
+                            activeRosterHtml += `</div>`;
                         }
 
                         contentArea.innerHTML = `
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                                <h3 style="color:#ff00ff; font-size: 14px; margin:0;">Biblioteca Maestro</h3>
+                                <h3 style="color:#ff00ff; font-size: 16px; margin:0; text-transform:uppercase;">Constructor de Planes</h3>
                                 <button onclick="loadAdminContent('planes')" class="cyber-button secondary" style="min-width:auto; padding:5px 10px; font-size:11px;">↻</button>
                             </div>
                             
-                            <div style="margin-bottom:25px; max-height: 250px; overflow-y:auto; padding-right:5px;">
-                                ${libraryHtml}
+                            <div class="liquid-glass" style="padding:15px; margin-bottom:25px;">
+                                <label style="font-size:11px; color:#aaa;">1. Nombre del Plan (Ej: Hipertrofia 4 Días):</label>
+                                <input type="text" id="builder-plan-name" placeholder="Escribe el nombre del Plan Pack..." class="cyber-input" style="width:100%; padding:12px; margin-top:5px; margin-bottom:15px; background:rgba(0,0,0,0.5); border:1px solid #ff00ff; color:white; border-radius:6px; font-size:14px; outline:none;">
+                                
+                                <label style="font-size:11px; color:#aaa; margin-bottom:8px; display:block;">2. Elige las Rutinas que conforman este Plan:</label>
+                                <div style="display:flex; flex-direction:column; gap:8px; max-height:150px; overflow-y:auto; margin-bottom:15px; padding-right:5px; padding-left:2px;">
+                                    ${routineCheckboxes}
+                                </div>
+
+                                <label style="font-size:11px; color:#aaa; margin-bottom:8px; display:block;">3. Selecciona a qué atletas asignarlo:</label>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; max-height:150px; overflow-y:auto; margin-bottom:15px; padding:5px;">
+                                    ${userOptions}
+                                </div>
+                                
+                                <button onclick="window.submitPlanExecution()" class="cyber-button" style="background:linear-gradient(45deg, #ff00ff, #ff1f3d); font-size:13px; letter-spacing:1px; box-shadow:0 0 15px rgba(255,0,255,0.4);">ASIGNAR Y GUARDAR PLAN</button>
                             </div>
                             
-                            <h3 style="color:#00d4ff; margin-bottom:15px; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px;">Asignar Rutina a Atleta</h3>
-                            <div style="display:flex; flex-direction:column; gap:10px;">
-                                <label style="font-size:11px; color:#aaa;">Seleccionar Atleta:</label>
-                                <select id="admin-routine-user" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
-                                    ${userOptions}
-                                </select>
-                                
-                                <label style="font-size:11px; color:#aaa; margin-top:10px;">Selecciona la Rutina Plantilla:</label>
-                                <select id="admin-routine-name" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
-                                    <option value="">-- Elige Rutina --</option>
-                                    ${routineOptions}
-                                </select>
-                                
-                                <button onclick="window.submitGlobalRoutineAssigment()" class="cyber-button" style="margin-top:15px;">Ejecutar Asignación</button>
+                            <h3 style="color:#00d4ff; margin-bottom:15px; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px; text-transform:uppercase;">Atletas Activos (Gestor)</h3>
+                            <div style="margin-bottom:25px; max-height: 400px; overflow-y:auto; padding-right:5px;">
+                                ${activeRosterHtml}
                             </div>
                         `;
                     } catch (e) {
@@ -975,30 +1046,50 @@
             }
         };
 
-        window.submitGlobalRoutineAssigment = async () => {
-            const uid = document.getElementById('admin-routine-user').value;
-            const rName = document.getElementById('admin-routine-name').value;
+        // LÓGICA DEL PLAN BUILDER (ASIGNACIÓN MULTIPLE)
+        window.submitPlanExecution = async () => {
+            const planName = document.getElementById('builder-plan-name').value.trim();
+            if (!planName) return alert("Por favor, ponle un nombre al Plan (ej: FullBody 3D).");
 
-            if (!uid || !rName) {
-                alert("Selecciona un usuario y una rutina de la lista.");
-                return;
-            }
+            const checkedRoutines = Array.from(document.querySelectorAll('input[name="plan-routines"]:checked'));
+            if (checkedRoutines.length === 0) return alert("Debes seleccionar al menos 1 rutina para formar el Plan.");
 
-            showToast("Buscando rutina en librería...");
-            const globalRoutines = await AdminController.getGlobalRoutines();
-            const target = globalRoutines.find(r => r.name === rName);
+            const checkedTargets = Array.from(document.querySelectorAll('input[name="plan-targets"]:checked'));
+            if (checkedTargets.length === 0) return alert("Debes seleccionar a qué atletas quieres asignarles este plan.");
 
-            if (!target || !target.exercises) {
-                alert("La rutina seleccionada no es válida o está vacía.");
-                return;
-            }
+            const routinesPayload = checkedRoutines.map(chk => {
+                return {
+                    routineName: chk.value,
+                    exercises: JSON.parse(chk.getAttribute('data-json') || '[]')
+                };
+            });
 
-            const res = await AdminController.assignRoutineToUser(uid, rName, target.exercises);
+            const targetIds = checkedTargets.map(chk => chk.value);
+
+            const btn = event.target;
+            btn.textContent = "⚙️ Asignando Plan...";
+            btn.disabled = true;
+
+            const res = await AdminController.assignPlanToClients(targetIds, planName, routinesPayload);
             if (res) {
-                showToast("Plan asignado con éxito.");
+                showToast(`Plan "${planName}" asignado a ${targetIds.length} atleta(s).`);
                 window.loadAdminContent('planes');
             } else {
-                alert("Falló la asignación al atleta.");
+                alert("Fallo de red al asignar.");
+                btn.textContent = "ASIGNAR Y GUARDAR PLAN";
+                btn.disabled = false;
+            }
+        };
+
+        window.confirmUnassignPlan = async (clientId, clientName) => {
+            if (confirm(`¿Desasignar entrenamiento a ${clientName}? Su panel quedará vacío.`)) {
+                const res = await AdminController.unassignPlan(clientId);
+                if (res) {
+                    showToast(`Plan retirado a ${clientName}.`);
+                    window.loadAdminContent('planes');
+                } else {
+                    alert('Error en BBDD local.');
+                }
             }
         };
 
@@ -1791,14 +1882,21 @@
                 let eventsHtml = todaysEvents.length === 0 ? `<div class="liquid-glass" style="padding:15px; color:var(--cyber-text-gray); font-style:italic; font-size:14px; margin-bottom:20px;">Sin eventos programados.</div>` : '';
                 todaysEvents.forEach(ev => eventsHtml += `<div class="liquid-glass card" style="border-left: 4px solid #ffcc00; margin-bottom:20px; padding:15px;"><div class="card-title" style="color:#ffcc00;"><svg class="cyber-icon" style="width:16px; height:16px;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg> ${ev.title}</div><p style="color:white; font-size:16px;">${ev.time}</p></div>`);
 
-                let routinesHtml = State.plan.routinesAvailable.length === 0 ? `<div class="liquid-glass" style="padding:15px; color:var(--cyber-text-gray); font-style:italic; font-size:14px;">Semana completada. ¡Buen trabajo!</div>` : '';
-                State.plan.routinesAvailable.forEach(r => routinesHtml += `<div class="liquid-glass card" style="padding:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;"><span style="font-weight:bold; color:white;">${r}</span><button class="cyber-button secondary view-trigger" data-target="workout_player" style="min-height:35px; width:auto; padding:0 15px; font-size:12px;">INICIAR</button></div>`);
+                let routinesHtml = State.plan.routinesAvailable.length === 0 ? `<div class="liquid-glass" style="padding:15px; color:var(--cyber-text-gray); font-style:italic; font-size:14px;">Actualmente no tienes un Entrenamientos asignado. Habla con tu Coach.</div>` : '';
+
+                State.plan.routinesAvailable.forEach((r, index) => {
+                    routinesHtml += `
+                    <div class="liquid-glass card" style="padding:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-weight:bold; color:white;">${r.routineName || 'Rutina Desconocida'}</span>
+                        <button class="cyber-button secondary" onclick="window.startAssignedRoutine(${index})" style="min-height:35px; width:auto; padding:0 15px; font-size:12px;">INICIAR</button>
+                    </div>`;
+                });
 
                 return `
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><h2 style="font-size:18px;">Mis actividades</h2></div>
                     <div class="calendar-scroller">${calendarHtml}</div>
                     ${eventsHtml}
-                    <h2 style="font-size:18px; margin-bottom:10px; margin-top:10px;">Plan Semanal <span style="font-size:12px; color:var(--cyber-red-neon); float:right;">Restantes: ${State.plan.routinesAvailable.length}</span></h2>
+                    <h2 style="font-size:18px; margin-bottom:10px; margin-top:10px;">${State.plan.name || 'Plan Local'} <span style="font-size:12px; color:var(--cyber-red-neon); float:right;">Ruts: ${State.plan.routinesAvailable.length}</span></h2>
                     ${routinesHtml}
                     <h2 style="font-size:18px; margin-bottom:10px; margin-top:20px;">Tu Red Neuronal</h2>
                     <div class="liquid-glass card" style="text-align:center; padding:15px;"><button class="cyber-button ai-button" id="btn-ia-setup" style="display:flex; justify-content:center; align-items:center; gap:10px;"><svg class="cyber-icon" style="width:24px; height:24px;" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.991.991 0 013 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L5.4 7.86l6.6 3.71 6.6-3.71L12 4.15zm0 14.7l6.6-3.71V7.86l-6.6 3.71v7.28z"/></svg> Generar Rutina Extra IA</button></div>
