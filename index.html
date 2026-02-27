@@ -372,31 +372,31 @@
             contentArea.innerHTML = `<p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-top:40px;">Cargando módulo ${tabName}...</p>`;
 
             try {
-                if (tabName === 'solicitudes') {
+                if (tabName === 'atletas') {
                     const pendingUsers = await AdminController.getClients('pending');
-                    let html = `<h3 style="color:#ffcc00; margin-bottom:15px;">Atletas Pendientes</h3>`;
+                    const activeUsers = await AdminController.getClients('approved');
 
-                    if (pendingUsers.length === 0) {
-                        html += `<p style="font-size:12px; color:#aaa;">No hay solicitudes pendientes.</p>`;
-                    } else {
+                    let html = ``;
+
+                    if (pendingUsers.length > 0) {
+                        html += `<h3 style="color:#ffcc00; margin-bottom:10px; font-size: 14px;">Atletas Pendientes</h3>`;
                         pendingUsers.forEach(u => {
                             html += `
                             <div class="liquid-glass card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:10px; border-left:3px solid #ffcc00;">
                                 <div>
-                                    <strong style="color:white; display:block;">${u.fullName || 'Atleta Sin Nombre'}</strong>
-                                    <span style="font-size:11px; color:#aaa;">${u.email}</span>
+                                    <strong style="color:white; display:block; font-size: 13px;">${u.fullName || 'Atleta Sin Nombre'}</strong>
+                                    <span style="font-size:10px; color:#aaa;">${u.email}</span>
                                 </div>
-                                <div style="display:flex; gap:10px;">
-                                    <button onclick="approveAthlete('${u.id}')" class="cyber-button" style="padding:5px 10px; font-size:11px; min-width:auto; border-color:#00ff88; color:#00ff88;">✓ Aprobar</button>
-                                    <button onclick="rejectAthlete('${u.id}')" class="cyber-button secondary" style="padding:5px 10px; font-size:11px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;">✕ Rechazar</button>
+                                <div style="display:flex; gap:5px;">
+                                    <button onclick="approveAthlete('${u.id}')" class="cyber-button" style="padding:4px 8px; font-size:10px; min-width:auto; border-color:#00ff88; color:#00ff88;">✓</button>
+                                    <button onclick="rejectAthlete('${u.id}')" class="cyber-button secondary" style="padding:4px 8px; font-size:10px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;">✕</button>
                                 </div>
                             </div>`;
                         });
+                        html += `<hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:15px 0;">`;
                     }
-                    contentArea.innerHTML = html;
-                } else if (tabName === 'atletas') {
-                    const activeUsers = await AdminController.getClients('approved');
-                    let html = `<h3 style="color:#00ff88; margin-bottom:15px;">Directorio de Atletas</h3>`;
+
+                    html += `<h3 style="color:#00ff88; margin-bottom:10px; font-size: 14px;">Directorio de Clientes</h3>`;
 
                     if (activeUsers.length === 0) {
                         html += `<p style="font-size:12px; color:#aaa;">No tienes atletas activos.</p>`;
@@ -405,33 +405,72 @@
                             html += `
                             <div class="liquid-glass card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:10px; border-left:3px solid #00ff88;">
                                 <div>
-                                    <strong style="color:white; display:block;">${u.fullName || 'Atleta'}</strong>
-                                    <span style="font-size:11px; color:#aaa;">ID: ${u.id.substring(0, 6).toUpperCase()}</span>
+                                    <strong style="color:white; display:block; font-size: 13px;">${u.fullName || 'Atleta'}</strong>
+                                    <span style="font-size:10px; color:#aaa;">ID: ${u.id.substring(0, 6).toUpperCase()}</span>
                                 </div>
-                                <button onclick="viewAthleteProfile('${u.id}')" class="cyber-button" style="padding:5px 15px; font-size:11px; min-width:auto;">Ver Perfil</button>
+                                <button onclick="viewAthleteProfile('${u.id}')" class="cyber-button" style="padding:4px 10px; font-size:10px; min-width:auto;">Ver Perfil</button>
                             </div>`;
                         });
                     }
                     contentArea.innerHTML = html;
                 } else if (tabName === 'rutinas') {
+                    // Estado local para la rutina en creación
+                    window.adminDraftRoutine = [];
+
+                    const renderExList = () => {
+                        return EXERCISES.map(ex => {
+                            const imgPath = typeof ex.img === 'string' ? ex.img : 'logo.png';
+                            return `
+                            <div class="ex-list-item" data-name="${ex.n}" onclick="addExToRoutine('${ex.n}')" style="display:flex; align-items:center; gap:15px; padding:10px; background:rgba(20,20,20,0.8); border:1px solid #333; margin-bottom:5px; border-radius:8px; cursor:pointer;">
+                                <img src="${imgPath}" onerror="this.src='logo.png'" style="width:40px; height:40px; object-fit:contain; background:black; border-radius:4px; padding:2px;">
+                                <span style="color:white; font-size:14px; flex:1;">${ex.n}</span>
+                            </div>`;
+                        }).join('');
+                    };
+
+                    contentArea.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h3 style="color:white; font-size:18px; font-weight:bold; letter-spacing:1px; text-transform:uppercase;">NUEVA RUTINA</h3>
+                            <button onclick="saveAdminRoutine()" class="cyber-button" style="background:#ff3333; color:white; border-color:#ff3333; padding:8px 20px; font-weight:bold; min-width:auto; border-radius:6px; font-size:12px;">GUARDAR</button>
+                        </div>
+                        <input type="text" id="draft-r-name" placeholder="Nombre de Rutina" autocomplete="off" style="width:100%; padding:15px; background:rgba(30,30,30,0.9); border:1px solid #555; color:white; border-radius:6px; margin-bottom:15px; font-size:14px;">
+                        
+                        <div style="position:relative; margin-bottom:15px;">
+                            <span style="position:absolute; left:12px; top:12px; opacity:0.6;">🔍</span>
+                            <input type="text" id="draft-r-search" placeholder="Buscar ejercicio..." autocomplete="off" onkeyup="filterExercises()" style="width:100%; padding:12px 12px 12px 35px; background:rgba(30,30,30,0.9); border:1px solid #555; color:white; border-radius:6px; font-size:13px;">
+                        </div>
+
+                        <div style="background:rgba(255,204,0,0.1); border:1px solid rgba(255,204,0,0.5); color:#ffcc00; padding:10px; text-align:center; font-size:11px; margin-bottom:20px; border-radius:6px;">
+                            💡 Toca el "🔗" para unir en Superserie con el siguiente.
+                        </div>
+
+                        <div id="draft-r-selected" style="margin-bottom:20px; display:flex; flex-direction:column; gap:8px;">
+                            <!-- Selected exercises -->
+                        </div>
+
+                        <div id="ex-list-container" style="max-height:350px; overflow-y:auto; padding-right:5px;">
+                            ${renderExList()}
+                        </div>
+                    `;
+
+                } else if (tabName === 'planes') {
+                    // Módulo de planes (por ahora solo asignar rutinas a clientes)
                     const activeUsers = await AdminController.getClients('approved');
                     let userOptions = activeUsers.map(u => `<option value="${u.id}">${u.fullName || u.email}</option>`).join('');
 
                     contentArea.innerHTML = `
-                        <h3 style="color:#00d4ff; margin-bottom:15px;">Asignar Rutina a Atleta</h3>
+                        <h3 style="color:#00d4ff; margin-bottom:15px; font-size: 14px;">Gestor de Planes (Asignar)</h3>
+                        <p style="color:var(--cyber-text-gray); font-size:12px; margin-bottom:15px;">Aquí podrás agrupar rutinas en Planes completos y asignarlos a tus atletas.</p>
                         <div style="display:flex; flex-direction:column; gap:10px;">
                             <label style="font-size:11px; color:#aaa;">Seleccionar Atleta:</label>
-                            <select id="admin-routine-user" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444;">
+                            <select id="admin-routine-user" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
                                 ${userOptions}
                             </select>
                             
-                            <label style="font-size:11px; color:#aaa; margin-top:10px;">Nombre de la Rutina:</label>
-                            <input type="text" id="admin-routine-name" placeholder="Ej: Hipertrofia Fase 1" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444;">
+                            <label style="font-size:11px; color:#aaa; margin-top:10px;">Nombre de la Rutina (Ya Creada Globalmente):</label>
+                            <input type="text" id="admin-routine-name" placeholder="Ej: Hipertrofia Fase 1" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
                             
-                            <label style="font-size:11px; color:#aaa; margin-top:10px;">Ejercicios (Separados por coma):</label>
-                            <textarea id="admin-routine-exs" placeholder="Sentadilla, Press Banca, Peso Muerto" rows="3" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444;"></textarea>
-                            
-                            <button onclick="window.submitCustomRoutine()" class="cyber-button" style="margin-top:15px;">Asignar Rutina</button>
+                            <button onclick="window.submitCustomRoutine()" class="cyber-button" style="margin-top:15px;">Asignar Plan / Rutina</button>
                         </div>
                     `;
                 } else if (tabName === 'chat') {
@@ -481,63 +520,194 @@
             else { alert("Error al rechazar."); }
         };
 
-        window.viewAthleteProfile = (uid) => {
-            alert("Esta función abrirá el historial y radar map del atleta " + uid + " en breve.");
-            // To be implemented: Fetch athlete's stats and overwrite State temporarily to view their history.
+        window.viewAthleteProfile = async (uid) => {
+            const contentArea = document.getElementById('admin-content-area');
+            contentArea.innerHTML = `<p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-top:40px;">Cargando datos vitáles del atleta...</p>`;
+
+            try {
+                const userData = await loadUserData(uid);
+                if (!userData) {
+                    contentArea.innerHTML = `<p style="color:red; font-size:12px; text-align:center;">Atleta no encontrado en registros.</p><button onclick="loadAdminTab('atletas')" class="cyber-button" style="margin-top:15px;">← Volver</button>`;
+                    return;
+                }
+
+                const userHistory = await loadHistory(uid);
+
+                let html = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <button onclick="loadAdminTab('atletas')" class="cyber-button secondary" style="min-width:auto; padding:5px 10px; font-size:11px; border-color:#fff; color:#fff;">← VOLVER</button>
+                        <h3 style="color:#00d4ff; font-size:16px;">${userData.fullName || 'Operativo Local'}</h3>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+                        <div class="liquid-glass card" style="padding:10px; border-left:3px solid #ffcc00;">
+                            <h4 style="color:#ffcc00; font-size:12px; margin-bottom:5px;">Suscripción Activa</h4>
+                            <p style="font-size:11px; color:white;">${userData.planName || 'Plan Entrenamiento Base'}</p>
+                        </div>
+                        <div class="liquid-glass card" style="padding:10px; border-left:3px solid #00ff88;">
+                            <h4 style="color:#00ff88; font-size:12px; margin-bottom:5px;">Estado Físico</h4>
+                            <p style="font-size:11px; color:white; font-weight:bold;">${userData.weight || '--'} kg | ${userData.fat || '--'}% GC</p>
+                            <p style="font-size:10px; color:#aaa; margin-top:5px;">Meta: ${userData.objective || 'Mantenimiento'}</p>
+                        </div>
+                    </div>
+
+                    <h4 style="color:white; font-size:13px; margin-bottom:10px;">Chat Confidencial Directo</h4>
+                    <div class="liquid-glass card" style="padding:10px; margin-bottom:15px; border:1px solid rgba(0, 212, 255, 0.3);">
+                        <input type="text" id="prof-reply-${uid}" placeholder="Transcripción de emergencia al comunicador..." autocomplete="off" style="width:100%; padding:10px; background:rgba(0,0,0,0.5); border:1px solid #444; color:white; border-radius:4px; font-size:12px; margin-bottom:10px;">
+                        <button onclick="replyToClient('${uid}', 'prof-reply-${uid}')" class="cyber-button" style="padding:8px 15px; font-size:11px; width:100%; background:rgba(0, 212, 255, 0.2); border-color:#00d4ff; color:#00d4ff;">Enviar Comunicado</button>
+                    </div>
+                    
+                    <h4 style="color:white; font-size:13px; margin-bottom:10px;">Telemetría de Entrenamientos Recientes</h4>
+                    <div class="liquid-glass card" style="padding:10px;">
+                `;
+
+                if (userHistory.length === 0) {
+                    html += `<p style="font-size:11px; color:#aaa;">No se registran datos operativos.</p>`;
+                } else {
+                    userHistory.slice(0, 5).forEach(workout => {
+                        const dateObj = new Date(workout.timestamp);
+                        html += `
+                        <div style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:12px; color:white;">${dateObj.toLocaleDateString()}</span>
+                            <span style="font-size:12px; padding:2px 8px; border-radius:4px; font-weight:bold; background:rgba(255,31,61,0.2); color:#ff1f3d;">RPE de sesión: ${workout.rpe || '--'}</span>
+                        </div>`;
+                    });
+                }
+                html += `</div>`;
+
+                contentArea.innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                contentArea.innerHTML = `<p style="color:red; font-size:12px;">Error de red crítico. Abortando lectura.</p><button onclick="loadAdminTab('atletas')" class="cyber-button" style="margin-top:15px;">← Volver</button>`;
+            }
         };
 
-        window.replyToClient = async (clientId) => {
-            const input = document.getElementById(`reply-input-${clientId}`);
+        window.replyToClient = async (clientId, inputId = null) => {
+            const input = document.getElementById(inputId || `reply-input-${clientId}`);
             if (!input || input.value.trim() === "") return;
 
             const btn = event.target;
             btn.disabled = true;
-            btn.textContent = "Enviando...";
+            btn.textContent = "Transmitiendo...";
 
             const res = await AdminController.replyToMessage(clientId, input.value.trim());
             if (res) {
-                showToast("Mensaje enviado");
+                showToast("Mensaje enviado exitosamente a red externa");
                 input.value = "";
-                window.loadAdminTab('chat');
+                if (!inputId) window.loadAdminTab('chat');
             } else {
-                alert("Error al enviar mensaje");
+                alert("Error crítico al enlazar comunicaciones");
             }
             btn.disabled = false;
-            btn.textContent = "Enviar";
+            btn.textContent = inputId ? "Enviar Comunicado" : "Enviar";
+        };
+
+        window.addExToRoutine = (exName) => {
+            if (!window.adminDraftRoutine) return;
+            window.adminDraftRoutine.push({ n: exName, isSuperSet: false });
+            window.renderDraftRoutine();
+        };
+
+        window.removeExFromRoutine = (idx) => {
+            if (!window.adminDraftRoutine) return;
+            window.adminDraftRoutine.splice(idx, 1);
+            window.renderDraftRoutine();
+        };
+
+        window.toggleSuperset = (idx) => {
+            if (!window.adminDraftRoutine || idx >= window.adminDraftRoutine.length - 1) return;
+            window.adminDraftRoutine[idx].isSuperSet = !window.adminDraftRoutine[idx].isSuperSet;
+            window.renderDraftRoutine();
+        };
+
+        window.renderDraftRoutine = () => {
+            const container = document.getElementById('draft-r-selected');
+            if (!container) return;
+
+            if (window.adminDraftRoutine.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = window.adminDraftRoutine.map((ex, idx) => {
+                const exData = EXERCISES.find(e => e.n === ex.n) || {};
+                const imgPath = typeof exData.img === 'string' ? exData.img : 'logo.png';
+                const isLast = idx === window.adminDraftRoutine.length - 1;
+                const linkColor = ex.isSuperSet ? '#00ff88' : '#666';
+
+                return `
+                <div style="display:flex; align-items:center; gap:10px; padding:10px; background:rgba(30,30,30,0.9); border:1px solid #444; border-radius:6px; margin-bottom:-4px; position:relative;">
+                    <button onclick="removeExFromRoutine(${idx})" style="background:none; border:none; color:#ff1f3d; font-size:14px; cursor:pointer; padding:5px;">🗑️</button>
+                    <img src="${imgPath}" onerror="this.src='logo.png'" style="width:30px; height:30px; object-fit:contain; background:black; border-radius:4px; padding:2px;">
+                    <span style="color:white; font-size:13px; flex:1;">${ex.n}</span>
+                    ${!isLast ? `<button onclick="toggleSuperset(${idx})" title="Superserie con el siguiente" style="background:none; border:none; cursor:pointer; padding:5px; font-size:14px; color:${linkColor}; transition:0.2s;">🔗</button>` : ''}
+                </div>`;
+            }).join('');
+        };
+
+        window.filterExercises = () => {
+            const val = (document.getElementById('draft-r-search').value || '').toLowerCase();
+            const items = document.querySelectorAll('.ex-list-item');
+            items.forEach(item => {
+                const name = item.dataset.name.toLowerCase();
+                item.style.display = name.includes(val) ? 'flex' : 'none';
+            });
+        };
+
+        window.saveAdminRoutine = async () => {
+            const name = document.getElementById('draft-r-name').value.trim();
+            if (!name) { alert("Ponle un nombre a la rutina."); return; }
+            if (!window.adminDraftRoutine || window.adminDraftRoutine.length === 0) { alert("Añade algún ejercicio primero."); return; }
+
+            const btn = document.querySelector('button[onclick="saveAdminRoutine()"]');
+            btn.disabled = true;
+            btn.textContent = "GUARDANDO...";
+
+            // Find full exercise data to assign
+            const routineData = window.adminDraftRoutine.map(dEx => {
+                const found = EXERCISES.find(ex => ex.n === dEx.n);
+                return found ? { ...found, id: "ex_" + Math.random().toString(36).substr(2, 9), isSuperSet: dEx.isSuperSet } : { id: "custom", n: dEx.n, m: "Varios", eq: "Libre", isSuperSet: dEx.isSuperSet };
+            });
+
+            const res = await AdminController.saveGlobalRoutine(name, routineData);
+            if (res) {
+                showToast("Rutina guardada en la base global.");
+                document.getElementById('draft-r-name').value = '';
+                window.adminDraftRoutine = [];
+                window.renderDraftRoutine();
+            } else {
+                alert("Error al guardar la rutina.");
+            }
+            btn.disabled = false;
+            btn.textContent = "GUARDAR";
         };
 
         window.submitCustomRoutine = async () => {
             const uid = document.getElementById('admin-routine-user').value;
             const rName = document.getElementById('admin-routine-name').value.trim();
-            const rawExs = document.getElementById('admin-routine-exs').value;
 
-            if (!uid || !rName || !rawExs) {
+            if (!uid || !rName) {
                 alert("Rellena todos los campos.");
                 return;
             }
 
             const btn = event.target;
             btn.disabled = true;
-            btn.textContent = "Generando...";
+            btn.textContent = "Asignando...";
 
-            const exArray = rawExs.split(',').map(e => e.trim()).filter(e => e.length > 0);
+            // Para que este demo funcione, asiganamos un array dummy o buscamos de Firestore
+            // Asumiremos que el app lo generará con un array por ahora.
+            const dummyExercises = [EXERCISES[0], EXERCISES[1]];
 
-            // Map strings back to exercise format
-            const routineData = exArray.map(n => {
-                const found = EXERCISES.find(ex => ex.n.toLowerCase() === n.toLowerCase());
-                return found || { id: "custom_" + n.replace(/\s+/g, ''), n: n, m: "Varios", eq: "Libre" };
-            });
-
-            const res = await AdminController.assignRoutineToUser(uid, rName, routineData);
+            const res = await AdminController.assignRoutineToUser(uid, rName, dummyExercises);
             if (res) {
-                showToast("Rutina asignada exitosamente.");
+                showToast("Plan asignado exitosamente.");
                 document.getElementById('admin-routine-name').value = '';
-                document.getElementById('admin-routine-exs').value = '';
             } else {
                 alert("Error asignando rutina.");
             }
             btn.disabled = false;
-            btn.textContent = "Asignar Rutina";
+            btn.textContent = "Asignar Plan / Rutina";
         };
 
         function showToast(msg) {
@@ -1050,10 +1220,10 @@
                 </div>
                 
                 <div class="admin-tabs" style="display:flex; gap:10px; overflow-x:auto; margin-bottom:20px; padding-bottom:5px;">
-                    <button class="cyber-button secondary active" onclick="loadAdminTab('solicitudes')" style="font-size:11px; padding:8px 15px; min-width:auto;">Solicitudes</button>
-                    <button class="cyber-button secondary" onclick="loadAdminTab('atletas')" style="font-size:11px; padding:8px 15px; min-width:auto;">Atletas</button>
+                    <button class="cyber-button secondary active" onclick="loadAdminTab('atletas')" style="font-size:11px; padding:8px 15px; min-width:auto;">Clientes</button>
                     <button class="cyber-button secondary" onclick="loadAdminTab('rutinas')" style="font-size:11px; padding:8px 15px; min-width:auto;">Rutinas</button>
-                    <button class="cyber-button secondary" onclick="loadAdminTab('chat')" style="font-size:11px; padding:8px 15px; min-width:auto;">Global Inbox</button>
+                    <button class="cyber-button secondary" onclick="loadAdminTab('planes')" style="font-size:11px; padding:8px 15px; min-width:auto;">Planes</button>
+                    <button class="cyber-button secondary" onclick="loadAdminTab('chat')" style="font-size:11px; padding:8px 15px; min-width:auto;">Chat</button>
                 </div>
                 
                 <div id="admin-content-area" class="liquid-glass card" style="min-height: 400px; padding: 15px;">
