@@ -330,11 +330,13 @@
                     State.profile.machineNotes = userData.machineNotes || {};
                     if (userData.comparativaImages) State.comparativaImages = userData.comparativaImages;
                     State.profile.role = userData.role || 'user';
+                    State.messages = userData.messages || [];
                 } else {
                     State.profile.maxWeights = {};
                     State.profile.rmRecords = {};
                     State.profile.machineNotes = {};
                     State.profile.role = 'user';
+                    State.messages = [];
                 }
                 State.profile.id = user.uid.substring(0, 4).toUpperCase();
                 State.profile.uid = user.uid;
@@ -371,14 +373,174 @@
             return fat > 0 ? fat.toFixed(1) : '';
         }
 
-        // CONTROLADOR DE PESTAÑAS DEL ADMIN
-        window.loadAdminTab = async function (tabName) {
-            const tabs = document.querySelectorAll('.admin-tabs button');
-            tabs.forEach(t => t.classList.remove('active'));
-            const activeBtn = Array.from(tabs).find(t => t.textContent.toLowerCase().includes(tabName.toLowerCase()));
-            if (activeBtn) activeBtn.classList.add('active');
+        // ==========================================
+        // ROUTINE BUILDER LOGIC
+        // ==========================================
+        window.rbNormalized = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-            const contentArea = document.getElementById('admin-content-area');
+        window.rbFilter = () => {
+            window.rbCurrentRenderCount = 20;
+            rbRenderList();
+        };
+
+        window.rbRenderList = () => {
+            const query = document.getElementById('rb-search').value;
+            const normQ = rbNormalized(query);
+            const container = document.getElementById('rb-list-container');
+            if (!container) return;
+
+            let filtered = EXERCISES;
+            if (normQ) filtered = EXERCISES.filter(ex => rbNormalized(ex.n).includes(normQ) || rbNormalized(ex.m).includes(normQ));
+
+            const toRender = filtered.slice(0, window.rbCurrentRenderCount);
+
+            container.innerHTML = toRender.map(ex => {
+                const selObj = window.currentRoutineSelections.find(s => s.n === ex.n);
+                if (selObj) {
+                    return `
+                    <div id="card-${ex.n.replace(/[\w\s]/g, '-')}" class="liquid-glass card routine-card-active" style="border: 1px solid var(--cyber-red-neon); padding: 12px; display:flex; flex-direction:column; gap:12px; border-radius:8px; margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <img src="${ex.img}" onerror="this.src='logo.png'" style="width:35px; height:35px; object-fit:contain; border-radius:4px; background:rgba(255,255,255,0.05); padding:2px;">
+                                <span style="color:var(--cyber-white); font-weight:bold; font-size:13px;">${ex.n}</span>
+                            </div>
+                            <button onclick="rbRemove('${ex.n}')" style="background:transparent; border:none; color:#ff3333; font-size:18px; cursor:pointer; padding:0 10px;">✕</button>
+                        </div>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input type="number" value="${selObj.series}" onchange="rbUpdate('${ex.n}', 'series', this.value)" placeholder="Series" style="flex:1; background:rgba(0,0,0,0.5); border:1px solid #444; color:white; padding:8px; border-radius:4px; font-size:12px;">
+                            <input type="text" value="${selObj.reps}" onchange="rbUpdate('${ex.n}', 'reps', this.value)" placeholder="Ej: 12-10-8" style="flex:2; background:rgba(0,0,0,0.5); border:1px solid #444; color:white; padding:8px; border-radius:4px; font-size:12px;">
+                            <button onclick="rbToggleSuperset('${ex.n}')" class="cyber-button secondary ${selObj.s ? 'superset-active' : ''}" style="min-width:auto; padding:8px; font-size:14px; border-color:${selObj.s ? '#00d4ff' : '#444'}; color:${selObj.s ? '#00d4ff' : '#555'}; transition: 0.3s; box-shadow:${selObj.s ? '0 0 10px rgba(0,212,255,0.3)' : 'none'};">🔗</button>
+                        </div>
+                    </div>`;
+                } else {
+                    return `
+                    <div class="ex-list-item card" onclick="rbAdd('${ex.n}')" style="display:flex; align-items:center; gap:15px; padding:10px; background:rgba(20,20,20,0.8); border:1px solid #333; margin-bottom:10px; border-radius:8px; cursor:pointer;">
+                        <img src="${ex.img}" onerror="this.src='logo.png'" style="width:35px; height:35px; object-fit:contain; border-radius:4px; background:rgba(255,255,255,0.05); padding:2px;">
+                        <span style="color:white; font-size:14px; flex:1;">${ex.n}</span>
+                        <span style="color:#555; font-size:11px;">+</span>
+                    </div>`;
+                }
+            }).join('');
+
+            rbUpdateLegend();
+        };
+
+        window.rbAdd = (name) => {
+            if (!window.currentRoutineSelections.find(s => s.n === name)) {
+                window.currentRoutineSelections.push({ n: name, s: false, series: 4, reps: "12" });
+                rbRenderList();
+            }
+        };
+
+        window.rbRemove = (name) => {
+            window.currentRoutineSelections = window.currentRoutineSelections.filter(s => s.n !== name);
+            rbRenderList();
+        };
+
+        window.rbUpdate = (name, field, val) => {
+            const obj = window.currentRoutineSelections.find(s => s.n === name);
+            if (obj) obj[field] = val;
+        };
+
+        window.rbToggleSuperset = (name) => {
+            const idx = window.currentRoutineSelections.findIndex(s => s.n === name);
+            if (idx === -1) return;
+            if (idx === window.currentRoutineSelections.length - 1) {
+                alert("No puedes crear superserie en el último ejercicio. Añade otro primero.");
+                return;
+            }
+            const obj = window.currentRoutineSelections[idx];
+            obj.s = !obj.s;
+            rbRenderList();
+        };
+
+        window.rbScrollTo = (name) => {
+            const cleanName = name.replace(/[\w\s]/g, '-');
+            const el = document.getElementById(`card-${cleanName}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.style.backgroundColor = 'rgba(255,31,61,0.2)';
+                setTimeout(() => el.style.backgroundColor = 'transparent', 800);
+            }
+        };
+
+        window.rbUpdateLegend = () => {
+            const legend = document.getElementById('rb-sticky-legend');
+            if (!legend) return;
+            if (window.currentRoutineSelections.length === 0) {
+                legend.style.display = 'none';
+                return;
+            }
+            legend.style.display = 'flex';
+
+            let html = '';
+            window.currentRoutineSelections.forEach((sel, i) => {
+                html += `<div onclick="rbScrollTo('${sel.n}')" style="cursor:pointer; display:flex; align-items:center; background:rgba(255,31,61,0.1); border:1px solid var(--cyber-red-neon); padding:6px 10px; border-radius:12px; white-space:nowrap; font-size:11px; color:white; transition: 0.2s;">
+                    <span style="color:var(--cyber-red-neon); margin-right:4px;">${i + 1}.</span> ${sel.n}
+                </div>`;
+                if (sel.s && i < window.currentRoutineSelections.length - 1) {
+                    html += `<span style="color:#00d4ff; font-size:14px; display:flex; align-items:center;">🔗</span>`;
+                } else if (i < window.currentRoutineSelections.length - 1) {
+                    html += `<span style="color:#555; font-size:10px; display:flex; align-items:center; margin-left:2px; margin-right:2px;">▶</span>`;
+                }
+            });
+            legend.innerHTML = html;
+        };
+
+        window.rbSetupObserver = () => {
+            const target = document.getElementById('rb-observer-target');
+            if (!target) return;
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    const query = document.getElementById('rb-search').value;
+                    const normQ = rbNormalized(query);
+                    let filtered = EXERCISES;
+                    if (normQ) filtered = EXERCISES.filter(ex => rbNormalized(ex.n).includes(normQ) || rbNormalized(ex.m).includes(normQ));
+
+                    if (window.rbCurrentRenderCount < filtered.length) {
+                        window.rbCurrentRenderCount += 20;
+                        rbRenderList();
+                    }
+                }
+            }, { rootMargin: '200px' });
+            observer.observe(target);
+        };
+
+        window.initRoutineBuilder = () => {
+            window.currentRoutineSelections = [];
+            window.rbCurrentRenderCount = 20;
+
+            const contentArea = document.getElementById('admin-subcontent');
+            contentArea.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <button onclick="loadAdminContent('rutinas')" class="cyber-button secondary" style="min-width:auto; padding:5px 10px; font-size:11px;">↻</button>
+                    <button onclick="saveAdminRoutine()" class="cyber-button" style="background:#00ff88; color:black; border:none; padding:8px 20px; font-weight:bold; min-width:auto; border-radius:6px; font-size:12px; box-shadow: 0 0 10px rgba(0,255,136,0.3);">GUARDAR RUTINA</button>
+                </div>
+                
+                <input type="text" id="draft-r-name" placeholder="Escribe el nombre de esta rutina..." autocomplete="off" style="width:100%; padding:15px; background:rgba(10,10,10,0.8); border:1px solid #444; color:white; border-radius:6px; margin-bottom:15px; font-size:14px;">
+
+                <!-- Sticky Legend -->
+                <div id="rb-sticky-legend" class="routine-top-legend" style="display:none; position:sticky; top:0; z-index:100; background:rgba(0,0,0,0.95); padding:10px 0; overflow-x:auto; gap:8px; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1);"></div>
+                
+                <div style="position:relative; margin-bottom:15px;">
+                    <span style="position:absolute; left:12px; top:12px; opacity:0.6;">🔍</span>
+                    <input type="search" id="rb-search" placeholder="Buscar por ejercicio o músculo..." oninput="rbFilter()" style="width:100%; padding:12px 12px 12px 35px; background:rgba(20,20,20,0.9); border:1px solid #555; color:white; border-radius:6px; font-size:13px;">
+                </div>
+
+                <div id="rb-list-container" style="display:flex; flex-direction:column; padding-bottom:20px;">
+                    <!-- Actives and Inactives render here -->
+                </div>
+                
+                <div id="rb-observer-target" style="height:40px; margin-top:10px;"></div>
+            `;
+
+            rbRenderList();
+            setTimeout(rbSetupObserver, 500);
+        };
+
+        // CONTROLADOR DE CONTENIDO ADMIN
+        window.loadAdminContent = async function (tabName) {
+            const contentArea = document.getElementById('admin-subcontent');
             if (!contentArea) return;
 
             contentArea.innerHTML = `<p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-top:40px;">Cargando módulo ${tabName}...</p>`;
@@ -429,44 +591,7 @@
                     }
                     contentArea.innerHTML = html;
                 } else if (tabName === 'rutinas') {
-                    // Estado local para la rutina en creación
-                    window.adminDraftRoutine = [];
-
-                    const renderExList = () => {
-                        return EXERCISES.map(ex => {
-                            const imgPath = typeof ex.img === 'string' ? ex.img : 'logo.png';
-                            return `
-                            <div class="ex-list-item" data-name="${ex.n}" onclick="addExToRoutine('${ex.n}')" style="display:flex; align-items:center; gap:15px; padding:10px; background:rgba(20,20,20,0.8); border:1px solid #333; margin-bottom:5px; border-radius:8px; cursor:pointer;">
-                                <img src="${imgPath}" onerror="this.style.display='none'" style="width:40px; height:40px; object-fit:contain; background:transparent; border-radius:4px; padding:2px;">
-                                <span style="color:white; font-size:14px; flex:1;">${ex.n}</span>
-                            </div>`;
-                        }).join('');
-                    };
-
-                    contentArea.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                            <h3 style="color:white; font-size:18px; font-weight:bold; letter-spacing:1px; text-transform:uppercase;">NUEVA RUTINA</h3>
-                            <button onclick="saveAdminRoutine()" class="cyber-button" style="background:#ff3333; color:white; border-color:#ff3333; padding:8px 20px; font-weight:bold; min-width:auto; border-radius:6px; font-size:12px;">GUARDAR</button>
-                        </div>
-                        <input type="text" id="draft-r-name" placeholder="Nombre de Rutina" autocomplete="off" style="width:100%; padding:15px; background:rgba(30,30,30,0.9); border:1px solid #555; color:white; border-radius:6px; margin-bottom:15px; font-size:14px;">
-                        
-                        <div style="position:relative; margin-bottom:15px;">
-                            <span style="position:absolute; left:12px; top:12px; opacity:0.6;">🔍</span>
-                            <input type="text" id="draft-r-search" placeholder="Buscar ejercicio..." autocomplete="off" onkeyup="filterExercises()" style="width:100%; padding:12px 12px 12px 35px; background:rgba(30,30,30,0.9); border:1px solid #555; color:white; border-radius:6px; font-size:13px;">
-                        </div>
-
-                        <div style="background:rgba(255,204,0,0.1); border:1px solid rgba(255,204,0,0.5); color:#ffcc00; padding:10px; text-align:center; font-size:11px; margin-bottom:20px; border-radius:6px;">
-                            💡 Toca el "🔗" para unir en Superserie con el siguiente.
-                        </div>
-
-                        <div id="draft-r-selected" style="margin-bottom:20px; display:flex; flex-direction:column; gap:8px;">
-                            <!-- Selected exercises -->
-                        </div>
-
-                        <div id="ex-list-container" style="max-height:350px; overflow-y:auto; padding-right:5px;">
-                            ${renderExList()}
-                        </div>
-                    `;
+                    window.initRoutineBuilder();
 
                 } else if (tabName === 'planes') {
                     // Módulo de planes (por ahora solo asignar rutinas a clientes)
@@ -522,21 +647,46 @@
             }
         };
 
-        window.openAdminChat = (uid, name) => {
-            const contentArea = document.getElementById('admin-content-area');
-            contentArea.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <button onclick="loadAdminTab('chat')" class="cyber-button secondary" style="min-width:auto; padding:5px 10px; font-size:11px;">← INBOX</button>
-                    <h3 style="color:#00d4ff; font-size:16px; margin:0;">${name}</h3>
-                </div>
-                <div class="liquid-glass card" style="padding:15px; min-height:200px; max-height:300px; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column; justify-content:flex-end;" id="admin-chat-history">
-                    <p style="color:#aaa; font-size:12px; text-align:center; font-style:italic;">Canal cifrado abierto. Esperando transmisión...</p>
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="reply-input-${uid}" placeholder="Escribe un mensaje al atleta..." style="flex:1; background:rgba(0,0,0,0.5); border:1px solid #444; color:white; padding:10px; border-radius:4px; font-size:12px;">
-                    <button onclick="replyToClient('${uid}')" class="cyber-button" style="padding:10px 15px; font-size:12px; min-width:auto;">Enviar</button>
-                </div>
-            `;
+        window.openAdminChat = async (uid, name) => {
+            const contentArea = document.getElementById('admin-subcontent');
+            contentArea.innerHTML = `<p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-top:40px;">Cargando historial cifrado...</p>`;
+
+            try {
+                const userData = await loadUserData(uid);
+                const msgs = userData?.messages || [];
+                let msgsHtml = msgs.length === 0 ? `<p style="color:#aaa; font-size:12px; text-align:center; font-style:italic; margin-top:20px;">Sin historial de comunicaciones</p>` : '';
+
+                msgs.forEach(m => {
+                    const align = m.sender === 'coach' ? 'flex-end' : 'flex-start';
+                    const bg = m.sender === 'coach' ? 'rgba(0,212,255,0.2)' : 'rgba(255,255,255,0.1)';
+                    const color = m.sender === 'coach' ? '#00d4ff' : '#fff';
+                    msgsHtml += `<div style="display:flex; flex-direction:column; align-items:${align}; margin-bottom:10px;">
+                                    <div style="background:${bg}; color:${color}; padding:8px 12px; border-radius:8px; max-width:80%; font-size:13px;">${m.text}</div>
+                                    <span style="font-size:9px; color:#666; margin-top:3px;">${m.time}</span>
+                                 </div>`;
+                });
+
+                contentArea.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <button onclick="loadAdminContent('chat')" class="cyber-button secondary" style="min-width:auto; padding:5px 10px; font-size:11px;">← INBOX</button>
+                        <h3 style="color:#00d4ff; font-size:16px; margin:0; text-align:right;">${name}</h3>
+                    </div>
+                    <div class="liquid-glass card" style="padding:15px; min-height:250px; max-height:400px; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column;" id="admin-chat-history-${uid}">
+                        ${msgsHtml}
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="reply-input-${uid}" placeholder="Escribe al atleta..." style="flex:1; background:rgba(0,0,0,0.5); border:1px solid #444; color:white; padding:10px; border-radius:4px; font-size:12px;">
+                        <button onclick="replyToClient('${uid}')" class="cyber-button" style="padding:10px 15px; font-size:12px; min-width:auto;">Enviar</button>
+                    </div>
+                `;
+                setTimeout(() => {
+                    const box = document.getElementById(`admin-chat-history-${uid}`);
+                    if (box) box.scrollTop = box.scrollHeight;
+                }, 50);
+            } catch (e) {
+                console.error(e);
+                contentArea.innerHTML = `<p style="color:red; font-size:12px; text-align:center;">Error leyendo canal cifrado.</p><button onclick="loadAdminContent('chat')" class="cyber-button" style="margin-top:15px;">← Volver</button>`;
+            }
         };
         window.approveAthlete = async (uid) => {
             if (!confirm("¿Aprobar a este atleta? Podrá acceder a la app.")) return;
@@ -628,7 +778,10 @@
             if (res) {
                 showToast("Mensaje enviado exitosamente a red externa");
                 input.value = "";
-                if (!inputId) window.loadAdminTab('chat');
+                if (!inputId) {
+                    const title = document.querySelector('h3');
+                    window.openAdminChat(clientId, title ? title.textContent : 'Atleta');
+                }
             } else {
                 alert("Error crítico al enlazar comunicaciones");
             }
@@ -1310,23 +1463,36 @@
             admin_dashboard: () => `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
                     <h2 style="display:flex; gap:10px; align-items:center; color:#ffcc00;">
-                        <span class="view-trigger" data-target="plan" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> 
+                        <span class="view-trigger" data-target="perfil" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> 
                         Panel Coach
                     </h2>
                     <span style="font-size:11px; padding:4px 8px; background:rgba(255,204,0,0.1); color:#ffcc00; border:1px solid #ffcc00; border-radius:4px;">ADMIN</span>
                 </div>
                 
-                <div class="admin-tabs" style="display:flex; gap:10px; overflow-x:auto; margin-bottom:20px; padding-bottom:5px;">
-                    <button class="cyber-button secondary active" onclick="loadAdminTab('atletas')" style="font-size:11px; padding:8px 15px; min-width:auto;">Clientes</button>
-                    <button class="cyber-button secondary" onclick="loadAdminTab('rutinas')" style="font-size:11px; padding:8px 15px; min-width:auto;">Rutinas</button>
-                    <button class="cyber-button secondary" onclick="loadAdminTab('planes')" style="font-size:11px; padding:8px 15px; min-width:auto;">Planes</button>
-                    <button class="cyber-button secondary" onclick="loadAdminTab('chat')" style="font-size:11px; padding:8px 15px; min-width:auto;">Chat</button>
-                </div>
-                
-                <div id="admin-content-area" class="liquid-glass card" style="min-height: 400px; padding: 15px;">
-                    <p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-top:40px;">← Selecciona una pestaña para comenzar</p>
+                <div class="menu-grid">
+                    <div class="liquid-glass menu-item view-trigger" data-target="admin_atletas"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div><span>Clientes</span></div>
+                    <div class="liquid-glass menu-item view-trigger" data-target="admin_rutinas"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg></div><span>Rutinas</span></div>
+                    <div class="liquid-glass menu-item view-trigger" data-target="admin_planes"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z"/></svg></div><span>Planes</span></div>
+                    <div class="liquid-glass menu-item view-trigger" data-target="admin_chat"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg></div><span>Inbox</span></div>
                 </div>
             `,
+
+            admin_atletas: () => {
+                setTimeout(() => loadAdminContent('atletas'), 50);
+                return `<h2 style="display:flex; gap:10px; align-items:center; margin-bottom:15px; color:#ffcc00;"><span class="view-trigger" data-target="admin_dashboard" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Directorio Clientes</h2><div id="admin-subcontent"><div class="ai-loader" style="margin-top:40px;">Conectando...</div></div>`;
+            },
+            admin_rutinas: () => {
+                setTimeout(() => loadAdminContent('rutinas'), 50);
+                return `<h2 style="display:flex; gap:10px; align-items:center; margin-bottom:15px; color:#ffcc00;"><span class="view-trigger" data-target="admin_dashboard" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Creador de Rutinas</h2><div id="admin-subcontent"><div class="ai-loader" style="margin-top:40px;">Iniciando sistema...</div></div>`;
+            },
+            admin_planes: () => {
+                setTimeout(() => loadAdminContent('planes'), 50);
+                return `<h2 style="display:flex; gap:10px; align-items:center; margin-bottom:15px; color:#ffcc00;"><span class="view-trigger" data-target="admin_dashboard" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Gestor de Planes</h2><div id="admin-subcontent"><div class="ai-loader" style="margin-top:40px;">Sincronizando...</div></div>`;
+            },
+            admin_chat: () => {
+                setTimeout(() => loadAdminContent('chat'), 50);
+                return `<h2 style="display:flex; gap:10px; align-items:center; margin-bottom:15px; color:#ffcc00;"><span class="view-trigger" data-target="admin_dashboard" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Inbox Coach</h2><div id="admin-subcontent"><div class="ai-loader" style="margin-top:40px;">Cargando...</div></div>`;
+            },
 
             mensajes: () => {
                 let msgsHtml = ''; State.messages.forEach(m => { msgsHtml += `<div class="msg ${m.sender}">${m.text}<span class="msg-time">${m.time}</span></div>`; });
@@ -1339,16 +1505,8 @@
             ia_result: () => `<h2 style="margin-bottom: 15px; color:var(--cyber-white);">Rutina Optimizada</h2><div class="liquid-glass card" style="padding:15px;"><ul style="list-style:none; padding:0; color:var(--cyber-text-gray); font-size:14px;">${State.routine.map((ex, i) => `<li style="padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05);"><strong>${i + 1}.</strong> ${ex.n}</li>`).join('')}</ul><button class="cyber-button ai-button" id="btn-start-ai-workout" style="margin-top:20px;">Iniciar Entreno Ahora</button><button class="cyber-button secondary view-trigger" data-target="ia_setup" style="margin-top:10px;">Descartar</button></div>`,
 
             workout_player: () => {
-                if (!State.activeWorkout) {
-                    State.activeWorkout = [{
-                        name: 'Press Banca Barra', notes: '', obs: '', sets: [
-                            { id: 1, targetR: 20, r: '', w: '', done: false, prevW: 40, prevR: 20, isDrop: false },
-                            { id: 2, targetR: 16, r: '', w: '', done: false, prevW: 45, prevR: 16, isDrop: false },
-                            { id: 3, targetR: 16, r: '', w: '', done: false, prevW: 45, prevR: 16, isDrop: false },
-                            { id: 4, targetR: 16, r: '', w: '', done: false, prevW: 45, prevR: 16, isDrop: false },
-                            { id: 5, targetR: 16, r: '', w: '', done: false, prevW: 45, prevR: 16, isDrop: false }
-                        ]
-                    }];
+                if (!State.activeWorkout || State.activeWorkout.length === 0) {
+                    return `<h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="plan" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Entreno Rápido</h2><div class="liquid-glass card" style="text-align:center; padding:30px;"><p style="color:red; font-size:14px; margin-bottom:15px;">No hay rutina activa iniciada.</p><button class="cyber-button view-trigger" data-target="plan">Volver al Plan</button></div>`;
                 }
                 const currentEx = State.activeWorkout[State.currentExerciseIndex];
                 const isLast = State.currentExerciseIndex === State.activeWorkout.length - 1;
@@ -1426,12 +1584,13 @@
 
             if (document.getElementById('bioChart') && State.charts.bio) State.charts.bio.destroy();
             if (document.getElementById('bioChart')) {
+                const hasRealData = State.profile.weight || State.profile.fat || State.profile.muscle;
                 State.charts.bio = new Chart(document.getElementById('bioChart'), {
                     type: 'line', data: {
-                        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May'], datasets: [
-                            { label: 'Peso', data: [80, 79, 78.5, 78, 77.2], borderColor: '#ff3333', tension: 0.3 },
-                            { label: 'Grasa', data: [18, 17.5, 16, 15.2, 14.5], borderColor: '#ffaa00', tension: 0.3 },
-                            { label: 'Músculo', data: [42, 42.2, 42.5, 43, 43.5], borderColor: '#00ff88', tension: 0.3 }
+                        labels: hasRealData ? ['Reciente'] : [], datasets: [
+                            { label: 'Peso', data: hasRealData ? [State.profile.weight || 0] : [], borderColor: '#ff3333', tension: 0.3 },
+                            { label: 'Grasa', data: hasRealData ? [State.profile.fat || 0] : [], borderColor: '#ffaa00', tension: 0.3 },
+                            { label: 'Músculo', data: hasRealData ? [State.profile.muscle || 0] : [], borderColor: '#00ff88', tension: 0.3 }
                         ]
                     }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
                 });
@@ -1613,8 +1772,17 @@
             if (e.target.closest('#btn-chat-send')) {
                 const inp = document.getElementById('chat-input-text');
                 if (inp && inp.value.trim() !== '') {
-                    const d = new Date(); State.messages.push({ sender: 'user', text: inp.value.trim(), time: `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}` });
-                    navigateTo('mensajes');
+                    const btn = e.target.closest('#btn-chat-send');
+                    btn.style.opacity = '0.5';
+                    AdminController.sendClientMessage(inp.value.trim()).then((msgs) => {
+                        btn.style.opacity = '1';
+                        if (msgs) {
+                            inp.value = '';
+                            navigateTo('mensajes');
+                        } else {
+                            alert("Fallo estableciendo la transmisión.");
+                        }
+                    });
                 }
             }
 

@@ -245,7 +245,7 @@ export const AdminController = {
     },
 
     /**
-     * Responde a un atleta específico
+     * Responde a un atleta específico (Coach -> Cliente)
      */
     async replyToMessage(clientId, text) {
         try {
@@ -270,6 +270,38 @@ export const AdminController = {
             return true;
         } catch (error) {
             console.error("Admin: Error al enviar mensaje", error);
+            return false;
+        }
+    },
+
+    /**
+     * Cliente envía mensaje al Coach
+     */
+    async sendClientMessage(text) {
+        try {
+            if (!auth.currentUser) return false;
+            const userRef = doc(db, "users", auth.currentUser.uid);
+            const userSnap = await getDoc(userRef);
+            if (!userSnap.exists()) return false;
+
+            const userData = userSnap.data();
+            const msgs = userData.messages || [];
+            const d = new Date();
+            msgs.push({
+                sender: 'user',
+                text: text,
+                time: `${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`,
+                read: false
+            });
+            await updateDoc(userRef, { messages: msgs });
+
+            // update local State if available
+            if (typeof window.State !== 'undefined') {
+                window.State.messages = msgs;
+            }
+            return msgs;
+        } catch (error) {
+            console.error("Admin: Error sending client message", error);
             return false;
         }
     },

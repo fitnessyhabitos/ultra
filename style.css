@@ -1123,3 +1123,21 @@ body {
    height: 28px;
    color: var(--cyber-white);
 }
+
+/* ROUTINE BUILDER CLASSES */
+.routine-top-legend::-webkit-scrollbar {
+   height: 4px;
+}
+
+.routine-top-legend::-webkit-scrollbar-thumb {
+   background: var(--cyber-red-neon);
+   border-radius: 2px;
+}
+
+.superset-active {
+   box-shadow: 0 0 10px rgba(0, 212, 255, 0.4);
+}
+
+.routine-card-active {
+   transition: background-color 0.5s ease;
+}
