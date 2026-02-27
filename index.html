@@ -242,6 +242,13 @@
 
         if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(e => { }); }); }
 
+        // Pedir permisos de Notificación Push
+        if ("Notification" in window) {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') console.log("Permiso de notificaciones concedido.");
+            });
+        }
+
         const loginSection = document.getElementById('login-section');
         const registerSection = document.getElementById('register-section');
         document.getElementById('toggle-to-register').addEventListener('pointerup', () => { loginSection.style.display = 'none'; registerSection.style.display = 'block'; });
@@ -748,6 +755,19 @@
                                 
                                 <button onclick="window.scheduleAppointment()" class="cyber-button" style="margin-top:10px; background:#00ff88; color:black; border:none; font-weight:bold;">Agendar Cita</button>
                             </div>
+                            
+                            <h3 style="color:#00d4ff; margin-bottom:15px; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px;">Avisos Push (Recordatorios)</h3>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                <label style="font-size:11px; color:#aaa;">Atleta (Enviar a):</label>
+                                <select id="remind-client" class="cyber-input" style="background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
+                                    ${clientOptions}
+                                </select>
+                                <div style="display:flex; gap:5px; margin-top:5px;">
+                                    <button onclick="window.sendQuickReminder('fotos')" class="cyber-button secondary" style="flex:1; font-size:10px; padding:8px 4px; border-color:#00d4ff; color:#00d4ff;">📸 Subir Fotos</button>
+                                    <button onclick="window.sendQuickReminder('peso')" class="cyber-button secondary" style="flex:1; font-size:10px; padding:8px 4px; border-color:#ffaa00; color:#ffaa00;">⚖️ Peso Báscula</button>
+                                    <button onclick="window.sendQuickReminder('medidas')" class="cyber-button secondary" style="flex:1; font-size:10px; padding:8px 4px; border-color:#00ff88; color:#00ff88;">📏 Medidas</button>
+                                </div>
+                            </div>
                         `;
                     } catch (e) {
                         console.error(e);
@@ -786,6 +806,33 @@
                 alert("Falló la creación de la cita.");
                 btn.disabled = false;
                 btn.textContent = "Agendar Cita";
+            }
+        };
+
+        window.sendQuickReminder = async (type) => {
+            const uid = document.getElementById('remind-client').value;
+            if (!uid) return alert('Selecciona un atleta');
+
+            let txt = "";
+            if (type === 'fotos') txt = "🔔 RECORDATORIO: Toca actualización de fotos (Frontal/Espalda). Súbelas en la pestaña de Progreso.";
+            if (type === 'peso') txt = "🔔 RECORDATORIO: Toca actualización de peso en la báscula. Regístralo pulsando el " + " de abajo.";
+            if (type === 'medidas') txt = "🔔 RECORDATORIO: Toca revisión de contornos biometría. Usa el sistema en el botón flotante " + ".";
+
+            showToast(`Enviando push: ${type}...`);
+            const { getDoc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+            const userDocRef = doc(db, "users", uid);
+            const userSnap = await getDoc(userDocRef);
+            if (userSnap.exists()) {
+                const uData = userSnap.data();
+                const msgs = uData.messages || [];
+                msgs.push({
+                    sender: 'coach',
+                    text: txt,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    timestamp: Date.now()
+                });
+                await updateDoc(userDocRef, { messages: msgs });
+                showToast("Enviado.");
             }
         };
 
@@ -1729,8 +1776,6 @@
             },
 
             mensajes: () => {
-                const uid = State.profile.id;
-
                 setTimeout(async () => {
                     const box = document.getElementById('chat-box');
                     if (!box) return;
@@ -1740,7 +1785,14 @@
                     try {
                         if (window.activeClientChatUnsubscribe) window.activeClientChatUnsubscribe();
 
-                        const { db, doc, onSnapshot } = await import('./js/firebase.js');
+                        const { db, doc, onSnapshot, auth } = await import('./js/firebase.js');
+                        const uid = auth.currentUser ? auth.currentUser.uid : State.profile.id;
+
+                        if (!uid) {
+                            box.innerHTML = `<p style="color:red; font-size:12px; text-align:center;">Error: Usuario no autenticado.</p>`;
+                            return;
+                        }
+
                         const docRef = doc(db, "users", uid);
 
                         window.activeClientChatUnsubscribe = onSnapshot(docRef, (docSnap) => {
@@ -1753,6 +1805,19 @@
                             if (docSnap.exists()) {
                                 const userData = docSnap.data();
                                 const msgs = userData?.messages || [];
+
+                                // Notificación de nuevo mensaje entrante del coach
+                                if (window.lastMsgCount !== undefined && msgs.length > window.lastMsgCount) {
+                                    const lastMsg = msgs[msgs.length - 1];
+                                    if (lastMsg.sender === 'coach' && Notification.permission === 'granted') {
+                                        new Notification('Nuevo mensaje de tu Coach', {
+                                            body: lastMsg.text,
+                                            icon: 'img/logo.png'
+                                        });
+                                    }
+                                }
+                                window.lastMsgCount = msgs.length;
+
                                 let msgsHtml = msgs.length === 0 ? `<p style="color:#aaa; font-size:12px; text-align:center; font-style:italic; margin-top:20px;">Envía un mensaje a tu coach para empezar.</p>` : '';
 
                                 msgs.forEach(m => {
@@ -2311,7 +2376,24 @@
                             const d = document.getElementById('timer-display-main');
                             if (d) { const m = Math.floor(State.restTimeLeft / 60); const s = State.restTimeLeft % 60; d.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; d.style.color = State.restTimeLeft <= 5 ? "#fff" : "var(--cyber-red-neon)"; }
                             if (State.restTimeLeft <= 5 && State.restTimeLeft > 0) { if (State.restTimeLeft !== State.lastBeepSecond) { playTickSound(false); State.lastBeepSecond = State.restTimeLeft; } }
-                            if (State.restTimeLeft <= 0) { clearInterval(State.timerInt); document.getElementById('modal-timer').classList.remove('active'); playTickSound(true); }
+                            if (State.restTimeLeft <= 0) {
+                                clearInterval(State.timerInt);
+                                document.getElementById('modal-timer').classList.remove('active');
+                                playTickSound(true);
+
+                                // Push Notification (Compatible con Smartwatch)
+                                if (Notification.permission === 'granted') {
+                                    navigator.serviceWorker.ready.then(registration => {
+                                        registration.showNotification('¡Descanso Terminado!', {
+                                            body: 'Prepárate para la siguiente serie.',
+                                            icon: 'img/logo.png',
+                                            vibrate: [200, 100, 200, 100, 200, 100, 200]
+                                        });
+                                    }).catch(fallback => {
+                                        new Notification('¡Descanso Terminado!', { body: 'A por la siguiente serie.', icon: 'img/logo.png' });
+                                    });
+                                }
+                            }
                         }, 1000);
                     }
                 } else { setObj.done = false; navigateTo('workout_player'); }

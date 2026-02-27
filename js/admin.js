@@ -411,6 +411,8 @@ export const AdminController = {
     async createAppointment(clientId, clientName, dateStr, timeStr, type, notes) {
         try {
             if (!auth.currentUser) return false;
+
+            // 1. Crear el docto en la colección global 'appointments'
             const docRef = doc(collection(db, "appointments"));
             await setDoc(docRef, {
                 coachId: auth.currentUser.uid,
@@ -423,9 +425,24 @@ export const AdminController = {
                 timestamp: Date.now()
             });
 
-            // Y un evento para el plan del usuario (opcional si es para que lo vea en "Su Plan")
-            const userDoc = doc(db, "users", clientId);
-            // Esto agregaría la notificación del cliente, pero con esto es suficiente para que admin lo vea.
+            // 2. Enviar una notificación al cliente a través del Chat In-Vivo
+            const { getDoc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+            const userDocRef = doc(db, "users", clientId);
+            const userSnap = await getDoc(userDocRef);
+            if (userSnap.exists()) {
+                const uData = userSnap.data();
+                const msgs = uData.messages || [];
+                const msgText = `📅 Nueva cita programada: ${dateStr} a las ${timeStr} (${type}). ${notes ? "Notas: " + notes : ""}`;
+
+                msgs.push({
+                    sender: 'coach',
+                    text: msgText,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    timestamp: Date.now()
+                });
+
+                await updateDoc(userDocRef, { messages: msgs });
+            }
 
             return true;
         } catch (e) {
