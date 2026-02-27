@@ -2650,7 +2650,13 @@
                 btn.innerHTML = 'Generando pasarela... ⏳';
                 btn.disabled = true;
 
-                // Llamada a nuestra Firebase Cloud Function segura (no expone la clave secreta)
+                // IMPORTANTE: Abrir ventana ANTES del fetch para que Safari no lo bloquee
+                // Safari bloquea window.open() dentro de callbacks async
+                const payWin = window.open('', '_blank');
+                if (payWin) {
+                    payWin.document.write('<html><body style="background:#111;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;"><h2>⏳ Conectando con la pasarela de pago...</h2></body></html>');
+                }
+
                 const FUNCTION_URL = 'https://europe-west1-fitdatalite.cloudfunctions.net/createSumupCheckout';
 
                 fetch(FUNCTION_URL, {
@@ -2667,9 +2673,15 @@
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                         if (data.checkoutId) {
-                            window.open(`https://pay.sumup.com/b2c/${data.checkoutId}`, '_blank');
+                            // Redirigir la ventana ya abierta (Safari no lo bloquea)
+                            if (payWin) {
+                                payWin.location.href = `https://pay.sumup.com/b2c/${data.checkoutId}`;
+                            } else {
+                                window.open(`https://pay.sumup.com/b2c/${data.checkoutId}`, '_blank');
+                            }
                             document.getElementById('modal-payment').classList.remove('active');
                         } else {
+                            if (payWin) payWin.close();
                             alert('Error al crear la pasarela de pago: ' + (data.error || 'Error desconocido'));
                             console.error('SumUp CF Error:', data);
                         }
@@ -2677,8 +2689,9 @@
                     .catch(err => {
                         btn.innerHTML = originalText;
                         btn.disabled = false;
+                        if (payWin) payWin.close();
                         console.error('Error llamando a Cloud Function:', err);
-                        alert('⚠️ La pasarela de pago aún está siendo activada por el Coach. Por ahora, usa Bizum (0% comisiones) o contacta directamente.');
+                        alert('⚠️ Error al conectar con la pasarela. Por favor usa Bizum (0% comisiones).');
                         document.getElementById('modal-payment').classList.remove('active');
                     });
             }
