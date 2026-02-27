@@ -499,6 +499,15 @@
 
             // Guardamos el índice actual para borrarlo cuando finalice el entreno si queremos ir eliminándolos de la lista de pendientes (Lógica futura)
             State.currentExerciseIndex = 0;
+
+            // Wake Lock: evita que la pantalla se apague durante el entrenamiento
+            if ('wakeLock' in navigator) {
+                navigator.wakeLock.request('screen').then(lock => {
+                    State.wakeLock = lock;
+                    console.log('Wake Lock activado.');
+                }).catch(err => console.warn('Wake Lock no disponible:', err));
+            }
+
             navigateTo('workout_player');
         };
 
@@ -1832,7 +1841,7 @@
             },
             plan: {
                 activeDate: formatYMD(new Date()), routinesAvailable: ['Rutina de Empuje', 'Rutina de Tirón', 'Piernas Completas'],
-                events: { [formatYMD(new Date())]: [{ title: 'Cita Coach Admin', time: '18:00h', type: 'visit' }] }
+                events: {}
             },
             messages: [{ sender: 'coach', text: "¡Hola! ¿Cómo llevamos el volumen?", time: "10:30" }]
         };
@@ -1999,10 +2008,7 @@
 
                 <button class="cyber-button" id="btn-pay-plan" style="margin-top:10px;">Proceder al Pago Seguro</button>
 
-                <h3 style="margin-top:25px; font-size:16px;">Historial de Transacciones</h3>
-                <div class="liquid-glass" style="margin-top:10px;">
-                    <div class="list-item"><div style="display:flex; flex-direction:column;"><span style="font-weight:bold;">Plan Preparación</span><span style="font-size:11px; color:var(--cyber-text-gray);">15 Sep 2026</span></div><span style="color:var(--cyber-red-neon); font-weight:bold;">70.00€</span></div>
-                </div>
+
             `,
 
             historial: () => {
@@ -2940,10 +2946,28 @@
                 showToast(`🏆 Entreno subido (RPE: ${rpeVal}). Eliminando de semana.`);
                 State.activeWorkout = null;
                 if (State.plan.routinesAvailable.length > 0) State.plan.routinesAvailable.shift();
+                // Liberar Wake Lock al finalizar
+                if (State.wakeLock) { State.wakeLock.release(); State.wakeLock = null; }
                 document.getElementById('workout-general-note').value = ''; navigateTo('historial');
             }
 
-            if (e.target.closest('#btn-abort-workout')) { if (confirm("⚠ ¿Abortar entrenamiento?")) { State.activeWorkout = null; navigateTo('plan'); } }
+            if (e.target.closest('#btn-abort-workout')) {
+                if (confirm("⚠ ¿Abortar entrenamiento?")) {
+                    State.activeWorkout = null;
+                    // Liberar Wake Lock al abortar
+                    if (State.wakeLock) { State.wakeLock.release(); State.wakeLock = null; }
+                    navigateTo('plan');
+                }
+            }
+        });
+
+        // Re-adquirir Wake Lock si iOS/Android lo libera al bloquear pantalla
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && State.activeWorkout && 'wakeLock' in navigator) {
+                navigator.wakeLock.request('screen').then(lock => {
+                    State.wakeLock = lock;
+                }).catch(() => { });
+            }
         });
 
     </script>
