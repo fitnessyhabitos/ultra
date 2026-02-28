@@ -2535,6 +2535,26 @@
             messages: [{ sender: 'coach', text: "¡Hola! ¿Cómo llevamos el volumen?", time: "10:30" }]
         };
 
+        window.openDietModal = (url) => {
+            let modal = document.getElementById('modal-diet-viewer');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'modal-diet-viewer';
+                modal.className = 'modal-overlay';
+                modal.style.zIndex = '99999';
+                modal.style.background = 'rgba(0,0,0,0.95)';
+                modal.innerHTML = `
+                    <div style="position:absolute; top:15px; right:15px; z-index:100000; display:flex; gap:10px;">
+                        <button onclick="document.getElementById('modal-diet-viewer').classList.remove('active')" class="cyber-button" style="background:#ff1f3d; color:white; border:none; padding:10px 20px; font-weight:bold; border-radius:6px; box-shadow: 0 4px 15px rgba(255, 31, 61, 0.5);">✖ CERRAR DIETA</button>
+                    </div>
+                    <iframe id="iframe-diet-viewer" style="width:100%; height:100%; border:none; background:white; position:absolute; top:0; left:0;"></iframe>
+                `;
+                document.body.appendChild(modal);
+            }
+            document.getElementById('iframe-diet-viewer').src = url;
+            modal.classList.add('active');
+        };
+
         const DOM = { view: document.getElementById('app-view'), navItems: document.querySelectorAll('.nav-item') };
 
         function generateAIRoutine(target, level, time) {
@@ -2907,12 +2927,12 @@
                 if (State.profile.assignedDietData && State.profile.assignedDietData.url) {
                     dietHtml = `
                     <h2 style="font-size:18px; margin-bottom:10px; margin-top:20px;">Tu Dieta</h2>
-                    <div class="liquid-glass card" style="padding:15px; border-left: 4px solid var(--cyber-red-neon); display:flex; justify-content:space-between; align-items:center;">
+                    <div class="liquid-glass card" style="padding:15px; border-left: 4px solid var(--cyber-red-neon); display:flex; flex-direction:column; gap:12px;">
                         <div>
                             <strong style="color:white; display:block; font-size:15px; margin-bottom:4px;">${State.profile.assignedDietData.name || 'Plan Nutricional'}</strong>
                             <span style="color:#00ff88; font-size:11px;">Asignada por tu Coach</span>
                         </div>
-                        <a href="${State.profile.assignedDietData.url}" target="_blank" class="cyber-button" style="text-decoration:none; padding:8px 15px; font-size:12px; border-color:var(--cyber-red-neon); color:var(--cyber-red-neon);">Ver Dieta</a>
+                        <button onclick="window.openDietModal('${State.profile.assignedDietData.url}')" class="cyber-button" style="width:100%; padding:12px; font-size:14px; color:#ffffff; background:#ff1f3d; font-weight:bold; display:flex; justify-content:center; align-items:center; gap:8px; border:1px solid #ff1f3d; border-radius:6px;">🍽️ ABRIR DIETA</button>
                     </div>
                     `;
                 } else {
