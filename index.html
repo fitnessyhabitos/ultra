@@ -1219,10 +1219,103 @@
                         contentArea.innerHTML = `<p style="color:red; font-size:12px;">Error cargando agenda.</p>`;
                     }
                 }
-            } catch (error) {
-                console.error(error);
-                contentArea.innerHTML = `<p style="color:red; font-size:12px;">Error al cargar datos del servidor.</p>`;
+            } else if (tabName === 'dietas') {
+                contentArea.innerHTML = `<p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-top:40px;">Sincronizando Base de Datos de Dietas...</p>`;
+                try {
+                    const { getDoc, doc, db } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+                    const adminDocRef = doc(db, "adminData", "admin");
+                    const adminSnap = await getDoc(adminDocRef);
+                    const diets = adminSnap.exists() ? (adminSnap.data().diets || []) : [];
+
+                    const users = await AdminController.getClients('approved'); // to check assigned diets
+
+                    let html = `
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                                <h3 style="color:#00ff88; font-size:15px; margin:0;">Dietas Guardadas</h3>
+                                <button onclick="document.getElementById('modal-upload-diet').classList.add('active')" class="cyber-button" style="padding:5px 12px; font-size:12px; border-color:var(--cyber-red-neon); color:var(--cyber-red-neon);">+ Subir Archivo</button>
+                            </div>
+                        `;
+
+                    if (diets.length === 0) {
+                        html += `<div class="liquid-glass card" style="text-align:center; padding:30px; color:#aaa;"><p>No hay dietas creadas.</p></div>`;
+                    } else {
+                        html += `<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:15px;">`;
+                        diets.forEach((d, idx) => {
+                            // Find assigned users
+                            const assignedUsers = users.filter(u => u.assignedDiet === d.id);
+                            let uNames = assignedUsers.map(u => u.fullName || 'Usuario').join(', ');
+
+                            html += `
+                                <div class="liquid-glass card" style="display:flex; flex-direction:column; padding:15px; border-top:3px solid #00ff88;">
+                                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                        <div style="flex:1;">
+                                            <strong style="color:white; font-size:15px; display:block; margin-bottom:5px;">${d.name}</strong>
+                                            <span style="color:#888; font-size:11px;">Subida: ${new Date(d.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                        <button onclick="window.deleteDiet('${d.id}')" class="cyber-button secondary" style="min-width:auto; padding:4px 8px; font-size:12px; color:#ff1f3d; border-color:#ff1f3d;" title="Borrar">🗑️</button>
+                                    </div>
+                                    <div style="margin-top:10px; background:rgba(0,0,0,0.5); padding:8px; border-radius:6px;">
+                                        <p style="font-size:11px; color:#aaa; margin:0;"> Asignada a:</p>
+                                        <p style="font-size:12px; color:#00d4ff; font-weight:bold; margin:3px 0 0 0; min-height:16px;">${assignedUsers.length > 0 ? uNames : 'Nadie'}</p>
+                                    </div>
+                                    <div style="margin-top:15px; display:flex; gap:10px;">
+                                        <button onclick="window.openDietAssignment('${d.id}', '${d.name}')" class="cyber-button" style="flex:1; font-size:12px; padding:8px;">👥 Asignar</button>
+                                        <a href="${d.url}" target="_blank" class="cyber-button secondary" style="flex:1; font-size:12px; padding:8px; text-decoration:none; text-align:center; border-color:#aaa; color:#aaa;">👁️ Ver Doc</a>
+                                    </div>
+                                </div>
+                                `;
+                        });
+                        html += `</div>`;
+                    }
+
+                    // Modal for creating diet
+                    html += `
+                        <div id="modal-upload-diet" class="modal-overlay">
+                            <div class="modal-content liquid-glass" style="max-width:400px; padding:20px;">
+                                <h3 style="color:#00ff88; margin-bottom:15px; font-size:16px;">Nueva Dieta</h3>
+                                <div style="display:flex; flex-direction:column; gap:12px;">
+                                    <input type="text" id="new-diet-name" placeholder="Ej: Dieta Volumen 3000Kcal" style="background:#111; border:1px solid #444; color:white; padding:10px; border-radius:4px; font-size:13px; width:100%;">
+                                    
+                                    <label class="cyber-button" style="background:#222; border-style:dashed; padding:15px; text-align:center; cursor:pointer;">
+                                        <span id="label-diet-file" style="color:#aaa;">📁 Seleccionar PDF o Imagen</span>
+                                        <input type="file" id="new-diet-file" accept="application/pdf,image/*" style="display:none;" onchange="document.getElementById('label-diet-file').textContent = this.files[0] ? this.files[0].name : '📁 Seleccionar PDF o Imagen'">
+                                    </label>
+                                    
+                                    <div style="display:flex; gap:10px; margin-top:10px;">
+                                        <button onclick="window.uploadDiet()" id="btn-save-diet" class="cyber-button" style="flex:1;">Guardar</button>
+                                        <button onclick="document.getElementById('modal-upload-diet').classList.remove('active')" class="cyber-button secondary" style="flex:1;">Cancelar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal for Assigning Diet -->
+                        <div id="modal-assign-diet" class="modal-overlay">
+                            <div class="modal-content liquid-glass" style="max-width:400px; padding:20px;">
+                                <h3 style="color:#00ff88; margin-bottom:15px; font-size:16px;">Asignar <span id="assign-diet-title" style="color:white;"></span></h3>
+                                <p style="font-size:11px; color:#aaa; margin-bottom:10px;">Selecciona el cliente al que aplicar esta dieta:</p>
+                                <div style="max-height:250px; overflow-y:auto; margin-bottom:15px; border:1px solid #333; padding:5px; border-radius:4px;" id="assign-diet-user-list">
+                                    <!-- User Checkboxes will be injected here -->
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    <button onclick="window.executeDietAssignment()" id="btn-exec-assign-diet" class="cyber-button" style="flex:1;">Aplicar</button>
+                                    <button onclick="document.getElementById('modal-assign-diet').classList.remove('active')" class="cyber-button secondary" style="flex:1;">Cancelar</button>
+                                </div>
+                            </div>
+                        </div>
+                        `;
+
+                    contentArea.innerHTML = html;
+
+                } catch (e) {
+                    console.error(e);
+                    contentArea.innerHTML = `<p style="color:red; font-size:12px; text-align:center;">Error cargando dietas.</p>`;
+                }
             }
+        } catch (error) {
+            console.error(error);
+            contentArea.innerHTML = `<p style="color:red; font-size:12px;">Error al cargar datos del servidor.</p>`;
+        }
         };
 
         window.scheduleAppointment = async () => {
@@ -1660,6 +1753,147 @@
                 if (box) box.innerHTML = `<p style="color:red; font-size:12px; text-align:center;">Error inicializando socket.</p>`;
             }
         };
+
+        window.uploadDiet = async () => {
+            const nameInput = document.getElementById('new-diet-name').value.trim();
+            const fileInput = document.getElementById('new-diet-file').files[0];
+            if (!nameInput || !fileInput) {
+                alert("Debes poner un nombre y elegir un archivo pdf/imagen.");
+                return;
+            }
+
+            const btn = document.getElementById('btn-save-diet');
+            btn.innerHTML = 'Subiendo...';
+            btn.disabled = true;
+
+            try {
+                const { getStorage, ref, uploadBytes, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js');
+                const { db, doc, getDoc, updateDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+
+                const storage = getStorage();
+                const safeName = nameInput.replace(/[^a-zA-Z0-9]/g, '_') + '_' + Date.now();
+                const storageRef = ref(storage, `diets/${safeName}`);
+
+                await uploadBytes(storageRef, fileInput);
+                const dlUrl = await getDownloadURL(storageRef);
+
+                const newDiet = {
+                    id: 'diet_' + Date.now(),
+                    name: nameInput,
+                    url: dlUrl,
+                    createdAt: Date.now()
+                };
+
+                const adminRef = doc(db, "adminData", "admin");
+                const adminSnap = await getDoc(adminRef);
+                if (adminSnap.exists()) {
+                    const diets = adminSnap.data().diets || [];
+                    diets.push(newDiet);
+                    await updateDoc(adminRef, { diets });
+                } else {
+                    await setDoc(adminRef, { diets: [newDiet] }, { merge: true });
+                }
+
+                showToast('✅ Dieta subida correctamente.');
+                document.getElementById('modal-upload-diet').classList.remove('active');
+                loadAdminContent('dietas');
+            } catch (err) {
+                console.error(err);
+                alert("Error subiendo archivo.");
+                btn.innerHTML = 'Guardar';
+                btn.disabled = false;
+            }
+        };
+
+        window.deleteDiet = async (dietId) => {
+            if (!confirm("¿Seguro que quieres eliminar esta dieta? Se borrará para todos.")) return;
+            try {
+                const { db, doc, getDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+                const adminRef = doc(db, "adminData", "admin");
+                const adminSnap = await getDoc(adminRef);
+                if (adminSnap.exists()) {
+                    const diets = adminSnap.data().diets || [];
+                    const filtered = diets.filter(d => d.id !== dietId);
+                    await updateDoc(adminRef, { diets: filtered });
+                    showToast('✅ Dieta eliminada.');
+                    loadAdminContent('dietas');
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error borrando dieta.");
+            }
+        };
+
+        window.openDietAssignment = async (dietId, dietName) => {
+            document.getElementById('assign-diet-title').textContent = dietName;
+            window._currentAssigningDietId = dietId;
+
+            const listEl = document.getElementById('assign-diet-user-list');
+            listEl.innerHTML = '<span style="color:#aaa;font-size:11px;">Cargando clientes...</span>';
+            document.getElementById('modal-assign-diet').classList.add('active');
+
+            const users = await AdminController.getClients('approved');
+            if (users.length === 0) {
+                listEl.innerHTML = '<p style="color:#888;font-size:12px;">No tienes usuarios activos.</p>';
+                return;
+            }
+
+            let html = '';
+            users.forEach(u => {
+                const isAssigned = u.assignedDiet === dietId;
+                html += `
+                <label style="display:flex; align-items:center; gap:8px; padding:8px 5px; border-bottom:1px solid #222; cursor:pointer;">
+                    <input type="checkbox" class="diet-assign-cb" value="${u.id}" ${isAssigned ? 'checked' : ''} style="accent-color:#00ff88; width:16px; height:16px;">
+                    <span style="color:white; font-size:13px;">${u.fullName || 'Atleta'}</span>
+                    ${isAssigned ? '<span style="color:#00ff88; font-size:10px; margin-left:auto;">[Actual]</span>' : ''}
+                </label>
+                `;
+            });
+            listEl.innerHTML = html;
+        };
+
+        window.executeDietAssignment = async () => {
+            const dietId = window._currentAssigningDietId;
+            if (!dietId) return;
+
+            const btn = document.getElementById('btn-exec-assign-diet');
+            btn.innerHTML = 'Otorgando...';
+            btn.disabled = true;
+
+            const checkboxes = document.querySelectorAll('.diet-assign-cb');
+            const { db, doc, getDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+
+            try {
+                const adminRef = doc(db, "adminData", "admin");
+                const adminSnap = await getDoc(adminRef);
+                const diets = adminSnap.exists() ? (adminSnap.data().diets || []) : [];
+                const dietObj = diets.find(d => d.id === dietId);
+
+                const promises = [];
+                checkboxes.forEach(cb => {
+                    const uid = cb.value;
+                    const isChecked = cb.checked;
+                    const userRef = doc(db, "users", uid);
+                    if (isChecked) {
+                        promises.push(updateDoc(userRef, { assignedDiet: dietId, assignedDietData: dietObj || null }));
+                    } else {
+                        promises.push(updateDoc(userRef, { assignedDiet: null, assignedDietData: null }));
+                    }
+                });
+                await Promise.all(promises);
+
+                showToast('✅ Asignaciones guardadas.');
+                document.getElementById('modal-assign-diet').classList.remove('active');
+                loadAdminContent('dietas');
+            } catch (err) {
+                console.error(err);
+                alert("Error asignando dieta.");
+            } finally {
+                btn.innerHTML = 'Aplicar';
+                btn.disabled = false;
+            }
+        };
+
         window.approveAthlete = async (uid) => {
             if (!confirm("¿Aprobar a este atleta? Podrá acceder a la app.")) return;
             showToast("Aprobando...");
@@ -2640,12 +2874,34 @@
                     </div>`;
                 });
 
+                let dietHtml = '';
+                if (State.profile.assignedDietData && State.profile.assignedDietData.url) {
+                    dietHtml = `
+                    <h2 style="font-size:18px; margin-bottom:10px; margin-top:20px;">Tu Dieta</h2>
+                    <div class="liquid-glass card" style="padding:15px; border-left: 4px solid var(--cyber-red-neon); display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <strong style="color:white; display:block; font-size:15px; margin-bottom:4px;">${State.profile.assignedDietData.name || 'Plan Nutricional'}</strong>
+                            <span style="color:#00ff88; font-size:11px;">Asignada por tu Coach</span>
+                        </div>
+                        <a href="${State.profile.assignedDietData.url}" target="_blank" class="cyber-button" style="text-decoration:none; padding:8px 15px; font-size:12px; border-color:var(--cyber-red-neon); color:var(--cyber-red-neon);">Ver Dieta</a>
+                    </div>
+                    `;
+                } else {
+                    dietHtml = `
+                    <h2 style="font-size:18px; margin-bottom:10px; margin-top:20px;">Tu Dieta</h2>
+                    <div class="liquid-glass card" style="padding:15px; text-align:center;">
+                        <span style="color:var(--cyber-text-gray); font-style:italic; font-size:13px;">No tienes una dieta asignada actualmente.</span>
+                    </div>
+                    `;
+                }
+
                 return `
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><h2 style="font-size:18px;">Mis actividades</h2></div>
                     <div class="calendar-scroller" id="cal-scroller">${calendarHtml}</div>
                     ${eventsHtml}
                     <h2 style="font-size:18px; margin-bottom:10px; margin-top:10px;">${State.plan.name || 'Plan Local'} <span style="font-size:12px; color:var(--cyber-red-neon); float:right;">Ruts: ${State.plan.routinesAvailable.length}</span></h2>
                     ${routinesHtml}
+                    ${dietHtml}
                     <h2 style="font-size:18px; margin-bottom:10px; margin-top:20px;">Tu Red Neuronal</h2>
                     <div class="liquid-glass card" style="text-align:center; padding:15px;"><button class="cyber-button ai-button" id="btn-ia-setup" style="display:flex; justify-content:center; align-items:center; gap:10px;"><svg class="cyber-icon" style="width:24px; height:24px;" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.991.991 0 013 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L5.4 7.86l6.6 3.71 6.6-3.71L12 4.15zm0 14.7l6.6-3.71V7.86l-6.6 3.71v7.28z"/></svg> Generar Rutina Extra IA</button></div>
                 `;
@@ -2692,6 +2948,7 @@
                     <div class="liquid-glass menu-item view-trigger" data-target="admin_atletas"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div><span>Clientes</span></div>
                     <div class="liquid-glass menu-item view-trigger" data-target="admin_rutinas"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg></div><span>Rutinas</span></div>
                     <div class="liquid-glass menu-item view-trigger" data-target="admin_planes"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z"/></svg></div><span>Planes</span></div>
+                    <div class="liquid-glass menu-item view-trigger" data-target="admin_dietas"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div><span>Dietas</span></div>
                     <div class="liquid-glass menu-item view-trigger" data-target="admin_suscripciones"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg></div><span>Suscripciones</span></div>
                     <div class="liquid-glass menu-item view-trigger" data-target="admin_chat"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg></div><span>Inbox</span></div>
                     <div class="liquid-glass menu-item view-trigger" data-target="admin_agenda"><div class="menu-icon"><svg class="cyber-icon" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 002 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-7 5h5v5h-5z"/></svg></div><span>Agenda</span></div>
@@ -2709,6 +2966,10 @@
             admin_suscripciones: () => {
                 setTimeout(() => loadAdminContent('suscripciones'), 50);
                 return `<h2 style="display:flex; gap:10px; align-items:center; margin-bottom:15px; color:#ffcc00;"><span class="view-trigger" data-target="admin_dashboard" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Gestión de Suscripciones</h2><div id="admin-subcontent"><div class="ai-loader" style="margin-top:40px;">Cargando suscripciones...</div></div>`;
+            },
+            admin_dietas: () => {
+                setTimeout(() => loadAdminContent('dietas'), 50);
+                return `<h2 style="display:flex; gap:10px; align-items:center; margin-bottom:15px; color:#ffcc00;"><span class="view-trigger" data-target="admin_dashboard" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Gestor de Dietas</h2><div id="admin-subcontent"><div class="ai-loader" style="margin-top:40px;">Cargando Dietas...</div></div>`;
             },
             admin_planes: () => {
                 setTimeout(() => loadAdminContent('planes'), 50);
