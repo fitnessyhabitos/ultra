@@ -2575,7 +2575,10 @@
                 <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Comparativa Fotos</h2>
 
                 <div class="liquid-glass card" style="margin-bottom:15px;">
-                    <p style="font-size:12px; color:#aaa; margin-bottom:12px;">📸 Subir nueva foto de hoy (<strong style="color:white;">${todayYMD}</strong>) — ángulo: <strong style="color:var(--cyber-red-neon);">${angle}</strong></p>
+                    <p style="font-size:12px; color:#aaa; margin-bottom:12px;">📸 Subir nueva foto</p>
+                    <div style="display:flex; gap:10px; margin-bottom:12px;">
+                        <input type="date" id="upload-date-select" value="${todayYMD}" style="flex:1; padding:8px; border-radius:6px; background:rgba(0,0,0,0.5); border:1px solid #333; color:white;">
+                    </div>
                     <div class="angle-tabs" style="margin-bottom:12px;">
                         <div class="angle-btn ${angle === 'frontal' ? 'active' : ''}" data-angle="frontal">Frontal</div>
                         <div class="angle-btn ${angle === 'espalda' ? 'active' : ''}" data-angle="espalda">Espalda</div>
@@ -2583,14 +2586,17 @@
                         <div class="angle-btn ${angle === 'der' ? 'active' : ''}" data-angle="der">L. Der</div>
                     </div>
                     <label class="cyber-button" style="width:100%; text-align:center; cursor:pointer; display:block; box-sizing:border-box;" for="upload-new-photo" id="lbl-upload-new">
-                        📷 Subir foto de hoy
-                        <input type="file" id="upload-new-photo" accept="image/*" style="display:none;" data-date="${todayYMD}">
+                        📷 Seleccionar y Subir
+                        <input type="file" id="upload-new-photo" accept="image/*" style="display:none;">
                     </label>
                 </div>
 
-                ${availableDates.length >= 2 ? `
+                ${availableDates.length >= 1 ? `
                 <div class="liquid-glass card">
-                    <p style="color:var(--cyber-text-gray); font-size:12px; margin-bottom:10px;">Compara dos fechas:</p>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <p style="color:var(--cyber-text-gray); font-size:12px; margin:0;">Tus fotos:</p>
+                        ${date2 && p2[angle] ? `<button class="cyber-button secondary" id="btn-delete-photo" data-date="${date2}" data-angle="${angle}" style="padding:4px 8px; font-size:10px; min-height:auto; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;">🗑️ Borrar Actual</button>` : ''}
+                    </div>
                     <div style="display:flex; gap:10px; margin-bottom:15px;">
                         <div class="select-wrapper" style="flex:1;">
                             <select id="comp-date-1" style="font-size:12px; padding:8px; min-height:40px;">${getOptions(date1)}</select>
@@ -2607,7 +2613,7 @@
                         <input type="range" min="0" max="100" value="0" class="slider-range" id="photo-slider">
                         <div class="slider-line" id="slider-line" style="left:0%;"></div>
                     </div>
-                </div>` : `<div class="liquid-glass card" style="text-align:center; padding:30px; color:#aaa; font-size:13px;">Sube al menos 2 fotos en fechas distintas para activar el comparador.</div>`}
+                </div>` : `<div class="liquid-glass card" style="text-align:center; padding:30px; color:#aaa; font-size:13px;">Aún no hay fotos. Sube tu primera foto arriba.</div>`}
                 `;
             },
 
@@ -3048,7 +3054,14 @@
                     const reader = new FileReader();
                     reader.onload = async (ev) => {
                         const base64Img = ev.target.result;
-                        const uDate = e.target.dataset.date;
+
+                        let uDate = e.target.dataset.date;
+                        if (e.target.id === 'upload-new-photo') {
+                            const dateSelect = document.getElementById('upload-date-select');
+                            if (dateSelect && dateSelect.value) uDate = dateSelect.value;
+                            else uDate = formatYMD(new Date());
+                        }
+
                         const angle = State.comparativaAngle || 'frontal';
 
                         // 1. Mostrar Preview Local instantáneo
@@ -3080,6 +3093,43 @@
                         }
                     };
                     reader.readAsDataURL(file);
+                }
+            }
+
+            if (e.target.id === 'btn-delete-photo') {
+                if (confirm("¿Seguro que quieres borrar esta foto? No se puede deshacer.")) {
+                    const d = e.target.dataset.date;
+                    const a = e.target.dataset.angle;
+                    if (State.profile.progressPhotos && State.profile.progressPhotos[d]) {
+                        delete State.profile.progressPhotos[d][a];
+                        // If date becomes empty, remove the date entirely
+                        if (Object.keys(State.profile.progressPhotos[d]).length === 0) {
+                            delete State.profile.progressPhotos[d];
+                        }
+
+                        const btn = e.target;
+                        const originalText = btn.innerHTML;
+                        btn.innerHTML = 'Borrando...';
+                        btn.disabled = true;
+
+                        try {
+                            (async () => {
+                                const { doc: fDoc, updateDoc: fUpdate } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+                                await fUpdate(fDoc(db, 'users', State.profile.uid), { progressPhotos: State.profile.progressPhotos });
+                                showToast('✅ Foto eliminada.');
+
+                                State.compDate1 = null;
+                                State.compDate2 = null;
+
+                                loadView('comparativa');
+                            })();
+                        } catch (err) {
+                            console.error(err);
+                            showToast('❌ Error borrando foto.');
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }
+                    }
                 }
             }
 
