@@ -433,11 +433,13 @@
         });
 
         onAuthStateChanged(auth, async (user) => {
-            // Always hide splash screen as soon as auth state is known
+            // Always hide splash screen as soon as auth state is known, but give a 2s grace period so UI changes don't flash
             const splash = document.getElementById('splash-screen');
             if (splash) {
-                splash.classList.add('hiding');
-                setTimeout(() => splash.remove(), 1500);
+                setTimeout(() => {
+                    splash.classList.add('hiding');
+                    setTimeout(() => splash.remove(), 1500);
+                }, 500); // Added +500ms delay to give routing time
             }
 
             if (user) {
@@ -2961,13 +2963,13 @@
                 <div class="liquid-glass card" style="margin-bottom:20px;">
                     <div class="card-title">Peso y Composición</div>
                     <div class="chart-container"><canvas id="bioChart"></canvas></div>
-                    <div style="display:flex; justify-content:space-around; margin-top:5px; font-size:11px; color:white;"><div><span style="color:#ff3333;">■</span> Peso</div><div><span style="color:#ffaa00;">■</span> Grasa</div><div><span style="color:#00ff88;">■</span> Músculo</div></div>
+                    <div style="display:flex; justify-content:space-around; margin-top:5px; font-size:11px; color:white;"><div><span style="color:#ff3333;">■</span> Peso</div><div><span style="color:#00d4ff;">■</span> %Grasa</div><div><span style="color:#00ff88;">■</span> Músculo</div></div>
                 </div>
                 <div class="liquid-glass card" style="margin-bottom:20px;">
                     <div class="card-title">Perímetros y Pliegues</div>
                     <div class="chart-container"><canvas id="measureChart"></canvas></div>
                     <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:10px; font-size:10px; color:white; padding:0 5px;">
-                        <div><span style="color:#00d4ff;">■</span> %Grasa</div><div><span style="color:#A133FF;">■</span> Homb.</div><div><span style="color:#FF5733;">■</span> Pecho</div>
+                        <div><span style="color:#A133FF;">■</span> Homb.</div><div><span style="color:#FF5733;">■</span> Pecho</div>
                         <div><span style="color:#FF33A8;">■</span> Brazo</div><div><span style="color:#00FF88;">■</span> Cint.</div><div><span style="color:#2ECC71;">■</span> Abd.</div>
                         <div><span style="color:#3357FF;">■</span> Cad.</div><div><span style="color:#F3FF33;">■</span> Muslo</div>
                     </div>
@@ -3211,7 +3213,7 @@
                     type: 'line', data: {
                         labels: hasRealData ? ['Reciente'] : [], datasets: [
                             { label: 'Peso', data: hasRealData ? [State.profile.weight || 0] : [], borderColor: '#ff3333', tension: 0.3 },
-                            { label: 'Grasa', data: hasRealData ? [State.profile.fat || 0] : [], borderColor: '#ffaa00', tension: 0.3 },
+                            { label: '% Grasa (JP7)', data: hasRealData ? [State.profile.fat || 0] : [], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.1)', fill: true, tension: 0.4 },
                             { label: 'Músculo', data: hasRealData ? [State.profile.muscle || 0] : [], borderColor: '#00ff88', tension: 0.3 }
                         ]
                     }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
@@ -3226,8 +3228,8 @@
                 State.charts.measure = new Chart(document.getElementById('measureChart'), {
                     type: 'line', data: {
                         labels: hasRealData ? ['Reciente'] : [], datasets: [
-                            { label: '% Grasa (JP7)', data: hasRealData ? [State.profile.fat || 0] : [], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.1)', fill: true, tension: 0.4 },
-                            { label: 'Peso', data: hasRealData ? [State.profile.weight || 0] : [], borderColor: '#A133FF', borderDash: [3, 3], tension: 0.3, pointRadius: 1 }
+                            { label: 'Hombros', data: hasRealData ? [80] : [], borderColor: '#A133FF', tension: 0.3 },
+                            { label: 'Pecho', data: hasRealData ? [70] : [], borderColor: '#FF5733', tension: 0.3 }
                         ]
                     }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
                 });
