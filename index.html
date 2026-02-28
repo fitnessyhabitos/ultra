@@ -853,15 +853,20 @@
                     } else {
                         activeUsers.forEach(u => {
                             html += `
-                            <div class="liquid-glass card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:10px; border-left:3px solid #00ff88;">
-                                <div>
-                                    <strong style="color:white; display:block; font-size: 13px;">${u.fullName || 'Atleta'}</strong>
-                                    <span style="font-size:10px; color:#aaa;">ID: ${u.clientIdNum ? '#' + u.clientIdNum : u.id.substring(0, 6).toUpperCase()}</span>
-                                </div>
-                                <div style="display:flex; gap:5px;">
-                                    <button onclick="viewAthleteProfile('${u.id}')" class="cyber-button" style="padding:4px 10px; font-size:10px; min-width:auto;">Ver Perfil</button>
-                                    <button onclick="impersonateUser('${u.id}')" class="cyber-button" style="padding:4px 10px; font-size:10px; min-width:auto; background:#ff3333; border-color:#ff3333; color:white;">Vista Coach</button>
-                                    <button onclick="window.promptDeleteClient('${u.id}', '${(u.fullName || '').replace(/'/g, "\\'")}')" class="cyber-button secondary" style="padding:4px 10px; font-size:10px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;" title="Eliminar Cliente">🗑️</button>
+                            <div class="liquid-glass card" style="margin-bottom:10px; padding:10px; border-left:3px solid ${u.subscriptionStatus === 'active' ? '#00ff88' : u.subscriptionStatus === 'pending' ? '#ffcc00' : '#ff4444'};">
+                                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                                    <div>
+                                        <strong style="color:white; display:block; font-size: 13px;">${u.fullName || 'Atleta'}</strong>
+                                        <span style="font-size:10px; color:#aaa;">ID: ${u.clientIdNum ? '#' + u.clientIdNum : u.id.substring(0, 6).toUpperCase()}</span>
+                                        <span style="font-size:10px; margin-left:6px; color:${u.subscriptionStatus === 'active' ? '#00ff88' : u.subscriptionStatus === 'pending' ? '#ffcc00' : '#ff4444'};">● ${u.subscriptionStatus === 'active' ? 'Activo' : u.subscriptionStatus === 'pending' ? 'Pendiente' : 'Sin plan'}</span>
+                                    </div>
+                                    <div style="display:flex; gap:5px; flex-wrap:wrap; justify-content:flex-end;">
+                                        <button onclick="viewAthleteProfile('${u.id}')" class="cyber-button" style="padding:4px 8px; font-size:10px; min-width:auto;">Perfil</button>
+                                        <button onclick="impersonateUser('${u.id}')" class="cyber-button" style="padding:4px 8px; font-size:10px; min-width:auto; background:#ff3333; border-color:#ff3333; color:white;">👁️</button>
+                                        <button onclick="window.adminToggleSubscription('${u.id}', '${u.subscriptionStatus || 'none'}')" class="cyber-button" style="padding:4px 8px; font-size:10px; min-width:auto; border-color:${u.subscriptionStatus === 'active' ? '#ff4444' : '#00ff88'}; color:${u.subscriptionStatus === 'active' ? '#ff4444' : '#00ff88'};">${u.subscriptionStatus === 'active' ? '🔒 Off' : '🔓 On'}</button>
+                                        ${u.role !== 'admin' ? `<button onclick="window.adminPromoteToCoach('${u.id}', '${(u.fullName || '').replace(/'/g, "\\'")}'  )" class="cyber-button" style="padding:4px 8px; font-size:10px; min-width:auto; border-color:#ff00ff; color:#ff00ff;" title="Promover a Coach">⬆️Coach</button>` : '<span style="font-size:10px;color:#ff00ff;padding:4px;">COACH</span>'}
+                                        <button onclick="window.promptDeleteClient('${u.id}', '${(u.fullName || '').replace(/'/g, "\\'")}'  )" class="cyber-button secondary" style="padding:4px 8px; font-size:10px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;" title="Eliminar">🗑️</button>
+                                    </div>
                                 </div>
                             </div>`;
                         });
@@ -1104,7 +1109,6 @@
                                     ${clientOptions}
                                 </select>
                                 
-                                <label style="font-size:11px; color:#aaa; margin-top:5px;">Aviso Directo (Instantáneo):</label>
                                 <div style="display:flex; gap:5px;">
                                     <button onclick="window.sendQuickReminder('fotos')" class="cyber-button secondary" style="flex:1; font-size:10px; padding:8px 4px; border-color:#00d4ff; color:#00d4ff;">📸 Subir Fotos</button>
                                     <button onclick="window.sendQuickReminder('peso')" class="cyber-button secondary" style="flex:1; font-size:10px; padding:8px 4px; border-color:#ffaa00; color:#ffaa00;">⚖️ Peso Báscula</button>
@@ -1196,6 +1200,39 @@
             if (result === false) { showToast('\u274c Error registrando visita.'); return; }
             showToast(`\u2705 Visita registrada. Restantes: ${result}`);
             window.viewAthleteProfile(uid); // Refresh athlete profile
+        };
+
+        window.adminToggleSubscription = async (uid, currentStatus) => {
+            const activate = currentStatus !== 'active';
+            const msg = activate
+                ? '¿Activar suscripción manualmente (sin pago)?'
+                : '¿Desactivar suscripción de este atleta?';
+            if (!confirm(msg)) return;
+            try {
+                const { updateDoc, doc: fDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                await updateDoc(fDoc(db, "users", uid), {
+                    subscriptionStatus: activate ? 'active' : 'none',
+                    pendingPayment: null
+                });
+                showToast(activate ? '✅ Suscripción activada.' : '🔒 Suscripción desactivada.');
+                loadAdminContent('atletas');
+            } catch (e) {
+                console.error(e);
+                showToast('❌ Error actualizando suscripción.');
+            }
+        };
+
+        window.adminPromoteToCoach = async (uid, name) => {
+            if (!confirm(`¿Promover a "${name}" como Coach? Tendrá acceso completo al panel de administración.`)) return;
+            try {
+                const { updateDoc, doc: fDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                await updateDoc(fDoc(db, "users", uid), { role: 'admin' });
+                showToast(`⬆️ ${name} promovido a Coach.`);
+                loadAdminContent('atletas');
+            } catch (e) {
+                console.error(e);
+                showToast('❌ Error promoviendo a Coach.');
+            }
         };
 
         window.sendQuickReminder = async (type) => {
