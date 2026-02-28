@@ -495,6 +495,8 @@
                     State.profile.planName = userData.planName || '';
                     State.profile.planStartDate = userData.planStartDate || null;
                     State.profile.planEndDate = userData.planEndDate || null;
+                    State.profile.telegram = userData.telegram || '';
+                    State.profile.instagram = userData.instagram || '';
 
                 } else {
                     State.profile.maxWeights = {};
@@ -505,6 +507,7 @@
                 }
                 State.profile.id = user.uid.substring(0, 4).toUpperCase();
                 State.profile.uid = user.uid;
+                State.profile.email = user.email || '';
 
                 // GLOBAL LISTENER PARA RECORDATORIOS AUTOMÁTICOS PUSH
                 if (State.profile.role !== 'admin') {
@@ -2332,13 +2335,15 @@
                 return `
                 <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Mi Perfil</h2>
                 <div class="liquid-glass card auth-form">
-                    <p style="color:var(--cyber-text-gray); font-size:12px;">Código Operativo: <strong style="color:white;">#${State.profile.clientIdNum || State.profile.id}</strong></p>
-                    <label style="font-size:12px; color:var(--cyber-red-neon);">Correo Electrónico</label><input type="email" value="operativo@fitdata.pro" disabled>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; background:rgba(255,31,61,0.06); border-radius:8px; padding:10px; border:1px solid rgba(255,31,61,0.15);">
+                        <div><p style="color:#aaa; font-size:10px; margin-bottom:2px;">ID CLIENTE</p><p style="color:#ffcc00; font-weight:bold; font-size:15px;">#${State.profile.clientIdNum || State.profile.id}</p></div>
+                        <div><p style="color:#aaa; font-size:10px; margin-bottom:2px;">CORREO</p><p style="color:white; font-size:12px; word-break:break-all;">${State.profile.email || '—'}</p></div>
+                    </div>
                     <label style="font-size:12px; color:var(--cyber-red-neon);">Nombre Completo</label><input type="text" id="prof-name" value="${State.profile.name}">
                     <label style="font-size:12px; color:var(--cyber-red-neon); display:flex; justify-content:space-between;">Fecha Nacimiento <span id="age-display" style="color:var(--cyber-white); font-weight:bold;">${initialAge ? `(${initialAge} años)` : ''}</span></label>
                     <input type="date" id="prof-dob" value="${State.profile.dob}">
-                    <label style="font-size:12px; color:var(--cyber-red-neon);">Usuario Telegram</label><div style="position: relative;"><input type="text" value="antoni_fit" style="padding-left: 40px;"><span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--cyber-red-neon);">@</span></div>
-                    <label style="font-size:12px; color:var(--cyber-red-neon);">Perfil Instagram</label><div style="position: relative;"><input type="text" placeholder="usuario_ig" style="padding-left: 40px;"><span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--cyber-red-neon);">@</span></div>
+                    <label style="font-size:12px; color:var(--cyber-red-neon);">Usuario Telegram</label><div style="position: relative;"><input type="text" id="prof-telegram" value="${State.profile.telegram || ''}" placeholder="tu_usuario" style="padding-left: 40px;"><span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--cyber-red-neon);">@</span></div>
+                    <label style="font-size:12px; color:var(--cyber-red-neon);">Perfil Instagram</label><div style="position: relative;"><input type="text" id="prof-instagram" value="${State.profile.instagram || ''}" placeholder="usuario_ig" style="padding-left: 40px;"><span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--cyber-red-neon);">@</span></div>
                     <button class="cyber-button" style="margin-top: 10px;" id="btn-save-profile">Actualizar Datos</button>
                 </div>
                 ${(() => {
@@ -2505,12 +2510,19 @@
                         exercises.forEach(ex => {
                             const exName = ex.n || ex.name || '?';
                             const sets = ex.sets || ex.s || [];
-                            const setsSummary = sets.filter(s => s.done || s.d).map(s => {
+                            const doneSets = sets.filter(s => s.done || s.d);
+                            const setsSummary = doneSets.map(s => {
                                 const w = s.weight ?? s.w ?? '--';
                                 const r = s.reps ?? s.r ?? '--';
                                 return `${w}kg×${r}`;
                             }).join(' | ') || '—';
-                            exRows += `<tr><td style="font-weight:600;color:white;max-width:110px;">${exName}</td><td style="color:#aaa;">${setsSummary}</td></tr>`;
+                            // Check for weight/1RM records in this workout entry
+                            const maxW = doneSets.length ? Math.max(...doneSets.map(s => parseFloat(s.weight ?? s.w ?? 0) || 0)) : 0;
+                            const maxR = doneSets.length ? Math.max(...doneSets.map(s => parseFloat(s.reps ?? s.r ?? 0) || 0)) : 0;
+                            const orm = maxW && maxR ? (maxW * (1 + maxR / 30)).toFixed(1) : null;
+                            const recordBadge = (workout.newRecords && workout.newRecords[exName]) ? `<span style="color:#ffcc00; font-size:10px; margin-left:6px;">🏆 Récord</span>` : '';
+                            const exNote = ex.notes || ex.obs || '';
+                            exRows += `<tr><td style="font-weight:600;color:white;max-width:110px;">${exName}${recordBadge}</td><td style="color:#aaa;">${setsSummary}${orm ? `<br><span style="color:#00d4ff;font-size:10px;">1RM≈${orm}kg</span>` : ''}${exNote ? `<br><span style="color:#888;font-size:10px;font-style:italic;">📝 ${exNote}</span>` : ''}</td></tr>`;
                         });
 
                         html += `
@@ -2527,7 +2539,7 @@
                                 </div>
                             </summary>
                             <div style="margin-top:12px; border-top:1px solid rgba(255,255,255,0.07); padding-top:12px;">
-                                ${workout.note ? `<p style="font-size:12px; color:#ccc; margin-bottom:10px; padding:8px 10px; background:rgba(255,255,255,0.05); border-radius:6px; border-left:2px solid #00d4ff;">💬 ${workout.note}</p>` : ''}
+                                ${workout.note ? `<p style="font-size:12px; color:#ccc; margin-bottom:10px; padding:8px 10px; background:rgba(0,212,255,0.06); border-radius:6px; border-left:2px solid #00d4ff;">💬 ${workout.note}</p>` : ''}
                                 ${exRows ? `<table class="hist-ex-table"><thead><tr><th>Ejercicio</th><th>Series realizadas</th></tr></thead><tbody>${exRows}</tbody></table>` : '<p style="color:#aaa;font-size:11px;">Sin detalle de ejercicios.</p>'}
                             </div>
                         </details>`;
@@ -2869,7 +2881,7 @@
                                 <div>#</div><div>Reps</div><div>Kg</div><div>✓</div><div><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2L1 21h22M12 6l7.5 13h-15M11 10h2v4h-2M11 16h2v2h-2"/></svg></div>
                             </div>
                             ${setsHTML}
-                            <textarea class="ex-obs-free" data-ex="${exIdx}" placeholder="Observaciones de hoy (Ej: Molestia hombro)" style="min-height:40px; font-size:12px; margin-top:10px; width:100%;">${ex.obs || ''}</textarea>
+                            <textarea class="ex-obs-free" data-ex="${exIdx}" placeholder="Observaciones de hoy (Ej: Molestia hombro)" style="min-height:40px; font-size:12px; margin-top:10px; width:100%; background:rgba(0,0,0,0.4); border:1px solid #444; color:#ccc; border-radius:4px; padding:8px; font-family:inherit;">${ex.obs || ''}</textarea>
                         </div>
                     </div>`;
                 });
@@ -3275,14 +3287,23 @@
             if (e.target.closest('#btn-save-profile')) {
                 const nameVal = document.getElementById('prof-name')?.value?.trim();
                 const dobVal = document.getElementById('prof-dob')?.value;
+                const telegramVal = document.getElementById('prof-telegram')?.value?.trim().replace(/^@/, '');
+                const instagramVal = document.getElementById('prof-instagram')?.value?.trim().replace(/^@/, '');
                 if (!nameVal) { showToast('⚠️ El nombre no puede estar vacío.'); return; }
                 State.profile.name = nameVal;
                 State.profile.dob = dobVal || State.profile.dob;
+                State.profile.telegram = telegramVal;
+                State.profile.instagram = instagramVal;
                 const btn = e.target.closest('#btn-save-profile');
                 btn.disabled = true; btn.textContent = 'Guardando...';
                 try {
                     const { doc: fDoc, updateDoc: fUpdate } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
-                    await fUpdate(fDoc(db, 'users', State.profile.uid), { name: State.profile.name, dob: State.profile.dob });
+                    await fUpdate(fDoc(db, 'users', State.profile.uid), {
+                        name: State.profile.name,
+                        dob: State.profile.dob,
+                        telegram: State.profile.telegram || '',
+                        instagram: State.profile.instagram || ''
+                    });
                     showToast('✅ Datos personales actualizados.');
                 } catch (err) { console.error(err); showToast('❌ Error al guardar. Inténtalo de nuevo.'); }
                 finally { btn.disabled = false; btn.textContent = 'Actualizar Datos'; }
