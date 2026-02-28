@@ -2607,7 +2607,7 @@
                     </div>
                     <div class="slider-container">
                         <img src="${imgActual}" class="slider-img after">
-                        <img src="${imgInicio}" class="slider-img before" id="img-before">
+                        <img src="${imgInicio}" class="slider-img before" id="img-before" style="clip-path: polygon(0 0, 0% 0, 0% 100%, 0 100%);">
                         <div class="slider-label label-before" id="label-img-1">${date1 || '--'}</div>
                         <div class="slider-label label-after" id="label-img-2">${date2 || '--'}</div>
                         <input type="range" min="0" max="100" value="0" class="slider-range" id="photo-slider">
@@ -2966,31 +2966,10 @@
             const subPending = State.profile.pendingPayment;
 
             if (!isAdmin && !ALWAYS_ALLOWED.includes(viewName)) {
-                if (subStatus !== 'active') {
-                    if (Views[viewName]) {
-                        DOM.view.innerHTML = Views[viewName]();
-                        State.currentView = viewName;
-                        window.scrollTo(0, 0);
-                    }
-                    // Overlay the locked state
-                    const lockMsg = subPending
-                        ? `<div style="position:fixed;inset:0;background:rgba(10,10,15,0.95);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px;">
-                            <div style="font-size:48px;">⏳</div>
-                            <h2 style="color:#ffcc00;font-size:20px;text-align:center;">Verificando Pago</h2>
-                            <p style="color:#aaa;font-size:13px;text-align:center;max-width:280px;">Tu pago de <strong style="color:white;">${subPending.plan}</strong> está siendo verificado. Recibirás confirmación en menos de 24h.</p>
-                            <p style="color:#555;font-size:11px;">Enviado: ${new Date(subPending.timestamp).toLocaleString('es-ES')}</p>
-                            <button class="cyber-button" onclick="navigateTo('menu')" style="margin-top:10px;">Volver al Menú</button>
-                           </div>`
-                        : `<div style="position:fixed;inset:0;background:rgba(10,10,15,0.95);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px;">
-                            <div style="font-size:48px;">🔒</div>
-                            <h2 style="color:#ff1f3d;font-size:20px;text-align:center;">Sección Bloqueada</h2>
-                            <p style="color:#aaa;font-size:13px;text-align:center;max-width:280px;">Activa tu suscripción para acceder a todas las funciones de la app.</p>
-                            <button class="cyber-button" onclick="navigateTo('suscripcion')" style="background:rgba(255,31,61,0.2);border:2px solid #ff1f3d;">Ver Planes</button>
-                            <button class="cyber-button secondary" onclick="navigateTo('menu')" style="border-color:#444;color:#888;">Volver al Menú</button>
-                           </div>`;
-                    DOM.view.insertAdjacentHTML('afterbegin', lockMsg);
-                    DOM.navItems.forEach(item => item.classList.toggle('active', item.dataset.view === viewName));
-                    return;
+                if (Views[viewName]) {
+                    DOM.view.innerHTML = Views[viewName]();
+                    State.currentView = viewName;
+                    window.scrollTo(0, 0);
                 }
             }
             // === END GATING ===
@@ -3051,46 +3030,64 @@
             if (e.target.id === 'upload-1' || e.target.id === 'upload-2' || e.target.id === 'upload-new-photo') {
                 const file = e.target.files[0];
                 if (file) {
+                    const lbl = e.target.closest('label');
+                    const originalText = lbl ? lbl.innerHTML.trim() : "";
+                    if (lbl) lbl.innerHTML = `<span style="color:#fff;">Procesando...</span>`;
+
                     const reader = new FileReader();
                     reader.onload = async (ev) => {
-                        const base64Img = ev.target.result;
+                        const img = new Image();
+                        img.onload = async () => {
+                            // Compresión por Canvas
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 1080;
+                            let width = img.width;
+                            let height = img.height;
+                            if (width > MAX_WIDTH) {
+                                height = Math.round((height * MAX_WIDTH) / width);
+                                width = MAX_WIDTH;
+                            }
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            const base64Img = canvas.toDataURL('image/jpeg', 0.7);
 
-                        let uDate = e.target.dataset.date;
-                        if (e.target.id === 'upload-new-photo') {
-                            const dateSelect = document.getElementById('upload-date-select');
-                            if (dateSelect && dateSelect.value) uDate = dateSelect.value;
-                            else uDate = formatYMD(new Date());
-                        }
+                            let uDate = e.target.dataset.date;
+                            if (e.target.id === 'upload-new-photo') {
+                                const dateSelect = document.getElementById('upload-date-select');
+                                if (dateSelect && dateSelect.value) uDate = dateSelect.value;
+                                else uDate = formatYMD(new Date());
+                            }
 
-                        const angle = State.comparativaAngle || 'frontal';
+                            const angle = State.comparativaAngle || 'frontal';
 
-                        // 1. Mostrar Preview Local instantáneo
-                        State.profile.progressPhotos = State.profile.progressPhotos || {};
-                        if (!State.profile.progressPhotos[uDate]) State.profile.progressPhotos[uDate] = {};
-                        State.profile.progressPhotos[uDate][angle] = base64Img;
+                            // 1. Mostrar Preview Local instantáneo
+                            State.profile.progressPhotos = State.profile.progressPhotos || {};
+                            if (!State.profile.progressPhotos[uDate]) State.profile.progressPhotos[uDate] = {};
+                            State.profile.progressPhotos[uDate][angle] = base64Img;
 
-                        if (e.target.id === 'upload-1') {
-                            const img = document.getElementById('img-before');
-                            if (img) img.src = base64Img;
-                        } else {
-                            const img = document.querySelector('.slider-img.after');
-                            if (img) img.src = base64Img;
-                        }
+                            if (e.target.id === 'upload-1') {
+                                const prvNode = document.getElementById('img-before');
+                                if (prvNode) prvNode.src = base64Img;
+                            } else {
+                                const prvNode = document.querySelector('.slider-img.after');
+                                if (prvNode) prvNode.src = base64Img;
+                            }
 
-                        // 2. Subir a Firebase Storage y Database
-                        const lbl = e.target.closest('label');
-                        const originalText = lbl ? lbl.innerHTML.trim() : "";
-                        if (lbl) lbl.innerHTML = `<span style="color:#fff;">Subiendo...</span>`;
-
-                        const res = await uploadProgressPhoto(State.profile.uid, uDate, angle, base64Img);
-                        if (res) {
-                            State.profile.progressPhotos = res.progressPhotos; // Sync con BD
-                            if (lbl) lbl.innerHTML = `<span style="color:var(--cyber-green);">¡Guardada!</span>`;
-                            setTimeout(() => { if (lbl) lbl.innerHTML = originalText; loadView('comparativa'); }, 2000);
-                        } else {
-                            alert("Hubo un error al subir la imagen en la nube.");
-                            if (lbl) lbl.innerHTML = originalText;
-                        }
+                            // 2. Subir a Firebase Storage y Database
+                            if (lbl) lbl.innerHTML = `<span style="color:#fff;">Subiendo...</span>`;
+                            const res = await uploadProgressPhoto(State.profile.uid, uDate, angle, base64Img);
+                            if (res) {
+                                State.profile.progressPhotos = res.progressPhotos; // Sync con BD
+                                if (lbl) lbl.innerHTML = `<span style="color:var(--cyber-green);">¡Guardada!</span>`;
+                                setTimeout(() => { if (lbl) lbl.innerHTML = originalText; loadView('comparativa'); }, 2000);
+                            } else {
+                                alert("Hubo un error al subir la imagen en la nube.");
+                                if (lbl) lbl.innerHTML = originalText;
+                            }
+                        };
+                        img.src = ev.target.result;
                     };
                     reader.readAsDataURL(file);
                 }
