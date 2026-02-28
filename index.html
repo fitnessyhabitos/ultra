@@ -497,6 +497,7 @@
                     State.profile.planEndDate = userData.planEndDate || null;
                     State.profile.telegram = userData.telegram || '';
                     State.profile.instagram = userData.instagram || '';
+                    State.profile.progressPhotos = userData.progressPhotos || {};
 
                 } else {
                     State.profile.maxWeights = {};
@@ -2552,72 +2553,62 @@
             comparativa: () => {
                 const angle = State.comparativaAngle || 'frontal';
                 const photos = State.profile.progressPhotos || {};
-                const availableDates = Object.keys(photos).sort((a, b) => b.localeCompare(a)); // Descendente
+                // Solo fechas con fotos reales
+                const availableDates = Object.keys(photos).sort((a, b) => b.localeCompare(a));
 
-                // Si no hay fechas, creamos la de hoy temporalmente en la vista
-                const today = formatYMD(new Date());
-                if (!availableDates.includes(today)) availableDates.unshift(today);
+                let date1 = State.compDate1 || (availableDates.length > 1 ? availableDates[availableDates.length - 1] : availableDates[0] || null);
+                let date2 = State.compDate2 || availableDates[0] || null;
 
-                let date1 = State.compDate1 || availableDates[availableDates.length - 1]; // La más antigua por defecto
-                let date2 = State.compDate2 || availableDates[0]; // La más nueva por defecto
+                const todayYMD = formatYMD(new Date());
 
-                // Construir options
-                const getOptions = (selected) => availableDates.map(d => `<option value="${d}" ${d === selected ? 'selected' : ''}>${d === today ? 'Actual (Hoy)' : d}</option>`).join('');
+                const getOptions = (selected) => availableDates.map(d => `<option value="${d}" ${d === selected ? 'selected' : ''}>${d}</option>`).join('');
 
-                const p1 = photos[date1] || {};
-                const p2 = photos[date2] || {};
+                const p1 = date1 ? (photos[date1] || {}) : {};
+                const p2 = date2 ? (photos[date2] || {}) : {};
 
-                const imgInicio = p1[angle] || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23222222'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23ff1f3d' font-family='sans-serif' font-size='24'>SIN FOTO</text></svg>";
-                const imgActual = p2[angle] || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23111111'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2300ff88' font-family='sans-serif' font-size='24'>SIN FOTO</text></svg>";
+                const placeholder = (label, color) => `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'><rect width='400' height='600' fill='%23111'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='${encodeURIComponent(color)}' font-family='sans-serif' font-size='22'>${label}</text></svg>`;
+
+                const imgInicio = p1[angle] || placeholder('SIN FOTO', '#ff1f3d');
+                const imgActual = p2[angle] || placeholder('SIN FOTO', '#00ff88');
 
                 return `
-                <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Comparativa</h2>
-                <div class="liquid-glass card">
-                    <p style="color:var(--cyber-text-gray); font-size:12px; margin-bottom:10px;">Selecciona fechas y ángulo para comparar.</p>
-                    
-                    <div style="display:flex; gap:10px; margin-bottom:15px;">
-                        <div class="select-wrapper" style="flex:1;">
-                            <select id="comp-date-1" style="font-size:12px; padding:8px; min-height:40px;">
-                                ${getOptions(date1)}
-                            </select>
-                        </div>
-                        <div class="select-wrapper" style="flex:1;">
-                            <select id="comp-date-2" style="font-size:12px; padding:8px; min-height:40px;">
-                                ${getOptions(date2)}
-                            </select>
-                        </div>
-                    </div>
+                <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Comparativa Fotos</h2>
 
-                    <div class="angle-tabs">
+                <div class="liquid-glass card" style="margin-bottom:15px;">
+                    <p style="font-size:12px; color:#aaa; margin-bottom:12px;">📸 Subir nueva foto de hoy (<strong style="color:white;">${todayYMD}</strong>) — ángulo: <strong style="color:var(--cyber-red-neon);">${angle}</strong></p>
+                    <div class="angle-tabs" style="margin-bottom:12px;">
                         <div class="angle-btn ${angle === 'frontal' ? 'active' : ''}" data-angle="frontal">Frontal</div>
                         <div class="angle-btn ${angle === 'espalda' ? 'active' : ''}" data-angle="espalda">Espalda</div>
                         <div class="angle-btn ${angle === 'izq' ? 'active' : ''}" data-angle="izq">L. Izq</div>
                         <div class="angle-btn ${angle === 'der' ? 'active' : ''}" data-angle="der">L. Der</div>
                     </div>
-                    
+                    <label class="cyber-button" style="width:100%; text-align:center; cursor:pointer; display:block; box-sizing:border-box;" for="upload-new-photo" id="lbl-upload-new">
+                        📷 Subir foto de hoy
+                        <input type="file" id="upload-new-photo" accept="image/*" capture="environment" style="display:none;" data-date="${todayYMD}">
+                    </label>
+                </div>
+
+                ${availableDates.length >= 2 ? `
+                <div class="liquid-glass card">
+                    <p style="color:var(--cyber-text-gray); font-size:12px; margin-bottom:10px;">Compara dos fechas:</p>
+                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                        <div class="select-wrapper" style="flex:1;">
+                            <select id="comp-date-1" style="font-size:12px; padding:8px; min-height:40px;">${getOptions(date1)}</select>
+                        </div>
+                        <div class="select-wrapper" style="flex:1;">
+                            <select id="comp-date-2" style="font-size:12px; padding:8px; min-height:40px;">${getOptions(date2)}</select>
+                        </div>
+                    </div>
                     <div class="slider-container">
                         <img src="${imgActual}" class="slider-img after">
                         <img src="${imgInicio}" class="slider-img before" id="img-before">
-                        
-                        <div class="slider-label label-before" id="label-img-1">${date1}</div>
-                        <div class="slider-label label-after" id="label-img-2">${date2}</div>
-                        
-                        <input type="range" min="0" max="100" value="0" class="slider-range" id="photo-slider">
-                        <div class="slider-line" id="slider-line" style="left: 0%;"><div class="slider-thumb">◄►</div></div>
+                        <div class="slider-label label-before" id="label-img-1">${date1 || '--'}</div>
+                        <div class="slider-label label-after" id="label-img-2">${date2 || '--'}</div>
+                        <input type="range" min="0" max="100" value="50" class="slider-range" id="photo-slider">
+                        <div class="slider-line" id="slider-line" style="left:50%;"><div class="slider-thumb">◄►</div></div>
                     </div>
-                    
-                    <div style="display:flex; justify-content:space-between; margin-top:15px; gap:10px;">
-                        <label class="cyber-button secondary" style="flex:1; font-size:11px; text-align:center; cursor:pointer;" for="upload-1">
-                            Foto Izquierda
-                            <input type="file" id="upload-1" accept="image/*" style="display:none;" data-date="${date1}">
-                        </label>
-                        <label class="cyber-button secondary" style="flex:1; font-size:11px; border-color:#00ff88; color:#00ff88; text-align:center; cursor:pointer;" for="upload-2">
-                            Foto Derecha
-                            <input type="file" id="upload-2" accept="image/*" style="display:none;" data-date="${date2}">
-                        </label>
-                    </div>
-                </div>
-            `;
+                </div>` : `<div class="liquid-glass card" style="text-align:center; padding:30px; color:#aaa; font-size:13px;">Sube al menos 2 fotos en fechas distintas para activar el comparador.</div>`}
+                `;
             },
 
             alertas: () => `<h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Notificaciones</h2><div class="liquid-glass"><div class="list-item" style="background: rgba(255, 31, 61, 0.1);"><div style="display:flex; flex-direction:column;"><span style="font-weight:bold; color:var(--cyber-white);">Sistema FitDataPro</span><span style="font-size:12px; color:var(--cyber-text-gray);">Actualiza tus datos biométricos para activar la IA.</span></div></div></div>`,
@@ -3051,7 +3042,7 @@
             }
 
             // GESTIÓN SUBIDA IMÁGENES COMPARATIVA MÚLTIPLE (Línea de Tiempo)
-            if (e.target.id === 'upload-1' || e.target.id === 'upload-2') {
+            if (e.target.id === 'upload-1' || e.target.id === 'upload-2' || e.target.id === 'upload-new-photo') {
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
