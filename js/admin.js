@@ -541,5 +541,125 @@ export const AdminController = {
             console.error("Admin: Error borrando cita", e);
             return false;
         }
+    },
+
+    /**
+     * Obtiene todos los usuarios con pago pendiente de aprobación
+     */
+    async getPendingPayments() {
+        try {
+            const q = query(collection(db, "users"), where("pendingPayment.plan", "!=", null));
+            const snap = await getDocs(q);
+            const results = [];
+            snap.forEach(d => { if (d.data().pendingPayment?.plan) results.push({ id: d.id, ...d.data() }); });
+            return results;
+        } catch (e) {
+            console.error("Admin: Error obteniendo pagos pendientes", e);
+            return [];
+        }
+    },
+
+    /**
+     * Aprueba un pago pendiente: activa suscripción, asigna sesiones/visitas, notifica al cliente
+     */
+    async approvePendingPayment(uid) {
+        try {
+            const userRef = doc(db, "users", uid);
+            const snap = await getDoc(userRef);
+            if (!snap.exists()) return false;
+            const data = snap.data();
+            const pending = data.pendingPayment;
+            if (!pending) return false;
+
+            // Determinar sesiones/visitas según plan
+            let sessionsTotal = 0, controlVisitsTotal = 0, subscriptionPlan = 'APP';
+            const plan = pending.plan || '';
+            if (plan.includes('APP')) { sessionsTotal = 0; subscriptionPlan = 'APP'; }
+            if (plan.includes('Preparación')) { controlVisitsTotal = 2; subscriptionPlan = 'preparacion'; }
+            if (plan.includes('4 Sesiones')) { sessionsTotal = 4; subscriptionPlan = '4ses'; }
+            if (plan.includes('8 Sesiones')) { sessionsTotal = 8; subscriptionPlan = '8ses'; }
+            if (plan.includes('Suelta')) { sessionsTotal = 1; subscriptionPlan = 'suelta'; }
+
+            const updateData = {
+                subscriptionStatus: 'active',
+                subscriptionPlan,
+                sessionsTotal,
+                sessionsRemaining: sessionsTotal,
+                controlVisitsTotal,
+                controlVisitsRemaining: controlVisitsTotal,
+                pendingPayment: null
+            };
+
+            await updateDoc(userRef, updateData);
+
+            // Enviar mensaje de confirmación al cliente
+            const msgRef = collection(db, "users", uid, "messages");
+            await addDoc(msgRef, {
+                sender: 'coach',
+                text: `✅ ¡Pago de "${plan}" confirmado! Tu suscripción ya está activa. ${sessionsTotal > 0 ? `Tienes ${sessionsTotal} sesiones disponibles.` : ''} ${controlVisitsTotal > 0 ? `Incluye ${controlVisitsTotal} visitas de control.` : ''}`,
+                timestamp: new Date().toISOString()
+            });
+
+            return true;
+        } catch (e) {
+            console.error("Admin: Error aprobando pago", e);
+            return false;
+        }
+    },
+
+    /**
+     * Rechaza un pago pendiente y notifica al cliente
+     */
+    async rejectPendingPayment(uid) {
+        try {
+            const userRef = doc(db, "users", uid);
+            await updateDoc(userRef, { pendingPayment: null });
+            const msgRef = collection(db, "users", uid, "messages");
+            await addDoc(msgRef, {
+                sender: 'coach',
+                text: '⚠️ No se pudo confirmar tu pago. Por favor contacta con el coach para resolverlo.',
+                timestamp: new Date().toISOString()
+            });
+            return true;
+        } catch (e) {
+            console.error("Admin: Error rechazando pago", e);
+            return false;
+        }
+    },
+
+    /**
+     * Decrementa el contador de sesiones de un atleta
+     */
+    async decrementSession(uid) {
+        try {
+            const userRef = doc(db, "users", uid);
+            const snap = await getDoc(userRef);
+            if (!snap.exists()) return false;
+            const current = snap.data().sessionsRemaining || 0;
+            if (current <= 0) return 'empty';
+            await updateDoc(userRef, { sessionsRemaining: current - 1 });
+            return current - 1;
+        } catch (e) {
+            console.error("Admin: Error decrementando sesión", e);
+            return false;
+        }
+    },
+
+    /**
+     * Decrementa el contador de visitas de control de un atleta
+     */
+    async decrementControlVisit(uid) {
+        try {
+            const userRef = doc(db, "users", uid);
+            const snap = await getDoc(userRef);
+            if (!snap.exists()) return false;
+            const current = snap.data().controlVisitsRemaining || 0;
+            if (current <= 0) return 'empty';
+            await updateDoc(userRef, { controlVisitsRemaining: current - 1 });
+            return current - 1;
+        } catch (e) {
+            console.error("Admin: Error decrementando visita", e);
+            return false;
+        }
     }
 };

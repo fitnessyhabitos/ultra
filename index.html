@@ -307,8 +307,7 @@
             <div class="modal-content">
                 <h3 style="margin-bottom: 20px; text-align: center;">Completar Suscripción</h3>
                 <p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-bottom:20px;">
-                    Elige tu
-                    método de pago para activar el plan.</p>
+                    Elige tu método de pago para activar el plan.</p>
                 <div style="display:flex; flex-direction:column; gap:15px;">
                     <button class="cyber-button" id="btn-pay-bizum"
                         style="background:#00c4b3; color:white; text-shadow:none; box-shadow:0 0 15px rgba(0,196,179,0.4);">Pagar
@@ -316,8 +315,16 @@
                     <button class="cyber-button" id="btn-pay-sumup"
                         style="background:#0f1e32; border:1px solid #fff; color:white; text-shadow:none; box-shadow:none;">Pagar
                         con Tarjeta (SumUp)</button>
+                    <div style="border-top:1px solid rgba(255,255,255,0.1); margin-top:5px; padding-top:15px;">
+                        <p style="color:#aaa; font-size:11px; text-align:center; margin-bottom:10px;">¿Ya realizaste el
+                            pago? Confirma aquí:</p>
+                        <button class="cyber-button" id="btn-confirm-payment"
+                            style="background:rgba(0,255,136,0.15); border:2px solid #00ff88; color:#00ff88; font-size:13px;">
+                            ✅ He Realizado el Pago
+                        </button>
+                    </div>
                     <button class="cyber-button secondary" id="close-payment-modal"
-                        style="margin-top:10px; border-color:#666; color:#888;">Cancelar</button>
+                        style="margin-top:5px; border-color:#666; color:#888;">Cancelar</button>
                 </div>
             </div>
         </div>
@@ -470,6 +477,24 @@
                         State.plan.name = "Sin Plan Activo";
                         State.plan.routinesAvailable = [];
                     }
+
+                    // Suscripción y sesiones
+                    State.profile.subscriptionStatus = userData.subscriptionStatus || 'none';
+                    State.profile.subscriptionPlan = userData.subscriptionPlan || '';
+                    State.profile.sessionsTotal = userData.sessionsTotal || 0;
+                    State.profile.sessionsRemaining = userData.sessionsRemaining || 0;
+                    State.profile.controlVisitsTotal = userData.controlVisitsTotal || 0;
+                    State.profile.controlVisitsRemaining = userData.controlVisitsRemaining || 0;
+                    State.profile.pendingPayment = userData.pendingPayment || null;
+                    State.profile.name = userData.fullName || 'Operativo';
+                    State.profile.weight = userData.weight || '';
+                    State.profile.height = userData.height || '';
+                    State.profile.fat = userData.fat || '';
+                    State.profile.dob = userData.dob || '';
+                    State.profile.clientIdNum = userData.clientIdNum || null;
+                    State.profile.planName = userData.planName || '';
+                    State.profile.planStartDate = userData.planStartDate || null;
+                    State.profile.planEndDate = userData.planEndDate || null;
 
                 } else {
                     State.profile.maxWeights = {};
@@ -801,7 +826,6 @@
                 if (tabName === 'atletas') {
                     const pendingUsers = await AdminController.getClients('pending');
                     const activeUsers = await AdminController.getClients('approved');
-
                     let html = ``;
 
                     if (pendingUsers.length > 0) {
@@ -851,6 +875,7 @@
 
                     try {
                         const activeUsers = await AdminController.getClients('approved');
+                        const pendingPayments = await AdminController.getPendingPayments();
                         const globalRoutines = await AdminController.getGlobalRoutines();
                         const globalPlans = await AdminController.getGlobalPlans();
 
@@ -930,6 +955,29 @@
                                 <button onclick="window.submitPlanExecution()" class="cyber-button" style="background:linear-gradient(45deg, #ff00ff, #ff1f3d); font-size:13px; letter-spacing:1px; box-shadow:0 0 15px rgba(255,0,255,0.4);">ASIGNAR Y GUARDAR PLAN</button>
                             </div>
                             
+                            <h3 style="color:#ff4444; margin-bottom:15px; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px; text-transform:uppercase;">
+                                💸 Pagos Pendientes ${pendingPayments.length > 0 ? `<span style="background:#ff4444;color:white;border-radius:50%;padding:2px 7px;font-size:11px;">${pendingPayments.length}</span>` : ''}
+                            </h3>
+                            <div style="margin-bottom:25px;">
+                                ${pendingPayments.length === 0
+                                ? '<p style="color:#aaa;font-size:12px;">Sin pagos pendientes.</p>'
+                                : pendingPayments.map(u => `
+                                        <div class="liquid-glass card" style="margin-bottom:10px;padding:12px;border-left:3px solid #ffcc00;">
+                                            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+                                                <div>
+                                                    <strong style="color:white;display:block;">${u.fullName || 'Cliente'}</strong>
+                                                    <span style="color:#aaa;font-size:11px;">ID #${u.clientIdNum || '--'}</span><br>
+                                                    <span style="color:#ffcc00;font-size:12px;font-weight:bold;">€${u.pendingPayment.amount} — ${u.pendingPayment.plan}</span><br>
+                                                    <span style="color:#555;font-size:10px;">${new Date(u.pendingPayment.timestamp).toLocaleString('es-ES')}</span>
+                                                </div>
+                                                <div style="display:flex;flex-direction:column;gap:6px;">
+                                                    <button onclick="window.adminApprovePay('${u.id}')" class="cyber-button" style="padding:6px 12px;font-size:11px;min-width:auto;background:rgba(0,255,136,0.2);border-color:#00ff88;color:#00ff88;">✅ Aprobar</button>
+                                                    <button onclick="window.adminRejectPay('${u.id}')" class="cyber-button secondary" style="padding:6px 12px;font-size:11px;min-width:auto;border-color:#ff4444;color:#ff4444;">❌ Rechazar</button>
+                                                </div>
+                                            </div>
+                                        </div>`).join('')}
+                            </div>
+
                             <h3 style="color:#00d4ff; margin-bottom:15px; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px; text-transform:uppercase;">Atletas Activos (Gestor)</h3>
                             <div style="margin-bottom:25px; max-height: 400px; overflow-y:auto; padding-right:5px;">
                                 ${activeRosterHtml}
@@ -1117,6 +1165,37 @@
                 btn.disabled = false;
                 btn.textContent = "Agendar Cita";
             }
+        };
+
+        window.adminApprovePay = async (uid) => {
+            if (!confirm('\u00bfConfirmar pago y activar suscripci\u00f3n?')) return;
+            const ok = await AdminController.approvePendingPayment(uid);
+            if (ok) { showToast('\u2705 Suscripci\u00f3n activada y cliente notificado.'); loadAdminContent('planes'); }
+            else showToast('\u274c Error aprobando pago.');
+        };
+
+        window.adminRejectPay = async (uid) => {
+            if (!confirm('\u00bfRechazar este pago?')) return;
+            const ok = await AdminController.rejectPendingPayment(uid);
+            if (ok) { showToast('Pago rechazado. Cliente notificado.'); loadAdminContent('planes'); }
+        };
+
+        window.adminDecrementSession = async (uid) => {
+            if (!confirm('\u00bfRegistrar una sesi\u00f3n realizada? Restar\u00e1 1 del cupo del atleta.')) return;
+            const result = await AdminController.decrementSession(uid);
+            if (result === 'empty') { showToast('\u26a0\ufe0f Este atleta no tiene sesiones restantes.'); return; }
+            if (result === false) { showToast('\u274c Error registrando sesi\u00f3n.'); return; }
+            showToast(`\u2705 Sesi\u00f3n registrada. Restantes: ${result}`);
+            window.viewAthleteProfile(uid); // Refresh athlete profile
+        };
+
+        window.adminDecrementVisit = async (uid) => {
+            if (!confirm('\u00bfRegistrar una visita de control realizada?')) return;
+            const result = await AdminController.decrementControlVisit(uid);
+            if (result === 'empty') { showToast('\u26a0\ufe0f Este atleta no tiene visitas restantes.'); return; }
+            if (result === false) { showToast('\u274c Error registrando visita.'); return; }
+            showToast(`\u2705 Visita registrada. Restantes: ${result}`);
+            window.viewAthleteProfile(uid); // Refresh athlete profile
         };
 
         window.sendQuickReminder = async (type) => {
@@ -1513,6 +1592,35 @@
                         <h3 style="color:#00d4ff; font-size:16px;">${userData.fullName || 'Operativo Local'}</h3>
                     </div>
                     
+                    <div style="margin-bottom:15px;">
+                        <!-- Session & Visit Counters -->
+                        ${(() => {
+                        const hasSessions = (userData.sessionsTotal || 0) > 0;
+                        const hasVisits = (userData.controlVisitsTotal || 0) > 0;
+                        if (!hasSessions && !hasVisits) return '';
+                        const sesRem = userData.sessionsRemaining ?? 0;
+                        const sesTotal = userData.sessionsTotal ?? 0;
+                        const visRem = userData.controlVisitsRemaining ?? 0;
+                        const visTotal = userData.controlVisitsTotal ?? 0;
+                        return `<div style="display:grid;grid-template-columns:${hasSessions && hasVisits ? '1fr 1fr' : '1fr'};gap:10px;margin-bottom:15px;">
+                                ${hasSessions ? `
+                                <div class="liquid-glass card" style="padding:12px;border-left:3px solid ${sesRem === 0 ? '#ff4444' : '#00ff88'};">
+                                    <h4 style="color:${sesRem === 0 ? '#ff4444' : '#00ff88'};font-size:11px;margin-bottom:6px;">SESIONES</h4>
+                                    <p style="font-size:22px;font-weight:900;color:white;margin-bottom:2px;">${sesRem}<span style="font-size:12px;color:#aaa;">/${sesTotal}</span></p>
+                                    <p style="font-size:10px;color:#aaa;margin-bottom:8px;">restantes</p>
+                                    <button onclick="window.adminDecrementSession('${uid}')" class="cyber-button" style="padding:5px 8px;font-size:10px;min-width:auto;${sesRem === 0 ? 'opacity:0.4;' : ''}" ${sesRem === 0 ? 'disabled' : ''}>🏋️ Registrar</button>
+                                </div>` : ''}
+                                ${hasVisits ? `
+                                <div class="liquid-glass card" style="padding:12px;border-left:3px solid ${visRem === 0 ? '#ff4444' : '#00d4ff'};">
+                                    <h4 style="color:${visRem === 0 ? '#ff4444' : '#00d4ff'};font-size:11px;margin-bottom:6px;">VISITAS CONTROL</h4>
+                                    <p style="font-size:22px;font-weight:900;color:white;margin-bottom:2px;">${visRem}<span style="font-size:12px;color:#aaa;">/${visTotal}</span></p>
+                                    <p style="font-size:10px;color:#aaa;margin-bottom:8px;">restantes</p>
+                                    <button onclick="window.adminDecrementVisit('${uid}')" class="cyber-button" style="padding:5px 8px;font-size:10px;min-width:auto;background:rgba(0,212,255,0.15);border-color:#00d4ff;color:#00d4ff;${visRem === 0 ? 'opacity:0.4;' : ''}" ${visRem === 0 ? 'disabled' : ''}>📅 Registrar</button>
+                                </div>` : ''}
+                            </div>`;
+                    })()}
+                    </div>
+
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
                         <div class="liquid-glass card" style="padding:10px; border-left:3px solid #ffcc00;">
                             <h4 style="color:#ffcc00; font-size:12px; margin-bottom:5px;">Suscripción Activa</h4>
@@ -2623,6 +2731,42 @@
         }
 
         function navigateTo(viewName) {
+            // === FEATURE GATING ===
+            const ALWAYS_ALLOWED = ['menu', 'perfil', 'suscripcion', 'admin', 'admin_dashboard'];
+            const isAdmin = State.profile.role === 'admin';
+            const subStatus = State.profile.subscriptionStatus;
+            const subPending = State.profile.pendingPayment;
+
+            if (!isAdmin && !ALWAYS_ALLOWED.includes(viewName)) {
+                if (subStatus !== 'active') {
+                    if (Views[viewName]) {
+                        DOM.view.innerHTML = Views[viewName]();
+                        State.currentView = viewName;
+                        window.scrollTo(0, 0);
+                    }
+                    // Overlay the locked state
+                    const lockMsg = subPending
+                        ? `<div style="position:fixed;inset:0;background:rgba(10,10,15,0.95);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px;">
+                            <div style="font-size:48px;">⏳</div>
+                            <h2 style="color:#ffcc00;font-size:20px;text-align:center;">Verificando Pago</h2>
+                            <p style="color:#aaa;font-size:13px;text-align:center;max-width:280px;">Tu pago de <strong style="color:white;">${subPending.plan}</strong> está siendo verificado. Recibirás confirmación en menos de 24h.</p>
+                            <p style="color:#555;font-size:11px;">Enviado: ${new Date(subPending.timestamp).toLocaleString('es-ES')}</p>
+                            <button class="cyber-button" onclick="navigateTo('menu')" style="margin-top:10px;">Volver al Menú</button>
+                           </div>`
+                        : `<div style="position:fixed;inset:0;background:rgba(10,10,15,0.95);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px;">
+                            <div style="font-size:48px;">🔒</div>
+                            <h2 style="color:#ff1f3d;font-size:20px;text-align:center;">Sección Bloqueada</h2>
+                            <p style="color:#aaa;font-size:13px;text-align:center;max-width:280px;">Activa tu suscripción para acceder a todas las funciones de la app.</p>
+                            <button class="cyber-button" onclick="navigateTo('suscripcion')" style="background:rgba(255,31,61,0.2);border:2px solid #ff1f3d;">Ver Planes</button>
+                            <button class="cyber-button secondary" onclick="navigateTo('menu')" style="border-color:#444;color:#888;">Volver al Menú</button>
+                           </div>`;
+                    DOM.view.insertAdjacentHTML('afterbegin', lockMsg);
+                    DOM.navItems.forEach(item => item.classList.toggle('active', item.dataset.view === viewName));
+                    return;
+                }
+            }
+            // === END GATING ===
+
             if (Views[viewName]) {
                 DOM.view.innerHTML = Views[viewName]();
                 State.currentView = viewName;
@@ -2863,7 +3007,47 @@
                 document.getElementById('modal-payment').classList.remove('active');
             }
 
-            // COMPARATIVA FOTOS
+            // CONFIRMAR PAGO REALIZADO
+            if (e.target.closest('#btn-confirm-payment')) {
+                const planEl = document.querySelector('.plan-card-input:checked');
+                if (!planEl) { alert('Primero selecciona un plan.'); return; }
+                const planValue = planEl.value;
+                const planPrices = { 'APP': 25, 'Preparación': 70, '4 Sesiones': 170, '8 Sesiones': 290, 'Suelta': 40 };
+                let amount = 0;
+                for (const [k, v] of Object.entries(planPrices)) { if (planValue.includes(k)) amount = v; }
+                const confirmBtn = e.target.closest('#btn-confirm-payment');
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Enviando...';
+                try {
+                    const { updateDoc, doc: fDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    const pendingData = { plan: planValue, amount, timestamp: new Date().toISOString(), method: 'unknown' };
+                    await updateDoc(fDoc(db, "users", State.profile.uid), {
+                        pendingPayment: pendingData,
+                        subscriptionStatus: 'pending'
+                    });
+                    State.profile.pendingPayment = pendingData;
+                    State.profile.subscriptionStatus = 'pending';
+                    document.getElementById('modal-payment').classList.remove('active');
+                    showToast('✅ Pago notificado al Coach. Te confirmaremos en menos de 24h.');
+                    // Push notification to admin (Firestore write - admin listens via real-time)
+                    const { collection: col, addDoc: aDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    await aDoc(col(db, "adminNotifications"), {
+                        type: 'paymentPending',
+                        clientId: State.profile.uid,
+                        clientName: State.profile.name,
+                        clientIdNum: State.profile.clientIdNum,
+                        plan: planValue,
+                        amount,
+                        timestamp: new Date().toISOString(),
+                        read: false
+                    });
+                } catch (err) {
+                    console.error(err);
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = '✅ He Realizado el Pago';
+                    showToast('❌ Error al enviar confirmación. Inténtalo de nuevo.');
+                }
+            }
             const angleBtn = e.target.closest('.angle-btn');
             if (angleBtn) { State.comparativaAngle = angleBtn.dataset.angle; navigateTo('comparativa'); }
             if (e.target.closest('#btn-upload-inicio') || e.target.closest('#btn-upload-actual')) { alert("Abriendo galería segura de dispositivo..."); }
