@@ -547,6 +547,24 @@
 
                 if (State.profile.role === 'admin') {
                     navigateTo('admin_dashboard');
+                    // Real-time listener for workout notifications
+                    try {
+                        const { collection: notifCol, query: notifQ, where: notifWhere, onSnapshot, updateDoc, doc: notifDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                        const notifQuery = notifQ(notifCol(db, "adminNotifications"), notifWhere("read", "==", false));
+                        onSnapshot(notifQuery, (snapshot) => {
+                            snapshot.docChanges().forEach(change => {
+                                if (change.type === 'added') {
+                                    const n = change.doc.data();
+                                    if (n.type === 'workoutDone') {
+                                        const rpeClass = n.rpe >= 9 ? '#ff1f3d' : n.rpe >= 7 ? '#ffaa00' : '#00ff88';
+                                        showToast(`🏋️ ${n.clientName} finalizó entreno: ${n.routineName} · RPE <span style="color:${rpeClass};font-weight:bold;">${n.rpe}</span> · ${n.totalSets} series`);
+                                        // Mark as read
+                                        updateDoc(notifDoc(db, "adminNotifications", change.doc.id), { read: true }).catch(() => {});
+                                    }
+                                }
+                            });
+                        });
+                    } catch (e) { console.warn('Admin notif listener error:', e); }
                 } else {
                     navigateTo('plan');
                 }
@@ -968,17 +986,40 @@
                             <h3 style="color:#ffaa00; margin-bottom:15px; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px; text-transform:uppercase;">Biblioteca de Planes Globales</h3>
                             <div style="margin-bottom:25px; max-height: 300px; overflow-y:auto; padding-right:5px;">
                                 ${globalPlans.length === 0 ? '<p style="color:#aaa; font-size:12px;">No tienes planes maestros guardados.</p>' :
-                                globalPlans.map(p => `
-                                    <div class="liquid-glass card" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-left:3px solid #ffaa00; margin-bottom:10px;">
-                                        <div>
-                                            <strong style="color:white; font-size:14px; display:block;">${p.name}</strong>
-                                            <span style="font-size:11px; color:#aaa;">Incluye ${(p.routinesAvailable || []).length} rutinas</span>
+                                globalPlans.map(p => {
+                                    const routines = p.routinesAvailable || [];
+                                    const routineIds = routines.map(r => typeof r === 'string' ? r : r.id || '').filter(Boolean);
+                                    const routineLabels = routines.map(r => typeof r === 'string' ? r : r.name || r.id || '').filter(Boolean);
+                                    return `
+                                    <details style="margin-bottom:10px; padding:10px; background:rgba(255,170,0,0.04); border-radius:8px; border-left:3px solid #ffaa00;">
+                                        <summary style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; list-style:none;">
+                                            <div>
+                                                <strong style="color:white; font-size:14px;">${p.name}</strong>
+                                                <span style="font-size:10px; color:#aaa; margin-left:8px;">${routines.length} rutina${routines.length !== 1 ? 's' : ''} &#9660;</span>
+                                            </div>
+                                            <div style="display:flex; gap:5px; align-items:center;">
+                                                <button onclick="event.stopPropagation(); window.adminEditPlanName('${p.id}', '${p.name.replace(/'/g, "\\'")}'  )" class="cyber-button secondary" style="padding:4px 8px; font-size:10px; min-width:auto; border-color:#00d4ff; color:#00d4ff;">&#9998; Nombre</button>
+                                                <button onclick="event.stopPropagation(); window.confirmDeleteGlobalPlan('${p.id}', '${p.name.replace(/'/g, "\\'")}'  )" class="cyber-button secondary" style="padding:4px 8px; font-size:10px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;">&#128465;</button>
+                                            </div>
+                                        </summary>
+                                        <div style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.07); padding-top:10px;">
+                                            ${routineLabels.length === 0
+                                                ? '<p style="font-size:11px;color:#aaa;">Sin rutinas asignadas.</p>'
+                                                : routineLabels.map((rLabel, ri) => `
+                                                    <div style="margin-bottom:8px;">
+                                                        <details>
+                                                            <summary style="cursor:pointer; list-style:none; font-size:12px; color:#00d4ff; font-weight:600; padding:4px 0;">
+                                                                &#128218; ${rLabel} &#9660;
+                                                            </summary>
+                                                            <div id="plan-routine-detail-${p.id}-${ri}" style="padding:6px 0 0 12px;">
+                                                                <button onclick="window.loadRoutineDetail('${p.id}', '${ri}', '${routineIds[ri] || rLabel}'  )" style="font-size:10px;color:#aaa;background:none;border:none;cursor:pointer;padding:0;">&#10226; Cargar ejercicios...</button>
+                                                            </div>
+                                                        </details>
+                                                    </div>`).join('')
+                                            }
                                         </div>
-                                        <div style="display:flex; gap:5px;">
-                                            <button onclick="window.confirmDeleteGlobalPlan('${p.id}', '${p.name.replace(/'/g, "\\'")}')" class="cyber-button secondary" style="padding:4px 10px; font-size:10px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;" title="Eliminar Plan Global">🗑️</button>
-                                        </div>
-                                    </div>
-                                    `).join('')
+                                    </details>`;
+                                }).join(''),
                             }
                             </div>
                         `;
@@ -1211,7 +1252,7 @@
         window.adminApprovePay = async (uid) => {
             if (!confirm('\u00bfConfirmar pago y activar suscripci\u00f3n?')) return;
             const ok = await AdminController.approvePendingPayment(uid);
-            if (ok) { showToast('\u2705 Suscripci\u00f3n activada y cliente notificado.'); loadAdminContent('planes'); }
+            if (ok) { showToast('\u2705 Suscripci\u00f3n activada y cliente notificado.'); loadAdminContent('suscripciones'); }
             else showToast('\u274c Error aprobando pago.');
         };
 
@@ -1997,6 +2038,53 @@
             }
         };
 
+        window.adminEditPlanName = async (planId, currentName) => {
+            const newName = prompt(`Nuevo nombre para el plan:`, currentName);
+            if (!newName || newName.trim() === currentName.trim()) return;
+            try {
+                const { updateDoc, doc: fDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                await updateDoc(fDoc(db, "globalPlans", planId), { name: newName.trim() });
+                showToast(`✅ Plan renombrado a "${newName.trim()}".`);
+                loadAdminContent('planes');
+            } catch (e) {
+                console.error(e);
+                showToast('❌ Error renombrando plan.');
+            }
+        };
+
+        window.loadRoutineDetail = async (planId, routineIndex, routineId) => {
+            const container = document.getElementById(`plan-routine-detail-${planId}-${routineIndex}`);
+            if (!container) return;
+            container.innerHTML = '<span style="font-size:10px;color:#aaa;">Cargando...</span>';
+            try {
+                const { getDoc, doc: fDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                const snap = await getDoc(fDoc(db, "globalRoutines", routineId));
+                if (!snap.exists()) {
+                    container.innerHTML = '<span style="font-size:10px;color:#aaa;">Rutina no encontrada.</span>';
+                    return;
+                }
+                const routineData = snap.data();
+                const exercises = routineData.exercises || routineData.exerciseIds || [];
+                if (exercises.length === 0) {
+                    container.innerHTML = '<span style="font-size:10px;color:#aaa;">Sin ejercicios definidos.</span>';
+                    return;
+                }
+                let exHtml = '<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:4px;">';
+                exHtml += '<tr><th style="text-align:left;padding:3px 6px;color:#aaa;border-bottom:1px solid rgba(255,255,255,0.07);">Ejercicio</th><th style="padding:3px 6px;color:#aaa;border-bottom:1px solid rgba(255,255,255,0.07);">Series</th><th style="padding:3px 6px;color:#aaa;border-bottom:1px solid rgba(255,255,255,0.07);">Reps</th></tr>';
+                exercises.forEach(ex => {
+                    const name = ex.n || ex.name || ex.id || '?';
+                    const sets = ex.sets || ex.s || 3;
+                    const reps = ex.reps || ex.r || '--';
+                    exHtml += `<tr><td style="padding:3px 6px;color:#ddd;">${name}</td><td style="padding:3px 6px;color:#00ff88;text-align:center;">${sets}</td><td style="padding:3px 6px;color:#00d4ff;text-align:center;">${reps}</td></tr>`;
+                });
+                exHtml += '</table>';
+                container.innerHTML = exHtml;
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = '<span style="font-size:10px;color:#f44;">Error cargando.</span>';
+            }
+        };
+
         window.showToast = function showToast(msg) {
             const container = document.getElementById('toast-container');
             const t = document.createElement('div');
@@ -2372,7 +2460,21 @@
 
             historial: () => {
                 let html = `
-                <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Historial</h2>
+                `<h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Historial</h2>
+                <style>
+                    details.history-card summary { list-style:none; cursor:pointer; }
+                    details.history-card summary::-webkit-details-marker { display:none; }
+                    details.history-card[open] summary .hist-chevron { transform:rotate(180deg); }
+                    .hist-chevron { display:inline-block; transition:transform 0.2s; margin-left:6px; }
+                    .rpe-badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:bold; }
+                    .rpe-badge.rpe-optimo { background:rgba(0,255,136,0.15); color:#00ff88; border:1px solid #00ff88; }
+                    .rpe-badge.rpe-duro   { background:rgba(255,170,0,0.15);  color:#ffaa00; border:1px solid #ffaa00; }
+                    .rpe-badge.rpe-fallo  { background:rgba(255,31,61,0.15);  color:#ff1f3d; border:1px solid #ff1f3d; }
+                    .hist-ex-table { width:100%; border-collapse:collapse; margin-top:10px; font-size:11px; }
+                    .hist-ex-table th { color:#aaa; text-align:left; padding:4px 6px; border-bottom:1px solid rgba(255,255,255,0.08); }
+                    .hist-ex-table td { padding:4px 6px; color:#ddd; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:top; }
+                    .hist-ex-table tr:last-child td { border-bottom:none; }
+                </style>
                 <div class="liquid-glass card">
                     <h3 style="color:var(--cyber-red-neon); font-size:14px; margin-bottom:15px; text-transform:uppercase;">Registros Completados</h3>
                 `;
@@ -2380,27 +2482,54 @@
                 if (!State.history || State.history.length === 0) {
                     html += `<p style="color:var(--cyber-text-gray); font-size:12px; text-align:center; padding: 20px 0;">No hay entrenamientos guardados.</p>`;
                 } else {
-                    State.history.forEach(workout => {
+                    State.history.forEach((workout, idx) => {
                         const dateObj = new Date(workout.timestamp);
-                        const dateStr = dateObj.toLocaleDateString();
+                        const dateStr = dateObj.toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'short' });
+                        const timeStr = dateObj.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
 
-                        let rpeClass = 'rpe-optimo';
-                        if (workout.rpe >= 9) rpeClass = 'rpe-fallo';
-                        else if (workout.rpe >= 7) rpeClass = 'rpe-duro';
+                        const rpe = workout.rpe || 0;
+                        let rpeClass = 'rpe-optimo', rpeLabel = 'Óptimo';
+                        if (rpe >= 9) { rpeClass = 'rpe-fallo'; rpeLabel = 'Al fallo'; }
+                        else if (rpe >= 7) { rpeClass = 'rpe-duro'; rpeLabel = 'Duro'; }
 
-                        let title = 'Entrenamiento';
-                        if (workout.exercises && workout.exercises.length > 0) {
-                            title = workout.exercises[0].name.split(' ')[0] + ' + Otros';
-                        }
+                        // Derive a meaningful title
+                        const exercises = workout.exercises || [];
+                        const routineName = workout.routineName || (exercises.length > 0
+                            ? exercises.slice(0,2).map(e => (e.n || e.name || '?').split(' ')[0]).join(' + ') + (exercises.length > 2 ? ' +' + (exercises.length-2) : '')
+                            : 'Entrenamiento');
                         const totalSets = workout.totalSets || 0;
 
+                        // Build exercise breakdown table
+                        let exRows = '';
+                        exercises.forEach(ex => {
+                            const exName = ex.n || ex.name || '?';
+                            const sets = ex.sets || ex.s || [];
+                            const setsSummary = sets.filter(s => s.done || s.d).map(s => {
+                                const w = s.weight ?? s.w ?? '--';
+                                const r = s.reps ?? s.r ?? '--';
+                                return `${w}kg×${r}`;
+                            }).join(' | ') || '—';
+                            exRows += `<tr><td style="font-weight:600;color:white;max-width:110px;">${exName}</td><td style="color:#aaa;">${setsSummary}</td></tr>`;
+                        });
+
                         html += `
-                        <div class="list-item" style="padding: 10px 0;">
-                            <div style="display:flex; flex-direction:column;">
-                                <span style="font-weight:bold; font-size:14px;">${title}</span>
-                                <span style="font-size:11px; color:var(--cyber-text-gray);">${dateStr} • ${totalSets} series <span class="rpe-dot ${rpeClass}"></span></span>
+                        <details class="history-card" style="margin-bottom:12px; padding:12px; background:rgba(255,255,255,0.03); border-radius:8px; border-left:3px solid ${rpe >= 9 ? '#ff1f3d' : rpe >= 7 ? '#ffaa00' : '#00ff88'};">
+                            <summary style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <span style="font-weight:bold; font-size:14px; color:white;">${routineName}</span>
+                                    <span class="rpe-badge ${rpeClass}" style="margin-left:8px;">RPE ${rpe} ${rpeLabel}</span>
+                                    <span class="hist-chevron">▾</span>
+                                </div>
+                                <div style="text-align:right; font-size:10px; color:#aaa;">
+                                    <span>${dateStr}</span><br>
+                                    <span>${timeStr} • ${totalSets} series</span>
+                                </div>
+                            </summary>
+                            <div style="margin-top:12px; border-top:1px solid rgba(255,255,255,0.07); padding-top:12px;">
+                                ${workout.note ? `<p style="font-size:12px; color:#ccc; margin-bottom:10px; padding:8px 10px; background:rgba(255,255,255,0.05); border-radius:6px; border-left:2px solid #00d4ff;">💬 ${workout.note}</p>` : ''}
+                                ${exRows ? `<table class="hist-ex-table"><thead><tr><th>Ejercicio</th><th>Series realizadas</th></tr></thead><tbody>${exRows}</tbody></table>` : '<p style="color:#aaa;font-size:11px;">Sin detalle de ejercicios.</p>'}
                             </div>
-                        </div>`;
+                        </details>`;
                     });
                 }
                 html += `</div>`;
@@ -3408,11 +3537,31 @@
                         muscles: workoutMuscles
                     };
 
-                    saveWorkout(State.profile.uid, record).then(success => {
+                    saveWorkout(State.profile.uid, record).then(async success => {
                         if (success) {
                             record.timestamp = new Date().toISOString();
                             if (!State.history) State.history = [];
                             State.history.unshift(record);
+
+                            // Notify coach that client finished a workout
+                            try {
+                                const { collection: col2, addDoc: addDoc2 } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                                const routineName2 = (record.exercises && record.exercises.length > 0)
+                                    ? record.exercises.slice(0,2).map(e => (e.n || e.name || '?').split(' ')[0]).join(' + ')
+                                    : 'Entreno';
+                                await addDoc2(col2(db, "adminNotifications"), {
+                                    type: 'workoutDone',
+                                    clientId: State.profile.uid,
+                                    clientName: State.profile.fullName || State.profile.email || 'Cliente',
+                                    routineName: routineName2,
+                                    rpe: record.rpe,
+                                    totalSets: record.totalSets,
+                                    timestamp: record.timestamp,
+                                    read: false
+                                });
+                            } catch(notifErr) {
+                                console.warn('Notif admin error:', notifErr);
+                            }
                         }
                     });
 
