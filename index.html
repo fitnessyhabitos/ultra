@@ -3678,8 +3678,9 @@
                 btn.disabled = true; btn.textContent = 'Guardando...';
                 try {
                     const { doc: fDoc, updateDoc: fUpdate } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+                    const { db } = await import('./js/firebase.js');
                     await fUpdate(fDoc(db, 'users', State.profile.uid), {
-                        name: State.profile.name,
+                        fullName: State.profile.name,
                         dob: State.profile.dob,
                         telegram: State.profile.telegram || '',
                         instagram: State.profile.instagram || ''
@@ -3699,6 +3700,7 @@
                 btn.disabled = true; btn.textContent = 'Guardando...';
                 try {
                     const { doc: fDoc, updateDoc: fUpdate } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+                    const { db } = await import('./js/firebase.js');
                     await fUpdate(fDoc(db, 'users', State.profile.uid), {
                         weight: State.profile.weight,
                         height: State.profile.height,
