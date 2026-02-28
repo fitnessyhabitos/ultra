@@ -559,7 +559,7 @@
                                         const rpeClass = n.rpe >= 9 ? '#ff1f3d' : n.rpe >= 7 ? '#ffaa00' : '#00ff88';
                                         showToast(`🏋️ ${n.clientName} finalizó entreno: ${n.routineName} · RPE <span style="color:${rpeClass};font-weight:bold;">${n.rpe}</span> · ${n.totalSets} series`);
                                         // Mark as read
-                                        updateDoc(notifDoc(db, "adminNotifications", change.doc.id), { read: true }).catch(() => {});
+                                        updateDoc(notifDoc(db, "adminNotifications", change.doc.id), { read: true }).catch(() => { });
                                     }
                                 }
                             });
@@ -986,14 +986,14 @@
                             <h3 style="color:#ffaa00; margin-bottom:15px; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px; text-transform:uppercase;">Biblioteca de Planes Globales</h3>
                             <div style="margin-bottom:25px; max-height: 300px; overflow-y:auto; padding-right:5px;">
                                 ${(() => {
-                                    if (globalPlans.length === 0) return '<p style="color:#aaa; font-size:12px;">No tienes planes maestros guardados.</p>';
-                                    return globalPlans.map(p => {
-                                        const routines = p.routinesAvailable || [];
-                                        const routineIds = routines.map(r => typeof r === 'string' ? r : r.id || '').filter(Boolean);
-                                        const routineLabels = routines.map(r => typeof r === 'string' ? r : r.name || r.id || '').filter(Boolean);
-                                        const routineRows = routineLabels.length === 0
-                                            ? '<p style="font-size:11px;color:#aaa;">Sin rutinas asignadas.</p>'
-                                            : routineLabels.map((rLabel, ri) => `
+                                if (globalPlans.length === 0) return '<p style="color:#aaa; font-size:12px;">No tienes planes maestros guardados.</p>';
+                                return globalPlans.map(p => {
+                                    const routines = p.routinesAvailable || [];
+                                    const routineIds = routines.map(r => typeof r === 'string' ? r : r.id || '').filter(Boolean);
+                                    const routineLabels = routines.map(r => typeof r === 'string' ? r : r.name || r.id || '').filter(Boolean);
+                                    const routineRows = routineLabels.length === 0
+                                        ? '<p style="font-size:11px;color:#aaa;">Sin rutinas asignadas.</p>'
+                                        : routineLabels.map((rLabel, ri) => `
                                                 <div style="margin-bottom:8px;">
                                                     <details>
                                                         <summary style="cursor:pointer; list-style:none; font-size:12px; color:#00d4ff; font-weight:600; padding:4px 0;">
@@ -1004,7 +1004,7 @@
                                                         </div>
                                                     </details>
                                                 </div>`).join('');
-                                        return `
+                                    return `
                                         <details style="margin-bottom:10px; padding:10px; background:rgba(255,170,0,0.04); border-radius:8px; border-left:3px solid #ffaa00;">
                                             <summary style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; list-style:none;">
                                                 <div>
@@ -1020,8 +1020,8 @@
                                                 ${routineRows}
                                             </div>
                                         </details>`;
-                                    }).join('');
-                                })()}
+                                }).join('');
+                            })()}
                             </div>
                         `;
                     } catch (e) {
@@ -2461,7 +2461,7 @@
 
             historial: () => {
                 let html = `
-                `<h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Historial</h2>
+                <h2 style="margin-bottom: 15px; display:flex; gap:10px; align-items:center;"><span class="view-trigger" data-target="menu" style="cursor:pointer; color:var(--cyber-red-neon); font-size:24px;">←</span> Historial</h2>
                 <style>
                     details.history-card summary { list-style:none; cursor:pointer; }
                     details.history-card summary::-webkit-details-marker { display:none; }
@@ -2485,8 +2485,8 @@
                 } else {
                     State.history.forEach((workout, idx) => {
                         const dateObj = new Date(workout.timestamp);
-                        const dateStr = dateObj.toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'short' });
-                        const timeStr = dateObj.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
+                        const dateStr = dateObj.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+                        const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
                         const rpe = workout.rpe || 0;
                         let rpeClass = 'rpe-optimo', rpeLabel = 'Óptimo';
@@ -2496,7 +2496,7 @@
                         // Derive a meaningful title
                         const exercises = workout.exercises || [];
                         const routineName = workout.routineName || (exercises.length > 0
-                            ? exercises.slice(0,2).map(e => (e.n || e.name || '?').split(' ')[0]).join(' + ') + (exercises.length > 2 ? ' +' + (exercises.length-2) : '')
+                            ? exercises.slice(0, 2).map(e => (e.n || e.name || '?').split(' ')[0]).join(' + ') + (exercises.length > 2 ? ' +' + (exercises.length - 2) : '')
                             : 'Entrenamiento');
                         const totalSets = workout.totalSets || 0;
 
@@ -3548,7 +3548,7 @@
                             try {
                                 const { collection: col2, addDoc: addDoc2 } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                                 const routineName2 = (record.exercises && record.exercises.length > 0)
-                                    ? record.exercises.slice(0,2).map(e => (e.n || e.name || '?').split(' ')[0]).join(' + ')
+                                    ? record.exercises.slice(0, 2).map(e => (e.n || e.name || '?').split(' ')[0]).join(' + ')
                                     : 'Entreno';
                                 await addDoc2(col2(db, "adminNotifications"), {
                                     type: 'workoutDone',
@@ -3560,7 +3560,7 @@
                                     timestamp: record.timestamp,
                                     read: false
                                 });
-                            } catch(notifErr) {
+                            } catch (notifErr) {
                                 console.warn('Notif admin error:', notifErr);
                             }
                         }
