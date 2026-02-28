@@ -899,12 +899,12 @@
                                         <span style="font-size:10px; color:#aaa;">ID: ${u.clientIdNum ? '#' + u.clientIdNum : u.id.substring(0, 6).toUpperCase()}</span>
                                         <span style="font-size:10px; margin-left:6px; color:${u.subscriptionStatus === 'active' ? '#00ff88' : u.subscriptionStatus === 'pending' ? '#ffcc00' : '#ff4444'};">● ${u.subscriptionStatus === 'active' ? 'Activo' : u.subscriptionStatus === 'pending' ? 'Pendiente' : 'Sin plan'}</span>
                                     </div>
-                                    <div style="display:flex; flex-direction:row; flex-wrap:nowrap; gap:4px; justify-content:flex-end; align-items:center;">
-                                        <button onclick="viewAthleteProfile('${u.id}')" class="cyber-button" style="padding:4px 8px; font-size:10px; min-width:auto;">Perfil</button>
-                                        <button onclick="impersonateUser('${u.id}')" class="cyber-button" style="padding:4px 8px; font-size:10px; min-width:auto; background:#ff3333; border-color:#ff3333; color:white;">👁️</button>
-                                        <button onclick="window.adminToggleSubscription('${u.id}', '${u.subscriptionStatus || 'none'}')" class="cyber-button" style="padding:4px 8px; font-size:10px; min-width:auto; border-color:${u.subscriptionStatus === 'active' ? '#ff4444' : '#00ff88'}; color:${u.subscriptionStatus === 'active' ? '#ff4444' : '#00ff88'};">${u.subscriptionStatus === 'active' ? '🔒 Off' : '🔓 On'}</button>
-                                        ${`<button onclick="window.adminPromoteToCoach('${u.id}', '${(u.fullName || '').replace(/'/g, "\\'")}', '${u.role || 'user'}')" class="cyber-button" style="padding:4px 8px; font-size:10px; min-width:auto; border-color:${u.role === 'admin' ? '#ff00ff' : '#9966ff'}; color:${u.role === 'admin' ? '#ff00ff' : '#9966ff'};" title="${u.role === 'admin' ? 'Degradar a usuario' : 'Promover a Coach'}">${u.role === 'admin' ? '⬇️User' : '⬆️Coach'}</button>`}
-                                        <button onclick="window.promptDeleteClient('${u.id}', '${(u.fullName || '').replace(/'/g, "\\'")}'  )" class="cyber-button secondary" style="padding:4px 8px; font-size:10px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;" title="Eliminar">🗑️</button>
+                                    <div style="display:flex; flex-direction:row; flex-wrap:wrap; gap:6px; justify-content:flex-end; align-items:center;">
+                                        <button onclick="viewAthleteProfile('${u.id}')" class="cyber-button" style="padding:6px 10px; font-size:11px; min-width:auto;">Perfil</button>
+                                        <button onclick="impersonateUser('${u.id}')" class="cyber-button" style="padding:6px 10px; font-size:11px; min-width:auto; background:#ff3333; border-color:#ff3333; color:white;" title="Ver app como cliente">👁️ Vista</button>
+                                        <button onclick="window.adminToggleSubscription('${u.id}', '${u.subscriptionStatus || 'none'}')" class="cyber-button" style="padding:6px 10px; font-size:11px; min-width:auto; border-color:${u.subscriptionStatus === 'active' ? '#ff4444' : '#00ff88'}; color:${u.subscriptionStatus === 'active' ? '#ff4444' : '#00ff88'};">${u.subscriptionStatus === 'active' ? '🔒 Off' : '🔓 On'}</button>
+                                        ${`<button onclick="window.adminPromoteToCoach('${u.id}', '${(u.fullName || '').replace(/'/g, "\\'")}', '${u.role || 'user'}')" class="cyber-button" style="padding:6px 10px; font-size:11px; min-width:auto; border-color:${u.role === 'admin' ? '#ff00ff' : '#9966ff'}; color:${u.role === 'admin' ? '#ff00ff' : '#9966ff'};" title="${u.role === 'admin' ? 'Degradar a usuario' : 'Promover a Coach'}">${u.role === 'admin' ? '⬇️User' : '⬆️Coach'}</button>`}
+                                        <button onclick="window.promptDeleteClient('${u.id}', '${(u.fullName || '').replace(/'/g, "\\'")}'  )" class="cyber-button secondary" style="padding:6px 10px; font-size:11px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;" title="Eliminar">🗑️</button>
                                     </div>
                                 </div>
                             </div>`;
@@ -2141,10 +2141,13 @@
                     banner.id = 'coach-mode-banner';
                     document.body.appendChild(banner);
                 }
+
+                // Set banner position logic depending on screen width so it doesn't overlap Desktop navbar
+                const isDesktop = window.innerWidth >= 900;
                 banner.innerHTML = `
-                    <div style="background:#ff3333; color:white; padding:10px; text-align:center; font-weight:bold; position:fixed; top:0; left:0; width:100%; z-index:9999; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="background:#ff3333; color:white; padding:10px; text-align:center; font-weight:bold; position:fixed; ${isDesktop ? 'bottom:0' : 'top:0'}; left:0; width:100%; z-index:99999; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 0 15px rgba(255,51,51,0.5);">
                         <span>👀 VISTA COACH: ${userData.fullName || 'Atleta'}</span>
-                        <button onclick="window.exitCoachMode()" style="background:black; color:white; border:none; padding:5px 10px; border-radius:4px; font-weight:bold; cursor:pointer;">SALIR</button>
+                        <button onclick="window.exitCoachMode()" style="background:black; color:white; border:none; padding:5px 10px; border-radius:4px; font-weight:bold; cursor:pointer; box-shadow: 0 0 10px rgba(0,0,0,0.5);">SALIR</button>
                     </div>
                 `;
                 banner.style.display = 'block';
@@ -2984,8 +2987,6 @@
                     <h2 style="font-size:18px; margin-bottom:10px; margin-top:10px;">${State.plan.name || 'Plan Local'} <span style="font-size:12px; color:var(--cyber-red-neon); float:right;">Ruts: ${State.plan.routinesAvailable.length}</span></h2>
                     ${routinesHtml}
                     ${dietHtml}
-                    <h2 style="font-size:18px; margin-bottom:10px; margin-top:20px;">Tu Red Neuronal</h2>
-                    <div class="liquid-glass card" style="text-align:center; padding:15px;"><button class="cyber-button ai-button" id="btn-ia-setup" style="display:flex; justify-content:center; align-items:center; gap:10px;"><svg class="cyber-icon" style="width:24px; height:24px;" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.991.991 0 013 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L5.4 7.86l6.6 3.71 6.6-3.71L12 4.15zm0 14.7l6.6-3.71V7.86l-6.6 3.71v7.28z"/></svg> Generar Rutina Extra IA</button></div>
                 `;
             },
 
@@ -3077,7 +3078,8 @@
                         if (window.activeClientChatUnsubscribe) window.activeClientChatUnsubscribe();
 
                         const { db, doc, onSnapshot, auth } = await import('./js/firebase.js');
-                        const uid = auth.currentUser ? auth.currentUser.uid : State.profile.id;
+                        // Use State.profile.id instead of auth.currentUser.uid to prevent data bleed when in Vista Coach
+                        const uid = State.profile.id || State.profile.uid || (auth.currentUser ? auth.currentUser.uid : "");
 
                         if (!uid) {
                             box.innerHTML = `<p style="color:red; font-size:12px; text-align:center;">Error: Usuario no autenticado.</p>`;
@@ -3208,7 +3210,7 @@
                                 <div style="display:flex; justify-content:space-between; align-items:center;">
                                     <div style="display:flex; align-items:center; gap:8px;">
                                         <span style="font-size:11px; color:var(--cyber-text-gray);">${exData.m || 'Músculo'} • ${ex.sets.length} Series</span>
-                                        ${exData.v ? `<button onclick="event.stopPropagation(); window.openVideoModal('${exData.v}')" class="cyber-button secondary" style="min-width:auto; padding:2px 6px; font-size:10px; border-color:#00d4ff; color:#00d4ff;"><svg fill="currentColor" width="10" height="10" viewBox="0 0 24 24" style="margin-right:3px; vertical-align:middle;"><path d="M8 5v14l11-7z"/></svg>Vídeo</button>` : ''}
+                                        ${exData.v ? `<button onclick="event.stopPropagation(); window.openVideoModal('${exData.v}')" class="cyber-button secondary" style="min-width:auto; padding:2px 6px; font-size:10px; border-color:var(--cyber-red-neon); color:var(--cyber-red-neon);"><svg fill="currentColor" width="10" height="10" viewBox="0 0 24 24" style="margin-right:3px; vertical-align:middle;"><path d="M8 5v14l11-7z"/></svg>Vídeo</button>` : ''}
                                     </div>
                                     <span class="ex-arrow" id="arrow-ex-${exIdx}" style="color:var(--cyber-red-neon); transform: rotate(${exIdx === 0 ? '180deg' : '0deg'}); transition: transform 0.3s; font-size:18px;">▼</span>
                                 </div>
