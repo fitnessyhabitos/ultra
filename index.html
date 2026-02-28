@@ -3115,9 +3115,11 @@
             }
 
             if (e.target.id === 'btn-delete-photo') {
+                const btn = e.target;
+                const d = btn.dataset.date;
+                const a = btn.dataset.angle;
+
                 if (confirm("¿Seguro que quieres borrar esta foto? No se puede deshacer.")) {
-                    const d = e.target.dataset.date;
-                    const a = e.target.dataset.angle;
                     if (State.profile.progressPhotos && State.profile.progressPhotos[d]) {
                         delete State.profile.progressPhotos[d][a];
                         // If date becomes empty, remove the date entirely
@@ -3125,13 +3127,13 @@
                             delete State.profile.progressPhotos[d];
                         }
 
-                        const btn = e.target;
                         const originalText = btn.innerHTML;
                         btn.innerHTML = 'Borrando...';
                         btn.disabled = true;
 
-                        try {
-                            (async () => {
+                        // Immediately Invoked Async Function Expression (IIFE)
+                        (async () => {
+                            try {
                                 const { doc: fDoc, updateDoc: fUpdate } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
                                 await fUpdate(fDoc(db, 'users', State.profile.uid), { progressPhotos: State.profile.progressPhotos });
                                 showToast('✅ Foto eliminada.');
@@ -3140,13 +3142,13 @@
                                 State.compDate2 = null;
 
                                 loadView('comparativa');
-                            })();
-                        } catch (err) {
-                            console.error(err);
-                            showToast('❌ Error borrando foto.');
-                            btn.innerHTML = originalText;
-                            btn.disabled = false;
-                        }
+                            } catch (err) {
+                                console.error(err);
+                                showToast('❌ Error borrando foto.');
+                                btn.innerHTML = originalText;
+                                btn.disabled = false;
+                            }
+                        })();
                     }
                 }
             }
