@@ -2966,10 +2966,31 @@
             const subPending = State.profile.pendingPayment;
 
             if (!isAdmin && !ALWAYS_ALLOWED.includes(viewName)) {
-                if (Views[viewName]) {
-                    DOM.view.innerHTML = Views[viewName]();
-                    State.currentView = viewName;
-                    window.scrollTo(0, 0);
+                if (subStatus !== 'active') {
+                    if (Views[viewName]) {
+                        DOM.view.innerHTML = Views[viewName]();
+                        State.currentView = viewName;
+                        window.scrollTo(0, 0);
+                    }
+                    // Overlay the locked state with proper view-trigger classes
+                    const lockMsg = subPending
+                        ? `<div style="position:fixed;inset:0;background:rgba(10,10,15,0.95);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px;">
+                            <div style="font-size:48px;">⏳</div>
+                            <h2 style="color:#ffcc00;font-size:20px;text-align:center;">Verificando Pago</h2>
+                            <p style="color:#aaa;font-size:13px;text-align:center;max-width:280px;">Tu pago de <strong style="color:white;">${subPending.plan}</strong> está siendo verificado. Recibirás confirmación en menos de 24h.</p>
+                            <p style="color:#555;font-size:11px;">Enviado: ${new Date(subPending.timestamp).toLocaleString('es-ES')}</p>
+                            <button class="cyber-button view-trigger" data-target="menu" style="margin-top:10px;">Volver al Menú</button>
+                           </div>`
+                        : `<div style="position:fixed;inset:0;background:rgba(10,10,15,0.95);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px;">
+                            <div style="font-size:48px;">🔒</div>
+                            <h2 style="color:#ff1f3d;font-size:20px;text-align:center;">Sección Bloqueada</h2>
+                            <p style="color:#aaa;font-size:13px;text-align:center;max-width:280px;">Activa tu suscripción para acceder a todas las funciones de la app.</p>
+                            <button class="cyber-button view-trigger" data-target="suscripcion" style="background:rgba(255,31,61,0.2);border:2px solid #ff1f3d;">Ver Planes</button>
+                            <button class="cyber-button secondary view-trigger" data-target="menu" style="border-color:#444;color:#888;">Volver al Menú</button>
+                           </div>`;
+                    DOM.view.insertAdjacentHTML('afterbegin', lockMsg);
+                    DOM.navItems.forEach(item => item.classList.toggle('active', item.dataset.view === viewName));
+                    return;
                 }
             }
             // === END GATING ===
