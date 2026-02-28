@@ -433,6 +433,13 @@
         });
 
         onAuthStateChanged(auth, async (user) => {
+            // Always hide splash screen as soon as auth state is known
+            const splash = document.getElementById('splash-screen');
+            if (splash) {
+                splash.classList.add('hiding');
+                setTimeout(() => splash.remove(), 500);
+            }
+
             if (user) {
                 // Cargar datos de Firestore al Estado
                 const userData = await loadUserData(user.uid);
@@ -446,13 +453,6 @@
 
                 document.getElementById('auth-view').style.display = 'none';
                 document.getElementById('app-wrapper').style.display = 'block';
-
-                // Hide splash screen with fade
-                const splash = document.getElementById('splash-screen');
-                if (splash) {
-                    splash.classList.add('hiding');
-                    setTimeout(() => splash.remove(), 500);
-                }
 
                 if (userData) {
                     State.profile.maxWeights = userData.maxWeights || {};
