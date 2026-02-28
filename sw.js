@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fitdatapro-shell-v1';
+const CACHE_NAME = 'fitdatapro-shell-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
