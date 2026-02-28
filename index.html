@@ -2998,7 +2998,7 @@
                     <div style="display:flex; justify-content:space-around; margin-top:5px; font-size:11px; color:white;"><div><span style="color:#ff3333;">■</span> Peso</div><div><span style="color:#00d4ff;">■</span> %Grasa</div><div><span style="color:#00ff88;">■</span> Músculo</div></div>
                 </div>
                 <div class="liquid-glass card" style="margin-bottom:20px;">
-                    <div class="card-title">Perímetros y Pliegues</div>
+                    <div class="card-title">Perímetros Corporales</div>
                     <div class="chart-container"><canvas id="measureChart"></canvas></div>
                     <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:10px; font-size:10px; color:white; padding:0 5px;">
                         <div><span style="color:#A133FF;">■</span> Homb.</div><div><span style="color:#FF5733;">■</span> Pecho</div>
@@ -3078,8 +3078,8 @@
                         if (window.activeClientChatUnsubscribe) window.activeClientChatUnsubscribe();
 
                         const { db, doc, onSnapshot, auth } = await import('./js/firebase.js');
-                        // Use State.profile.id instead of auth.currentUser.uid to prevent data bleed when in Vista Coach
-                        const uid = State.profile.id || State.profile.uid || (auth.currentUser ? auth.currentUser.uid : "");
+                        // Use State.profile.uid (the actual Firebase UID) for database queries when impersonating
+                        const uid = State.profile.uid || (auth.currentUser ? auth.currentUser.uid : "");
 
                         if (!uid) {
                             box.innerHTML = `<p style="color:red; font-size:12px; text-align:center;">Error: Usuario no autenticado.</p>`;
@@ -3245,12 +3245,33 @@
             if (document.getElementById('bioChart') && State.charts.bio) State.charts.bio.destroy();
             if (document.getElementById('bioChart')) {
                 const hasRealData = State.profile.weight || State.profile.fat || State.profile.muscle;
+                const hist = (State.history || []).filter(h => h.weight || h.fat || h.muscle).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                let labels = hasRealData ? ['Inicial'] : [];
+                let wData = hasRealData ? [State.profile.weight || 0] : [];
+                let fData = hasRealData ? [State.profile.fat || 0] : [];
+                let mData = hasRealData ? [State.profile.muscle || 0] : [];
+
+                if (hist.length > 0) {
+                    labels = hist.map(h => formatYMD(new Date(h.timestamp)));
+                    wData = hist.map(h => h.weight || 0);
+                    fData = hist.map(h => h.fat || 0);
+                    mData = hist.map(h => h.muscle || 0);
+                    // Add current as last point if not already there
+                    const today = formatYMD(new Date());
+                    if (labels[labels.length - 1] !== today && hasRealData) {
+                        labels.push('Reciente');
+                        wData.push(State.profile.weight || wData[wData.length - 1]);
+                        fData.push(State.profile.fat || fData[fData.length - 1]);
+                        mData.push(State.profile.muscle || mData[mData.length - 1]);
+                    }
+                }
+
                 State.charts.bio = new Chart(document.getElementById('bioChart'), {
                     type: 'line', data: {
-                        labels: hasRealData ? ['Reciente'] : [], datasets: [
-                            { label: 'Peso', data: hasRealData ? [State.profile.weight || 0] : [], borderColor: '#ff3333', tension: 0.3 },
-                            { label: '% Grasa (JP7)', data: hasRealData ? [State.profile.fat || 0] : [], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.1)', fill: true, tension: 0.4 },
-                            { label: 'Músculo', data: hasRealData ? [State.profile.muscle || 0] : [], borderColor: '#00ff88', tension: 0.3 }
+                        labels: labels, datasets: [
+                            { label: 'Peso', data: wData, borderColor: '#ff3333', tension: 0.3 },
+                            { label: '% Grasa', data: fData, borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.1)', fill: true, tension: 0.4 },
+                            { label: 'Músculo', data: mData, borderColor: '#00ff88', tension: 0.3 }
                         ]
                     }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
                 });
@@ -3258,14 +3279,51 @@
 
             if (document.getElementById('measureChart') && State.charts.measure) State.charts.measure.destroy();
             if (document.getElementById('measureChart')) {
-                // If there is no real data, pass an empty dataset so it doesn't show ghost data
-                const hasRealData = State.profile.weight || State.profile.fat;
+                const hasRealData = State.profile.hombros || State.profile.pecho || State.profile.brazo;
+                const hist = (State.history || []).filter(h => h.hombros || h.pecho || h.brazo || h.cintura || h.abdomen || h.cadera || h.muslo).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+                let labels = hasRealData ? ['Inicial'] : [];
+                let dHomb = hasRealData ? [State.profile.hombros || 0] : [];
+                let dPech = hasRealData ? [State.profile.pecho || 0] : [];
+                let dBraz = hasRealData ? [State.profile.brazo || 0] : [];
+                let dCint = hasRealData ? [State.profile.cintura || 0] : [];
+                let dAbd = hasRealData ? [State.profile.abdomen || 0] : [];
+                let dCad = hasRealData ? [State.profile.cadera || 0] : [];
+                let dMus = hasRealData ? [State.profile.muslo || 0] : [];
+
+                if (hist.length > 0) {
+                    labels = hist.map(h => formatYMD(new Date(h.timestamp)));
+                    dHomb = hist.map(h => h.hombros || 0);
+                    dPech = hist.map(h => h.pecho || 0);
+                    dBraz = hist.map(h => h.brazo || 0);
+                    dCint = hist.map(h => h.cintura || 0);
+                    dAbd = hist.map(h => h.abdomen || 0);
+                    dCad = hist.map(h => h.cadera || 0);
+                    dMus = hist.map(h => h.muslo || 0);
+
+                    const today = formatYMD(new Date());
+                    if (labels[labels.length - 1] !== today && hasRealData) {
+                        labels.push('Reciente');
+                        dHomb.push(State.profile.hombros || dHomb[dHomb.length - 1]);
+                        dPech.push(State.profile.pecho || dPech[dPech.length - 1]);
+                        dBraz.push(State.profile.brazo || dBraz[dBraz.length - 1]);
+                        dCint.push(State.profile.cintura || dCint[dCint.length - 1]);
+                        dAbd.push(State.profile.abdomen || dAbd[dAbd.length - 1]);
+                        dCad.push(State.profile.cadera || dCad[dCad.length - 1]);
+                        dMus.push(State.profile.muslo || dMus[dMus.length - 1]);
+                    }
+                }
 
                 State.charts.measure = new Chart(document.getElementById('measureChart'), {
                     type: 'line', data: {
-                        labels: hasRealData ? ['Reciente'] : [], datasets: [
-                            { label: 'Hombros', data: hasRealData ? [80] : [], borderColor: '#A133FF', tension: 0.3 },
-                            { label: 'Pecho', data: hasRealData ? [70] : [], borderColor: '#FF5733', tension: 0.3 }
+                        labels: labels, datasets: [
+                            { label: 'Hombros', data: dHomb, borderColor: '#A133FF', tension: 0.3, hidden: false },
+                            { label: 'Pecho', data: dPech, borderColor: '#FF5733', tension: 0.3, hidden: false },
+                            { label: 'Brazo', data: dBraz, borderColor: '#FF33A8', tension: 0.3, hidden: true },
+                            { label: 'Cintura', data: dCint, borderColor: '#00FF88', tension: 0.3, hidden: true },
+                            { label: 'Abdomen', data: dAbd, borderColor: '#2ECC71', tension: 0.3, hidden: true },
+                            { label: 'Cadera', data: dCad, borderColor: '#3357FF', tension: 0.3, hidden: true },
+                            { label: 'Muslo', data: dMus, borderColor: '#F3FF33', tension: 0.3, hidden: true }
                         ]
                     }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
                 });
