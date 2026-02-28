@@ -498,6 +498,8 @@
                     State.profile.telegram = userData.telegram || '';
                     State.profile.instagram = userData.instagram || '';
                     State.profile.progressPhotos = userData.progressPhotos || {};
+                    State.profile.assignedDiet = userData.assignedDiet || null;
+                    State.profile.assignedDietData = userData.assignedDietData || null;
 
                 } else {
                     State.profile.maxWeights = {};
@@ -517,13 +519,28 @@
                     window.globalUserUnsubscribe = onSnapshot(doc(db, "users", user.uid), async (docSnap) => {
                         if (docSnap.exists()) {
                             const data = docSnap.data();
+
+                            // Real-time State Synchronization (so UI reflects remote changes instantly)
+                            State.profile.assignedDiet = data.assignedDiet || null;
+                            State.profile.assignedDietData = data.assignedDietData || null;
+                            State.profile.subscriptionStatus = data.subscriptionStatus || 'none';
+                            State.profile.sessionsTotal = data.sessionsTotal || 0;
+                            State.profile.sessionsRemaining = data.sessionsRemaining || 0;
+                            State.profile.controlVisitsTotal = data.controlVisitsTotal || 0;
+                            State.profile.controlVisitsRemaining = data.controlVisitsRemaining || 0;
+                            State.profile.pendingPayment = data.pendingPayment || null;
+
+                            // Re-render current view if user is looking at plan or profile
+                            if (window.currentView === 'plan' || window.currentView === 'perfil') {
+                                if (typeof navigateTo === 'function') navigateTo(window.currentView);
+                            }
+
                             const reminders = data.automaticReminders || [];
                             const now = Date.now();
                             let updated = false;
 
                             reminders.forEach(r => {
                                 if (now >= r.nextTrigger) {
-                                    // DISPARAR NOTIFICACIÓN PUSH Y CHAT IN-GAME GUI
                                     if (Notification.permission === 'granted') {
                                         try {
                                             navigator.serviceWorker.ready.then(registration => {
@@ -532,8 +549,6 @@
                                         } catch (e) { }
                                     }
                                     showToast(r.text);
-
-                                    // Re-programar para el siguiente ciclo
                                     r.nextTrigger = now + (r.freqDays * 24 * 60 * 60 * 1000);
                                     updated = true;
                                 }

@@ -3,9 +3,8 @@ const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './style.css',
-  './js/app.js',
   './js/firebase.js',
-  './js/auth.js',
+  './js/admin.js',
   './manifest.json'
 ];
 
