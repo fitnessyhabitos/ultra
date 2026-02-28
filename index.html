@@ -985,42 +985,43 @@
                             
                             <h3 style="color:#ffaa00; margin-bottom:15px; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px; text-transform:uppercase;">Biblioteca de Planes Globales</h3>
                             <div style="margin-bottom:25px; max-height: 300px; overflow-y:auto; padding-right:5px;">
-                                ${globalPlans.length === 0 ? '<p style="color:#aaa; font-size:12px;">No tienes planes maestros guardados.</p>' :
-                                globalPlans.map(p => {
-                                    const routines = p.routinesAvailable || [];
-                                    const routineIds = routines.map(r => typeof r === 'string' ? r : r.id || '').filter(Boolean);
-                                    const routineLabels = routines.map(r => typeof r === 'string' ? r : r.name || r.id || '').filter(Boolean);
-                                    return `
-                                    <details style="margin-bottom:10px; padding:10px; background:rgba(255,170,0,0.04); border-radius:8px; border-left:3px solid #ffaa00;">
-                                        <summary style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; list-style:none;">
-                                            <div>
-                                                <strong style="color:white; font-size:14px;">${p.name}</strong>
-                                                <span style="font-size:10px; color:#aaa; margin-left:8px;">${routines.length} rutina${routines.length !== 1 ? 's' : ''} &#9660;</span>
+                                ${(() => {
+                                    if (globalPlans.length === 0) return '<p style="color:#aaa; font-size:12px;">No tienes planes maestros guardados.</p>';
+                                    return globalPlans.map(p => {
+                                        const routines = p.routinesAvailable || [];
+                                        const routineIds = routines.map(r => typeof r === 'string' ? r : r.id || '').filter(Boolean);
+                                        const routineLabels = routines.map(r => typeof r === 'string' ? r : r.name || r.id || '').filter(Boolean);
+                                        const routineRows = routineLabels.length === 0
+                                            ? '<p style="font-size:11px;color:#aaa;">Sin rutinas asignadas.</p>'
+                                            : routineLabels.map((rLabel, ri) => `
+                                                <div style="margin-bottom:8px;">
+                                                    <details>
+                                                        <summary style="cursor:pointer; list-style:none; font-size:12px; color:#00d4ff; font-weight:600; padding:4px 0;">
+                                                            &#128218; ${rLabel} &#9660;
+                                                        </summary>
+                                                        <div id="plan-routine-detail-${p.id}-${ri}" style="padding:6px 0 0 12px;">
+                                                            <button onclick="window.loadRoutineDetail('${p.id}', '${ri}', '${routineIds[ri] || rLabel}')" style="font-size:10px;color:#aaa;background:none;border:none;cursor:pointer;padding:0;">&#10226; Cargar ejercicios...</button>
+                                                        </div>
+                                                    </details>
+                                                </div>`).join('');
+                                        return `
+                                        <details style="margin-bottom:10px; padding:10px; background:rgba(255,170,0,0.04); border-radius:8px; border-left:3px solid #ffaa00;">
+                                            <summary style="display:flex; justify-content:space-between; align-items:center; cursor:pointer; list-style:none;">
+                                                <div>
+                                                    <strong style="color:white; font-size:14px;">${p.name}</strong>
+                                                    <span style="font-size:10px; color:#aaa; margin-left:8px;">${routines.length} rutina${routines.length !== 1 ? 's' : ''} &#9660;</span>
+                                                </div>
+                                                <div style="display:flex; gap:5px; align-items:center;">
+                                                    <button onclick="event.stopPropagation(); window.adminEditPlanName('${p.id}', '${p.name.replace(/'/g, "\\'")}')" class="cyber-button secondary" style="padding:4px 8px; font-size:10px; min-width:auto; border-color:#00d4ff; color:#00d4ff;">&#9998; Nombre</button>
+                                                    <button onclick="event.stopPropagation(); window.confirmDeleteGlobalPlan('${p.id}', '${p.name.replace(/'/g, "\\'")}')" class="cyber-button secondary" style="padding:4px 8px; font-size:10px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;">&#128465;</button>
+                                                </div>
+                                            </summary>
+                                            <div style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.07); padding-top:10px;">
+                                                ${routineRows}
                                             </div>
-                                            <div style="display:flex; gap:5px; align-items:center;">
-                                                <button onclick="event.stopPropagation(); window.adminEditPlanName('${p.id}', '${p.name.replace(/'/g, "\\'")}'  )" class="cyber-button secondary" style="padding:4px 8px; font-size:10px; min-width:auto; border-color:#00d4ff; color:#00d4ff;">&#9998; Nombre</button>
-                                                <button onclick="event.stopPropagation(); window.confirmDeleteGlobalPlan('${p.id}', '${p.name.replace(/'/g, "\\'")}'  )" class="cyber-button secondary" style="padding:4px 8px; font-size:10px; min-width:auto; border-color:#ff1f3d; color:#ff1f3d;">&#128465;</button>
-                                            </div>
-                                        </summary>
-                                        <div style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.07); padding-top:10px;">
-                                            ${routineLabels.length === 0
-                                                ? '<p style="font-size:11px;color:#aaa;">Sin rutinas asignadas.</p>'
-                                                : routineLabels.map((rLabel, ri) => `
-                                                    <div style="margin-bottom:8px;">
-                                                        <details>
-                                                            <summary style="cursor:pointer; list-style:none; font-size:12px; color:#00d4ff; font-weight:600; padding:4px 0;">
-                                                                &#128218; ${rLabel} &#9660;
-                                                            </summary>
-                                                            <div id="plan-routine-detail-${p.id}-${ri}" style="padding:6px 0 0 12px;">
-                                                                <button onclick="window.loadRoutineDetail('${p.id}', '${ri}', '${routineIds[ri] || rLabel}'  )" style="font-size:10px;color:#aaa;background:none;border:none;cursor:pointer;padding:0;">&#10226; Cargar ejercicios...</button>
-                                                            </div>
-                                                        </details>
-                                                    </div>`).join('')
-                                            }
-                                        </div>
-                                    </details>`;
-                                }).join(''),
-                            }
+                                        </details>`;
+                                    }).join('');
+                                })()}
                             </div>
                         `;
                     } catch (e) {
