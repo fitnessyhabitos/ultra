@@ -577,29 +577,38 @@ body {
 .slider-container {
    position: relative;
    width: 100%;
-   height: 450px;
+   height: auto;
+   max-height: 85vh;
    background: #000;
    border-radius: 12px;
    overflow: hidden;
    border: 1px solid rgba(255, 31, 61, 0.3);
    margin-top: 10px;
+   display: flex;
+   justify-content: center;
+   align-items: center;
 }
 
 .slider-img {
+   width: 100%;
+   height: auto;
+   max-height: 85vh;
+   object-fit: contain;
+}
+
+.slider-img.before {
    position: absolute;
    top: 0;
    left: 0;
    width: 100%;
    height: 100%;
-   object-fit: cover;
-}
-
-.slider-img.before {
    clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
    z-index: 2;
 }
 
 .slider-img.after {
+   position: relative;
+   display: block;
    z-index: 1;
 }
 
