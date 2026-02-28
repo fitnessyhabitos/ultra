@@ -829,6 +829,18 @@
                                     ${userOptions}
                                 </div>
                                 
+                                <label style="font-size:11px; color:#aaa; margin-bottom:8px; display:block;">4. Fechas del Plan (opcional):</label>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+                                    <div>
+                                        <label style="font-size:10px; color:#ff00ff;">Fecha Inicio</label>
+                                        <input type="date" id="plan-start-date" style="width:100%; padding:8px; background:rgba(0,0,0,0.5); border:1px solid #ff00ff; color:white; border-radius:6px; font-size:12px;" value="${new Date().toISOString().split('T')[0]}">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:10px; color:#ff00ff;">Fecha Fin</label>
+                                        <input type="date" id="plan-end-date" style="width:100%; padding:8px; background:rgba(0,0,0,0.5); border:1px solid #ff00ff; color:white; border-radius:6px; font-size:12px;">
+                                    </div>
+                                </div>
+
                                 <button onclick="window.submitPlanExecution()" class="cyber-button" style="background:linear-gradient(45deg, #ff00ff, #ff1f3d); font-size:13px; letter-spacing:1px; box-shadow:0 0 15px rgba(255,0,255,0.4);">ASIGNAR Y GUARDAR PLAN</button>
                             </div>
                             
@@ -1223,10 +1235,15 @@
 
             // 3. Guardar en Base de Datos (Depende si es Plan o Rutina)
             if (window._tunerData.type === 'plan') {
+                const planStartDate = document.getElementById('plan-start-date')?.value || null;
+                const planEndDate = document.getElementById('plan-end-date')?.value || null;
+
                 const res = await AdminController.assignPlanToClients(
                     window._tunerData.clientIds,
                     window._tunerData.planName,
-                    modifiedRoutines
+                    modifiedRoutines,
+                    planStartDate,
+                    planEndDate
                 );
 
                 document.getElementById('modal-tuner').classList.remove('active');
@@ -1234,7 +1251,7 @@
                 btn.textContent = "Asignar";
 
                 if (res) {
-                    showToast(`✅ Plan "${window._tunerData.planName}" procesado exitosamente.`);
+                    showToast(`✅ Plan "${window._tunerData.planName}" procesado. ${planEndDate ? 'Caduca: ' + new Date(planEndDate).toLocaleDateString('es-ES') : ''}`);
                     const pNameInp = document.getElementById('builder-plan-name');
                     if (pNameInp) pNameInp.value = '';
                     document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
@@ -1396,12 +1413,15 @@
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
                         <div class="liquid-glass card" style="padding:10px; border-left:3px solid #ffcc00;">
                             <h4 style="color:#ffcc00; font-size:12px; margin-bottom:5px;">Suscripción Activa</h4>
-                            <p style="font-size:11px; color:white;">${userData.planName || 'Plan Entrenamiento Base'}</p>
+                            <p style="font-size:12px; color:white; font-weight:bold;">${userData.planName || 'Sin plan asignado'}</p>
+                            ${userData.planStartDate ? `<p style="font-size:10px; color:#aaa; margin-top:4px;">Inicio: <strong style="color:white">${new Date(userData.planStartDate).toLocaleDateString('es-ES')}</strong></p>` : ''}
+                            ${userData.planEndDate ? `<p style="font-size:10px; color:#aaa;">Fin: <strong style="color:${new Date(userData.planEndDate) < new Date() ? '#ff4444' : '#00ff88'}">${new Date(userData.planEndDate).toLocaleDateString('es-ES')}</strong></p>` : ''}
                         </div>
                         <div class="liquid-glass card" style="padding:10px; border-left:3px solid #00ff88;">
                             <h4 style="color:#00ff88; font-size:12px; margin-bottom:5px;">Estado Físico</h4>
                             <p style="font-size:11px; color:white; font-weight:bold;">${userData.weight || '--'} kg | ${userData.fat || '--'}% GC</p>
                             <p style="font-size:10px; color:#aaa; margin-top:5px;">Meta: ${userData.objective || 'Mantenimiento'}</p>
+                            <p style="font-size:10px; color:#aaa; margin-top:3px;">ID Cliente: <strong style="color:white;">#${userData.clientIdNum || '--'}</strong></p>
                         </div>
                     </div>
 
@@ -1918,7 +1938,33 @@
                     <label style="font-size:12px; color:var(--cyber-red-neon);">Usuario Telegram</label><div style="position: relative;"><input type="text" value="antoni_fit" style="padding-left: 40px;"><span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--cyber-red-neon);">@</span></div>
                     <label style="font-size:12px; color:var(--cyber-red-neon);">Perfil Instagram</label><div style="position: relative;"><input type="text" placeholder="usuario_ig" style="padding-left: 40px;"><span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--cyber-red-neon);">@</span></div>
                     <button class="cyber-button" style="margin-top: 10px;" id="btn-save-profile">Actualizar Datos</button>
-                </div>`;
+                </div>
+                ${(() => {
+                        if (!State.profile.planName && !State.profile.planStartDate) return '';
+                        const start = State.profile.planStartDate ? new Date(State.profile.planStartDate) : null;
+                        const end = State.profile.planEndDate ? new Date(State.profile.planEndDate) : null;
+                        const today = new Date();
+                        const daysLeft = end ? Math.max(0, Math.ceil((end - today) / (1000 * 60 * 60 * 24))) : null;
+                        const startStr = start ? start.toLocaleDateString('es-ES') : '--';
+                        const endStr = end ? end.toLocaleDateString('es-ES') : '--';
+                        const statusColor = daysLeft === null ? '#aaa' : daysLeft <= 5 ? '#ff4444' : '#00ff88';
+                        return `
+                    <div class="liquid-glass card" style="margin-top:15px; border-left:3px solid #ffcc00; padding:15px;">
+                        <h3 style="color:#ffcc00; font-size:13px; margin-bottom:10px; text-transform:uppercase;">📋 Mi Plan Activo</h3>
+                        <p style="color:white; font-size:14px; font-weight:bold; margin-bottom:8px;">${State.profile.planName || 'Plan asignado por Coach'}</p>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                            <div style="background:rgba(255,255,255,0.05);border-radius:6px;padding:8px;">
+                                <p style="color:#aaa;font-size:10px;margin-bottom:2px;">INICIO</p>
+                                <p style="color:white;font-size:13px;font-weight:bold;">${startStr}</p>
+                            </div>
+                            <div style="background:rgba(255,255,255,0.05);border-radius:6px;padding:8px;">
+                                <p style="color:#aaa;font-size:10px;margin-bottom:2px;">FIN</p>
+                                <p style="color:white;font-size:13px;font-weight:bold;">${endStr}</p>
+                            </div>
+                        </div>
+                        ${daysLeft !== null ? `<p style="color:${statusColor};font-size:12px;margin-top:10px;text-align:center;">${daysLeft === 0 ? '⚠️ Plan vencido hoy' : `⏳ ${daysLeft} días restantes`}</p>` : ''}
+                    </div>`;
+                    })()}`;
             },
 
             estado_fisico: () => `

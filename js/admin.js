@@ -378,20 +378,25 @@ export const AdminController = {
     /**
      * Asigna un Plan completo (múltiples rutinas) a uno o varios atletas
      */
-    async assignPlanToClients(clientIdsArray, planName, routinesArray) {
+    async assignPlanToClients(clientIdsArray, planName, routinesArray, planStartDate = null, planEndDate = null) {
         try {
             // Guardar automáticamente el Plan en la Biblioteca del Coach
             await this.saveGlobalPlan(planName, routinesArray);
 
             const promises = clientIdsArray.map(clientId => {
                 const userRef = doc(db, "users", clientId);
-                return updateDoc(userRef, {
+                const updateData = {
                     plan: {
                         name: planName,
                         routinesAvailable: routinesArray,
                         assignedAt: new Date().toISOString()
-                    }
-                });
+                    },
+                    // Top-level fields for easy display in profile and admin view
+                    planName: planName,
+                    planStartDate: planStartDate || new Date().toISOString().split('T')[0],
+                    planEndDate: planEndDate || null
+                };
+                return updateDoc(userRef, updateData);
             });
             await Promise.all(promises);
             return true;
