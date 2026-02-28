@@ -3212,7 +3212,16 @@
             }
 
             // MODALES FAB
-            if (e.target.closest('#fab-trigger')) document.getElementById('fab-modal').classList.add('active');
+            if (e.target.closest('#fab-trigger')) {
+                const isAdmin = State.profile.role === 'admin';
+                const subStatus = State.profile.subscriptionStatus;
+                if (!isAdmin && subStatus !== 'active') {
+                    showToast('🔒 Función bloqueada. Activa tu suscripción.');
+                    navigateTo('suscripcion');
+                } else {
+                    document.getElementById('fab-modal').classList.add('active');
+                }
+            }
             if (e.target.closest('#close-modal')) document.getElementById('fab-modal').classList.remove('active');
 
             const modalAction = e.target.closest('.modal-action');
