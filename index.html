@@ -2584,7 +2584,7 @@
                     </div>
                     <label class="cyber-button" style="width:100%; text-align:center; cursor:pointer; display:block; box-sizing:border-box;" for="upload-new-photo" id="lbl-upload-new">
                         📷 Subir foto de hoy
-                        <input type="file" id="upload-new-photo" accept="image/*" capture="environment" style="display:none;" data-date="${todayYMD}">
+                        <input type="file" id="upload-new-photo" accept="image/*" style="display:none;" data-date="${todayYMD}">
                     </label>
                 </div>
 
@@ -2604,8 +2604,8 @@
                         <img src="${imgInicio}" class="slider-img before" id="img-before">
                         <div class="slider-label label-before" id="label-img-1">${date1 || '--'}</div>
                         <div class="slider-label label-after" id="label-img-2">${date2 || '--'}</div>
-                        <input type="range" min="0" max="100" value="50" class="slider-range" id="photo-slider">
-                        <div class="slider-line" id="slider-line" style="left:50%;"><div class="slider-thumb">◄►</div></div>
+                        <input type="range" min="0" max="100" value="0" class="slider-range" id="photo-slider">
+                        <div class="slider-line" id="slider-line" style="left:0%;"></div>
                     </div>
                 </div>` : `<div class="liquid-glass card" style="text-align:center; padding:30px; color:#aaa; font-size:13px;">Sube al menos 2 fotos en fechas distintas para activar el comparador.</div>`}
                 `;
