@@ -1,4 +1,4 @@
-/* =========================================
+﻿/* =========================================
    VARIABLES DEL SISTEMA CYBERPUNK
    ========================================= */
 :root {
@@ -1150,7 +1150,7 @@ body {
 }
 
 /* =========================================
-   TABLET: centrado elegante
+   TABLET (600-899px): elegantly centered
    ========================================= */
 @media (min-width: 600px) and (max-width: 899px) {
    body {
@@ -1200,151 +1200,144 @@ body {
 }
 
 /* =========================================
-   DESKTOP: sidebar fija + contenido desplazado
+   DESKTOP (900px+): full screen top nav
    ========================================= */
 @media (min-width: 900px) {
    :root {
-      --nav-height: 0px;
+      --nav-height: 60px;
    }
 
    body {
       background: #040406;
       min-height: 100vh;
+      align-items: stretch;
    }
 
-   /* ---- SIDEBAR FIJA ---- */
+   /* Auth view: full screen, centered form */
+   #auth-view {
+      width: 100% !important;
+      max-width: none !important;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(ellipse at 30% 50%, #120a10 0%, #040406 100%);
+      margin: 0 !important;
+   }
+
+   .auth-container {
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 0 60px rgba(255, 31, 61, 0.15);
+      border-radius: 16px;
+      padding: 40px;
+      background: rgba(10, 10, 15, 0.9);
+      border: 1px solid rgba(255, 31, 61, 0.2);
+   }
+
+   /* App wrapper: full screen, padded for top nav */
+   #app-wrapper {
+      width: 100% !important;
+      max-width: none !important;
+      margin: 0 !important;
+      background: var(--cyber-black);
+      padding-top: var(--nav-height);
+      display: block !important;
+      min-height: 100vh;
+   }
+
+   /* Header title: hidden on desktop (info is in top nav) */
+   .header-title {
+      display: none;
+   }
+
+   /* TOP NAV BAR */
    .bottom-nav {
       position: fixed !important;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 220px;
-      height: 100vh;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: stretch;
-      padding: 70px 0 24px;
-      border-top: none;
-      border-right: 1px solid rgba(255, 31, 61, 0.2);
-      border-bottom: none;
-      transform: none !important;
+      top: 0 !important;
+      bottom: auto !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100% !important;
       max-width: none !important;
-      gap: 2px;
-      background: #0a0a0f;
+      height: var(--nav-height) !important;
+      flex-direction: row !important;
+      justify-content: center !important;
+      align-items: center !important;
+      padding: 0 24px !important;
+      gap: 8px !important;
+      transform: none !important;
+      border-top: none !important;
+      border-bottom: 1px solid rgba(255, 31, 61, 0.2) !important;
+      border-left: none !important;
+      border-right: none !important;
+      background: rgba(8, 8, 12, 0.98) !important;
+      backdrop-filter: blur(20px) !important;
       z-index: 100;
    }
 
-   /* Logo en sidebar via pseudo-element */
-   .bottom-nav::before {
-      content: "FIT DATA PRO";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      padding: 20px 20px 18px;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      font-weight: 900;
-      color: white;
-      letter-spacing: 3px;
-      border-bottom: 1px solid rgba(255, 31, 61, 0.2);
-   }
-
-   /* Nav items en fila horizontal dentro del sidebar */
+   /* Nav items: horizontal pills */
    .nav-item {
       flex-direction: row !important;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 12px;
-      padding: 13px 20px;
+      gap: 8px;
+      padding: 8px 18px !important;
       border-radius: 8px;
-      margin: 2px 8px;
       font-size: 13px;
       font-weight: 500;
-      width: auto;
+      flex: 0 0 auto;
+      height: auto;
    }
 
    .nav-item svg {
       margin-bottom: 0 !important;
+      width: 18px;
+      height: 18px;
       flex-shrink: 0;
-      width: 20px;
-      height: 20px;
    }
 
    .nav-item.active {
-      background: rgba(255, 31, 61, 0.12);
-      border-radius: 8px;
+      background: rgba(255, 31, 61, 0.15);
    }
 
-   /* FAB (+) pegado al borde del sidebar */
+   /* FAB: bottom right of screen */
    .fab-button {
       position: fixed !important;
-      bottom: 30px;
-      left: 110px;
-      transform: translateX(-50%);
+      bottom: 30px !important;
+      right: 30px !important;
+      left: auto !important;
       top: auto !important;
+      margin: 0 !important;
+      width: 56px;
+      height: 56px;
       z-index: 200;
-      width: 50px;
-      height: 50px;
    }
 
-   /* ---- AUTH VIEW: centrado en el área sin sidebar ---- */
-   #auth-view {
-      margin-left: 220px;
-      min-height: 100vh;
-      display: none;
-      /* Se muestra por JS igual que antes */
-      justify-content: center;
-      align-items: center;
-      background: radial-gradient(ellipse at center, #0d0d14 0%, #040406 100%);
-   }
-
-   /* Cuando JS lo hace visible */
-   #auth-view[style*="flex"] {
-      display: flex !important;
-   }
-
-   .auth-container {
-      max-width: 460px;
-      width: 100%;
-   }
-
-   /* ---- APP WRAPPER: shift total de la app ---- */
-   #app-wrapper {
-      margin-left: 220px;
-      min-height: 100vh;
-      background: var(--cyber-black);
-      display: block !important;
-   }
-
-   /* Header sticky en desktop */
-   .header-title {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      background: rgba(10, 10, 15, 0.95);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(255, 31, 61, 0.15);
-   }
-
-   /* Contenido con más espacio lateral */
+   /* Main content: full width with comfortable padding */
    #app-view {
-      padding: 24px 40px 40px;
-      max-width: 1100px;
+      padding: 32px 60px 60px !important;
+      max-width: none !important;
+      width: 100%;
+      box-sizing: border-box;
    }
 
-   /* Toasts en esquina superior derecha */
+   /* Menu grid: more columns on wide screen */
+   .menu-grid {
+      grid-template-columns: repeat(4, 1fr) !important;
+      max-width: 900px;
+   }
+
+   /* Toasts: top right */
    #toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
+      position: fixed !important;
+      top: 80px !important;
+      right: 24px !important;
       left: auto !important;
       transform: none !important;
       max-width: 380px;
       z-index: 10000;
    }
 
-   /* Modales centrados en el área de contenido */
+   /* Modals: centered */
    .modal-overlay {
       justify-content: center;
       align-items: center;
@@ -1353,66 +1346,21 @@ body {
    .modal-content {
       border-radius: 20px;
       border: 1px solid var(--cyber-red-neon);
-      max-width: 560px;
+      max-width: 600px;
       transform: none !important;
    }
 
-   /* Banner de entreno activo */
+   /* Active workout banner: top-width */
    .active-workout-banner {
-      left: 240px;
+      left: 50%;
+      transform: translateX(-50%);
       bottom: 20px;
-      width: calc(100% - 260px);
-      max-width: 900px;
-      transform: none;
+      width: 90%;
+      max-width: 960px;
    }
 
-   /* Menu grid 4 columnas en desktop */
-   .menu-grid {
-      grid-template-columns: repeat(4, 1fr) !important;
+   /* Cards get more breathing room */
+   .liquid-glass.card {
+      padding: 24px;
    }
-}
-
-body {
-   display: flex;
-   flex-direction: column;
-   align-items: center;
-   background-color: #050508;
-}
-
-#auth-view,
-#app-wrapper {
-   width: 100%;
-   max-width: 560px;
-   margin: 0 auto;
-   background-color: var(--cyber-black);
-   min-height: 100vh;
-   box-shadow: 0 0 50px rgba(255, 31, 61, 0.1);
-}
-
-#toast-container {
-   left: 50%;
-   transform: translateX(-50%);
-   max-width: 480px;
-}
-
-.bottom-nav {
-   left: 50%;
-   transform: translateX(-50%);
-   max-width: 560px;
-}
-
-.active-workout-banner {
-   left: 50%;
-   transform: translateX(-50%);
-   max-width: 520px;
-}
-
-.modal-overlay {
-   justify-content: center;
-   align-items: center;
-}
-
-.modal-content {
-   border-radius: 24px;
-   border: 1px solid var(--cyber-red-neon);
 }
