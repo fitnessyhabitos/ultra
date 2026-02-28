@@ -14,6 +14,85 @@
 
 <body>
 
+    <!-- SPLASH SCREEN - visible durante autologin con token -->
+    <div id="splash-screen"
+        style="position:fixed;inset:0;background:#0a0a0f;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;">
+        <style>
+            @keyframes splashPulse {
+
+                0%,
+                100% {
+                    box-shadow: 0 0 20px #ff1f3d, 0 0 40px #ff1f3d44;
+                    transform: scale(1);
+                }
+
+                50% {
+                    box-shadow: 0 0 50px #ff1f3d, 0 0 100px #ff1f3d88, 0 0 150px #ff1f3d22;
+                    transform: scale(1.06);
+                }
+            }
+
+            @keyframes splashFade {
+                from {
+                    opacity: 1;
+                }
+
+                to {
+                    opacity: 0;
+                    pointer-events: none;
+                }
+            }
+
+            @keyframes dotPulse {
+
+                0%,
+                80%,
+                100% {
+                    opacity: 0.2;
+                }
+
+                40% {
+                    opacity: 1;
+                }
+            }
+
+            .splash-dot {
+                display: inline-block;
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: #ff1f3d;
+                margin: 0 3px;
+                animation: dotPulse 1.4s infinite ease-in-out;
+            }
+
+            .splash-dot:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+
+            .splash-dot:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+
+            #splash-screen.hiding {
+                animation: splashFade 0.5s ease forwards;
+            }
+        </style>
+        <img src="logo.png" alt="FitDataPro"
+            style="width:100px;height:100px;border-radius:24px;animation:splashPulse 2s ease-in-out infinite;">
+        <div>
+            <h1
+                style="font-family:'Courier New',monospace;font-size:32px;font-weight:900;color:white;letter-spacing:-1px;text-align:center;margin:0;">
+                FIT<span style="color:#ff1f3d;">DATA</span>PRO</h1>
+            <p style="color:#555;font-size:12px;text-align:center;margin:6px 0 0;">Red Neuronal de Entrenamiento</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;margin-top:8px;">
+            <span class="splash-dot"></span>
+            <span class="splash-dot"></span>
+            <span class="splash-dot"></span>
+        </div>
+    </div>
+
     <div id="toast-container"></div>
 
     <section id="auth-view" class="auth-container">
@@ -360,6 +439,13 @@
 
                 document.getElementById('auth-view').style.display = 'none';
                 document.getElementById('app-wrapper').style.display = 'block';
+
+                // Hide splash screen with fade
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.classList.add('hiding');
+                    setTimeout(() => splash.remove(), 500);
+                }
 
                 if (userData) {
                     State.profile.maxWeights = userData.maxWeights || {};
@@ -977,18 +1063,18 @@
                                     <button onclick="window.sendQuickReminder('medidas')" class="cyber-button secondary" style="flex:1; font-size:10px; padding:8px 4px; border-color:#00ff88; color:#00ff88;">📏 Medidas</button>
                                 </div>
 
-                                <label style="font-size:11px; color:#aaa; margin-top:10px;">Programar Recordatorio Automático (App):</label>
-                                <div style="display:flex; gap:10px;">
+                                <label style="font-size:11px; color:#aaa; margin-top:10px;">Programar Recordatorio Automático Push:</label>
+                                <div style="display:flex; gap:10px; margin-bottom:6px;">
                                     <select id="remind-type" class="cyber-input" style="flex:1; background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
-                                        <option value="fotos">Fotos</option>
-                                        <option value="peso">Peso Báscula</option>
-                                        <option value="medidas">Medidas</option>
+                                        <option value="fotos">📸 Fotos Progreso</option>
+                                        <option value="peso">⚖️ Peso Báscula</option>
+                                        <option value="medidas">📏 Medidas Corporales</option>
                                     </select>
-                                    <select id="remind-freq" class="cyber-input" style="flex:1; background:#111; color:white; padding:8px; border:1px solid #444; border-radius:4px;">
-                                        <option value="7">Semanal (7 días)</option>
-                                        <option value="15">Quincenal (15 días)</option>
-                                        <option value="30">Mensual (30 días)</option>
-                                    </select>
+                                    <input type="time" id="remind-time" value="09:00" style="flex:0.6; padding:8px; background:#111; border:1px solid #444; color:white; border-radius:4px; font-size:12px;">
+                                </div>
+                                <label style="font-size:10px; color:#aaa; margin-bottom:4px; display:block;">Días de la semana:</label>
+                                <div style="display:flex; gap:5px; margin-bottom:8px; flex-wrap:wrap;">
+                                    ${['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d, i) => `<label style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:#aaa;"><input type="checkbox" class="remind-day" value="${i + 1}" style="accent-color:#ff1f3d;"> ${d}</label>`).join('')}
                                 </div>
                                 <button onclick="window.scheduleReminder()" class="cyber-button" style="margin-top:5px; background:transparent; border:1px solid #00d4ff; color:#00d4ff;">⚙️ Programar Push Automático</button>
                             </div>
@@ -1063,17 +1149,32 @@
         window.scheduleReminder = async () => {
             const uid = document.getElementById('remind-client').value;
             const type = document.getElementById('remind-type').value;
-            const freq = parseInt(document.getElementById('remind-freq').value, 10);
+            const timeVal = document.getElementById('remind-time')?.value || '09:00';
+            const selectedDays = [...document.querySelectorAll('.remind-day:checked')].map(c => parseInt(c.value));
             if (!uid) return alert('Selecciona atleta');
+            if (selectedDays.length === 0) return alert('Selecciona al menos un día de la semana');
 
-            let txt = "";
-            if (type === 'fotos') txt = "🔔 Toca actualización de fotos (Frontal/Espalda).";
-            if (type === 'peso') txt = "🔔 Toca actualización de peso en la báscula.";
-            if (type === 'medidas') txt = "🔔 Toca revisión de contornos biometría.";
+            let txt = '';
+            if (type === 'fotos') txt = '📸 RECORDATORIO: Actualiza tus fotos de progreso (Frontal/Espalda).';
+            if (type === 'peso') txt = '⚖️ RECORDATORIO: Pésate en báscula y actualiza tu peso.';
+            if (type === 'medidas') txt = '📏 RECORDATORIO: Toma tus medidas corporales y actualízalas.';
 
             const btn = event.target;
-            btn.textContent = "⚙️ Programando...";
+            btn.textContent = '⚙️ Programando...';
             btn.disabled = true;
+
+            // Calculate nextTrigger: next occurrence of a selected weekday at the given time
+            const [hh, mm] = timeVal.split(':').map(Number);
+            const now = new Date();
+            let next = null;
+            for (let daysAhead = 0; daysAhead <= 7; daysAhead++) {
+                const candidate = new Date(now);
+                candidate.setDate(candidate.getDate() + daysAhead);
+                candidate.setHours(hh, mm, 0, 0);
+                const dow = candidate.getDay() === 0 ? 7 : candidate.getDay(); // 1=Mon..7=Sun
+                if (selectedDays.includes(dow) && candidate > now) { next = candidate; break; }
+            }
+            if (!next) next = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
             try {
                 const { getDoc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
@@ -1082,18 +1183,13 @@
                 if (snap.exists()) {
                     const data = snap.data();
                     const automaticReminders = data.automaticReminders || [];
-
                     const existingIdx = automaticReminders.findIndex(r => r.type === type);
-                    const nextTime = Date.now() + (freq * 24 * 60 * 60 * 1000); // Ms in days
-
-                    if (existingIdx >= 0) {
-                        automaticReminders[existingIdx] = { type, text: txt, freqDays: freq, nextTrigger: nextTime };
-                    } else {
-                        automaticReminders.push({ type, text: txt, freqDays: freq, nextTrigger: nextTime });
-                    }
-
+                    const reminder = { type, text: txt, days: selectedDays, time: timeVal, nextTrigger: next.getTime() };
+                    if (existingIdx >= 0) automaticReminders[existingIdx] = reminder;
+                    else automaticReminders.push(reminder);
                     await updateDoc(userRef, { automaticReminders });
-                    showToast(`Push Automático (${type}) programado cada ${freq} días.`);
+                    const dayNames = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+                    showToast(`✅ Push (${type}) programado: ${selectedDays.map(d => dayNames[d - 1]).join(',')} a las ${timeVal}`);
                 }
             } catch (e) {
                 console.error(e);
@@ -1372,7 +1468,14 @@
         };
 
         window.viewAthleteProfile = async (uid) => {
-            const contentArea = document.getElementById('admin-content-area');
+            const contentArea = document.getElementById('admin-subcontent');
+            if (!contentArea) {
+                // If not in admin panel, switch to admin first then retry
+                navigateTo('admin');
+                await new Promise(r => setTimeout(r, 100));
+                window.loadAdminContent('atletas').then(() => window.viewAthleteProfile(uid));
+                return;
+            }
             contentArea.innerHTML = `<p style="color:var(--cyber-text-gray); font-size:13px; text-align:center; margin-top:40px;">Cargando datos vitáles del atleta...</p>`;
 
             try {
@@ -1495,9 +1598,11 @@
                 adminBackupState = JSON.parse(JSON.stringify({
                     profile: State.profile,
                     comparativaImages: State.comparativaImages,
-                    history: State.history
+                    history: State.history,
+                    plan: State.plan
                 }));
 
+                // Copy ALL relevant fields from client data into State
                 State.profile.maxWeights = userData.maxWeights || {};
                 State.profile.rmRecords = userData.rmRecords || {};
                 State.profile.machineNotes = userData.machineNotes || {};
@@ -1507,7 +1612,22 @@
                 State.profile.uid = userData.uid;
                 State.profile.weight = userData.weight || '';
                 State.profile.fat = userData.fat || '';
+                State.profile.height = userData.height || '';
                 State.profile.clientIdNum = userData.clientIdNum || '??';
+                State.profile.planName = userData.planName || '';
+                State.profile.planStartDate = userData.planStartDate || null;
+                State.profile.planEndDate = userData.planEndDate || null;
+                State.profile.objective = userData.objective || '';
+
+                // Load client plan (routines)
+                if (userData.plan) {
+                    State.plan = {
+                        name: userData.plan.name || '',
+                        activeDate: State.plan.activeDate,
+                        routinesAvailable: userData.plan.routinesAvailable || [],
+                        events: userData.plan.events || {}
+                    };
+                }
 
                 State.history = await loadHistory(uid);
 
@@ -1538,6 +1658,7 @@
                 State.profile = adminBackupState.profile;
                 State.comparativaImages = adminBackupState.comparativaImages;
                 State.history = adminBackupState.history;
+                State.plan = adminBackupState.plan; // Restore admin's own plan
                 adminBackupState = null;
             }
             const banner = document.getElementById('coach-mode-banner');
