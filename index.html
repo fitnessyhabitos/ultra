@@ -75,7 +75,7 @@
             }
 
             #splash-screen.hiding {
-                animation: splashFade 0.5s ease forwards;
+                animation: splashFade 1.5s ease forwards;
             }
         </style>
         <img src="logo.png" alt="FitDataPro"
@@ -437,7 +437,7 @@
             const splash = document.getElementById('splash-screen');
             if (splash) {
                 splash.classList.add('hiding');
-                setTimeout(() => splash.remove(), 500);
+                setTimeout(() => splash.remove(), 1500);
             }
 
             if (user) {
@@ -878,7 +878,7 @@
                                         <span style="font-size:10px; color:#aaa;">ID: ${u.clientIdNum ? '#' + u.clientIdNum : u.id.substring(0, 6).toUpperCase()}</span>
                                         <span style="font-size:10px; margin-left:6px; color:${u.subscriptionStatus === 'active' ? '#00ff88' : u.subscriptionStatus === 'pending' ? '#ffcc00' : '#ff4444'};">● ${u.subscriptionStatus === 'active' ? 'Activo' : u.subscriptionStatus === 'pending' ? 'Pendiente' : 'Sin plan'}</span>
                                     </div>
-                                    <div style="display:flex; gap:5px; flex-wrap:wrap; justify-content:flex-end;">
+                                    <div style="display:flex; flex-direction:row; flex-wrap:nowrap; gap:4px; justify-content:flex-end; align-items:center;">
                                         <button onclick="viewAthleteProfile('${u.id}')" class="cyber-button" style="padding:4px 8px; font-size:10px; min-width:auto;">Perfil</button>
                                         <button onclick="impersonateUser('${u.id}')" class="cyber-button" style="padding:4px 8px; font-size:10px; min-width:auto; background:#ff3333; border-color:#ff3333; color:white;">👁️</button>
                                         <button onclick="window.adminToggleSubscription('${u.id}', '${u.subscriptionStatus || 'none'}')" class="cyber-button" style="padding:4px 8px; font-size:10px; min-width:auto; border-color:${u.subscriptionStatus === 'active' ? '#ff4444' : '#00ff88'}; color:${u.subscriptionStatus === 'active' ? '#ff4444' : '#00ff88'};">${u.subscriptionStatus === 'active' ? '🔒 Off' : '🔓 On'}</button>
@@ -3272,15 +3272,43 @@
             if (e.target.closest('#btn-upload-inicio') || e.target.closest('#btn-upload-actual')) { alert("Abriendo galería segura de dispositivo..."); }
 
             // GUARDADO DE DATOS BASE
-            if (e.target.closest('#btn-save-profile')) alert("Datos personales actualizados.");
+            if (e.target.closest('#btn-save-profile')) {
+                const nameVal = document.getElementById('prof-name')?.value?.trim();
+                const dobVal = document.getElementById('prof-dob')?.value;
+                if (!nameVal) { showToast('⚠️ El nombre no puede estar vacío.'); return; }
+                State.profile.name = nameVal;
+                State.profile.dob = dobVal || State.profile.dob;
+                const btn = e.target.closest('#btn-save-profile');
+                btn.disabled = true; btn.textContent = 'Guardando...';
+                try {
+                    const { doc: fDoc, updateDoc: fUpdate } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+                    await fUpdate(fDoc(db, 'users', State.profile.uid), { name: State.profile.name, dob: State.profile.dob });
+                    showToast('✅ Datos personales actualizados.');
+                } catch (err) { console.error(err); showToast('❌ Error al guardar. Inténtalo de nuevo.'); }
+                finally { btn.disabled = false; btn.textContent = 'Actualizar Datos'; }
+            }
             if (e.target.closest('#btn-save-bio')) {
-                State.profile.weight = document.getElementById('bio-weight').value;
-                State.profile.height = document.getElementById('bio-height').value;
-                State.profile.fat = document.getElementById('bio-fat').value;
-                State.profile.muscle = document.getElementById('bio-muscle').value;
-                State.profile.objective = document.getElementById('bio-obj').value;
-                State.profile.restTimerDefault = parseInt(document.getElementById('bio-rest').value) || 60;
-                alert("Biometría sincronizada. La IA y el Timer están calibrados.");
+                State.profile.weight = document.getElementById('bio-weight')?.value || State.profile.weight;
+                State.profile.height = document.getElementById('bio-height')?.value || State.profile.height;
+                State.profile.fat = document.getElementById('bio-fat')?.value || State.profile.fat;
+                State.profile.muscle = document.getElementById('bio-muscle')?.value || State.profile.muscle;
+                State.profile.objective = document.getElementById('bio-obj')?.value || State.profile.objective;
+                State.profile.restTimerDefault = parseInt(document.getElementById('bio-rest')?.value) || 60;
+                const btn = e.target.closest('#btn-save-bio');
+                btn.disabled = true; btn.textContent = 'Guardando...';
+                try {
+                    const { doc: fDoc, updateDoc: fUpdate } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+                    await fUpdate(fDoc(db, 'users', State.profile.uid), {
+                        weight: State.profile.weight,
+                        height: State.profile.height,
+                        fat: State.profile.fat,
+                        muscle: State.profile.muscle,
+                        objective: State.profile.objective,
+                        restTimerDefault: State.profile.restTimerDefault
+                    });
+                    showToast('✅ Biometría sincronizada. IA y Timer calibrados.');
+                } catch (err) { console.error(err); showToast('❌ Error al guardar biometría.'); }
+                finally { btn.disabled = false; btn.textContent = 'Guardar Biometría'; }
             }
             if (e.target.closest('#btn-save-meal')) { alert("Registro nutricional enviado a tu historial."); navigateTo('historial'); }
 
