@@ -1277,8 +1277,8 @@
                                     <input type="text" id="new-diet-name" placeholder="Ej: Dieta Volumen 3000Kcal" style="background:#111; border:1px solid #444; color:white; padding:10px; border-radius:4px; font-size:13px; width:100%;">
                                     
                                     <label class="cyber-button" style="background:#222; border-style:dashed; padding:15px; text-align:center; cursor:pointer;">
-                                        <span id="label-diet-file" style="color:#aaa;">📁 Seleccionar PDF o Imagen</span>
-                                        <input type="file" id="new-diet-file" accept="application/pdf,image/*" style="display:none;" onchange="document.getElementById('label-diet-file').textContent = this.files[0] ? this.files[0].name : '📁 Seleccionar PDF o Imagen'">
+                                        <span id="label-diet-file" style="color:#aaa;">📁 Seleccionar PDF, Imagen o HTML</span>
+                                        <input type="file" id="new-diet-file" accept="text/html,application/pdf,image/*" style="display:none;" onchange="document.getElementById('label-diet-file').textContent = this.files[0] ? this.files[0].name : '📁 Seleccionar PDF, Imagen o HTML'">
                                     </label>
                                     
                                     <div style="display:flex; gap:10px; margin-top:10px;">
@@ -1758,7 +1758,7 @@
             const nameInput = document.getElementById('new-diet-name').value.trim();
             const fileInput = document.getElementById('new-diet-file').files[0];
             if (!nameInput || !fileInput) {
-                alert("Debes poner un nombre y elegir un archivo pdf/imagen.");
+                alert("Debes poner un nombre y elegir un archivo pdf, imagen o html.");
                 return;
             }
 
@@ -1768,13 +1768,25 @@
 
             try {
                 const { getStorage, ref, uploadBytes, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js');
-                const { db, doc, getDoc, updateDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+                const { doc, getDoc, updateDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+                const { db } = await import('./js/firebase.js');
 
                 const storage = getStorage();
-                const safeName = nameInput.replace(/[^a-zA-Z0-9]/g, '_') + '_' + Date.now();
+
+                // Allow original extension so HTML renders correctly in browser natively
+                const extMatch = fileInput.name.match(/\.([^\.]+)$/);
+                const ext = extMatch ? '.' + extMatch[1] : '';
+                const safeName = nameInput.replace(/[^a-zA-Z0-9]/g, '_') + '_' + Date.now() + ext;
+
                 const storageRef = ref(storage, `diets/${safeName}`);
 
-                await uploadBytes(storageRef, fileInput);
+                // Set metadata manually to force proper content-type if it's HTML so it loads within the frame/tab correctly
+                let metadata = {};
+                if (fileInput.type === 'text/html' || ext.toLowerCase() === '.html') {
+                    metadata.contentType = 'text/html; charset=utf-8';
+                }
+
+                await uploadBytes(storageRef, fileInput, metadata);
                 const dlUrl = await getDownloadURL(storageRef);
 
                 const newDiet = {
@@ -1808,7 +1820,8 @@
         window.deleteDiet = async (dietId) => {
             if (!confirm("¿Seguro que quieres eliminar esta dieta? Se borrará para todos.")) return;
             try {
-                const { db, doc, getDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+                const { doc, getDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+                const { db } = await import('./js/firebase.js');
                 const adminRef = doc(db, "adminData", "admin");
                 const adminSnap = await getDoc(adminRef);
                 if (adminSnap.exists()) {
@@ -1861,7 +1874,8 @@
             btn.disabled = true;
 
             const checkboxes = document.querySelectorAll('.diet-assign-cb');
-            const { db, doc, getDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+            const { doc, getDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+            const { db } = await import('./js/firebase.js');
 
             try {
                 const adminRef = doc(db, "adminData", "admin");
